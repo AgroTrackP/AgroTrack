@@ -1,0 +1,34 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    -
+     name: Checkout
+     uses: action/checout@v4
+    -
+     name: Login to Docker hub
+     uses: docker/login-action@v3
+     with:
+       username: ${{ secrets.DOCKERHUB_USERNAME }}
+       password: ${{ secrets.DOKERHUB_TOKEN }}
+    -
+     name: Set up Docker Build
+     uses: docker/setup-build-action@v3
+    -
+     name: Build and push
+     uses: docker/build-push/action@v5
+     with:
+      context: .
+      file: ./Dockerfile
+      push: true
+      tags: ${{ secrets.DOCKERHUB_USERNAME }}/agrotrack:latests
+     
+
+
