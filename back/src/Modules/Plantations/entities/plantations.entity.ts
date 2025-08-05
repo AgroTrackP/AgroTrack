@@ -20,12 +20,18 @@ export class Plantations {
   })
   area_m2: number;
 
-  @Column({})
+  @Column({
+    type: 'varchar',
+  })
   crop_type: string;
 
-  @Column({})
+  @Column({
+    type: 'varchar',
+  })
   location: string;
 
-  @Column({})
+  @Column({
+    type: 'datetime',
+  })
   start_date: Date;
 }
