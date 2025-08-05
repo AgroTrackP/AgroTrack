@@ -15,7 +15,7 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('Ecommerce API')
+    .setTitle('AgroTrack API')
     .setDescription('AgroTrack')
     .setVersion('1.0')
     .addBearerAuth(
