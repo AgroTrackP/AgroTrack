@@ -39,7 +39,7 @@ export class Users {
   role: Role;
 
   @Column({
-    type: 'datetime',
+    type: 'timestamp',
   })
   created_at: Date;
 

@@ -31,7 +31,7 @@ export class Plantations {
   location: string;
 
   @Column({
-    type: 'datetime',
+    type: 'timestamp',
   })
   start_date: Date;
 }
