@@ -18,7 +18,7 @@ export const postRegister = async (data: RegisterUserDto) => {
         return {
             message: "Usuario registrado correctamente",
         };
-        
+        //hdasdj
     } catch (e: unknown) {
         if (e instanceof Error) {
             console.warn("Error fetching post register", e.message);
