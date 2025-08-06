@@ -3,6 +3,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import TypeORMConfig from './Config/TypeORM.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSourceOptions } from 'typeorm';
+import { AuthModule } from './Modules/Auth/auth.module';
+import { jwtConfig } from './Config/JWT.config';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -20,6 +23,8 @@ import { DataSourceOptions } from 'typeorm';
         };
       },
     }),
+    AuthModule,
+    JwtModule.register(jwtConfig),
   ],
   controllers: [],
   providers: [],
