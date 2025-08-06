@@ -14,6 +14,6 @@ export class AuthController {
   @Post('login')
   login(@Body() username: string, password: string): string {
     console.log('Login attempt with:', { username, password });
-    return 'Este endpoint es para iniciar sesión';
+    return this.authService.login(username, password);
   }
 }
