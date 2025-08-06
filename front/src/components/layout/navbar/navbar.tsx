@@ -23,25 +23,25 @@ const NavBar = () => {
                     </a>
                     <ul className="flex space-x-4">
                         <Link
-                            className="block py-2 px-3 text-secondary-50 text-lg font-semibold md:p-0"
+                            className="block py-2 px-3 text-secondary-50 text-lg font-semibold md:p-0  dark:hover:text-secondary-200"
                             href={routes.login}
                         >
                             Login
                         </Link>
                         <Link
-                            className="block py-2 px-3 text-secondary-50 text-lg font-semibold md:p-0"
+                            className="block py-2 px-3 text-secondary-50 text-lg font-semibold md:p-0 dark:hover:text-secondary-200"
                             href={routes.register}
                         >
                             Register
                         </Link>
                         <Link
-                            className="block py-2 px-3 text-secondary-50 text-lg font-semibold md:p-0"
+                            className="block py-2 px-3 text-secondary-50 text-lg font-semibold md:p-0 dark:hover:text-secondary-200"
                             href={routes.profile}
                         >
                             Profile
                         </Link>
                         <Link
-                            className="block py-2 px-3 text-secondary-50 text-lg font-semibold md:p-0"
+                            className="block py-2 px-3 text-secondary-50 text-lg font-semibold md:p-0 dark:hover:text-secondary-200"
                             href={routes.mis_cultivos}
                         >
                             Cultivos
