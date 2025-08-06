@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import TypeORMConfig from './Config/TypeORM.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSourceOptions } from 'typeorm';
+import { CloudinaryModule } from './Modules/Cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { DataSourceOptions } from 'typeorm';
         };
       },
     }),
+    CloudinaryModule,
   ],
   controllers: [],
   providers: [],
