@@ -1,5 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Role } from '../user.enum';
+import { Plantations } from 'src/Modules/Plantations/entities/plantations.entity';
+import { Products } from 'src/Modules/Products/entities/products.entity';
+import { Diseases } from 'src/Modules/Diseases/entities/diseases.entity';
+import { ApplicationPlans } from 'src/Modules/ApplicationPlans/entities/applicationplan.entity';
+import { ApplicationType } from 'src/Modules/ApplicationTypes/entities/applicationtype.entity';
+import { Phenology } from 'src/Modules/Phenologies/entities/phenologies.entity';
 
 @Entity({
   name: 'USERS',
@@ -34,7 +40,8 @@ export class Users {
     type: 'varchar',
     length: 20,
     nullable: false,
-    default: 'user',
+    default: Role.User,
+    enum: Role,
   })
   role: Role;
 
@@ -49,4 +56,22 @@ export class Users {
     default: null,
   })
   suscription_level: string;
+
+  @OneToMany(() => Plantations, (plantation) => plantation.user)
+  plantations: Plantations[];
+
+  @OneToMany(() => Products, (product) => product.user)
+  products: Products[];
+
+  @OneToMany(() => Diseases, (disease) => disease.user)
+  diseases: Diseases[];
+
+  @OneToMany(() => ApplicationPlans, (plan) => plan.user)
+  applicationPlans: ApplicationPlans[];
+
+  @OneToMany(() => ApplicationType, (type) => type.user)
+  applicationTypes: ApplicationType[];
+
+  @OneToMany(() => Phenology, (phenology) => phenology.user)
+  phenologies: Phenology[];
 }

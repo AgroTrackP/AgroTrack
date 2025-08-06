@@ -1,4 +1,13 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { ApplicationPlans } from 'src/Modules/ApplicationPlans/entities/applicationplan.entity';
+import { Users } from 'src/Modules/Users/entities/user.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity({
   name: 'PLANTATIONS',
@@ -34,4 +43,11 @@ export class Plantations {
     type: 'timestamp',
   })
   start_date: Date;
+
+  @OneToMany(() => ApplicationPlans, (plan) => plan.plantation)
+  applicationPlans: ApplicationPlans[];
+
+  @ManyToOne(() => Users, (user) => user.plantations)
+  @JoinColumn({ name: 'user_id' })
+  user: Users;
 }
