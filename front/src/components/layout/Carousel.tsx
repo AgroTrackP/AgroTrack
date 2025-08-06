@@ -1,6 +1,6 @@
 'use client'
 import React from 'react';
-import {Paper, Button, Box} from "@mui/material"
+import {Paper, Box} from "@mui/material"
 import Carousel from 'react-material-ui-carousel';
 
 const items = [
