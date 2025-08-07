@@ -23,13 +23,31 @@ export class UsersService {
     };
   }*/
 
-  async findAll(): Promise<UserResponseDto[]> {
+  async findAll(
+    pageNum = 1,
+    limitNum = 10,
+  ): Promise<{
+    data: UserResponseDto[];
+    pageNum: number;
+    limitNum: number;
+    total: number;
+  }> {
     try {
-      const users = await this.usersRepository.find();
-      return users.map((user) => {
-        const { id, name, email } = user;
-        return { id, name, email };
+      const [data, total] = await this.usersRepository.findAndCount({
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum,
+        select: ['id', 'name', 'email', 'created_at'],
+        relations: [
+          'plantations',
+          'diseases',
+          'applicationPlans',
+          'products',
+          'applicationTypes',
+          'phenologies',
+        ],
       });
+
+      return { data, pageNum, limitNum, total };
     } catch (error) {
       throw new Error(`Error fetching users: ${error}`);
     }

@@ -50,10 +50,9 @@ export class UsersController {
     return await this.usersService.findAll(pageNum, limitNum);
   }
 
+  @ApiBearerAuth('jwt')
   @UseGuards(AuthGuard, SelfOnlyGuard)
   @Get(':id')
-  @HttpCode(200)
-  @ApiBearerAuth('jwt')
   @ApiOperation({ summary: 'Get a user by id' })
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
   @ApiResponse({
