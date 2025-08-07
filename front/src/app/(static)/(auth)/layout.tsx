@@ -14,7 +14,7 @@ const LayoutMainAuth: FC<LayoutMainAuthProps> = ({children}) => {
                 <div className="flex items-center justify-center space-x-3 rtl:space-x-reverse">
                     <div className="flex items-center justify-center w-fit gap-2">
                         <></>
-                        <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
+                        <span className="self-center text-2xl font-semibold whitespace-nowrap">
                         AgroTrack
                         </span>
                     </div>
