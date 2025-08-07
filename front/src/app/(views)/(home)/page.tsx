@@ -1,9 +1,9 @@
-import Carrusel from "@/components/layout/Carousel";
+// import Carrusel from "@/components/layout/Carousel";
 
 export default function Home() {
   return (
     <>
-      <Carrusel/>
+      {/* <Carrusel/> */}
     </>
   )
 }
