@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  CreateDateColumn,
+} from 'typeorm';
 import { Role } from '../user.enum';
 import { Plantations } from 'src/Modules/Plantations/entities/plantations.entity';
 import { Products } from 'src/Modules/Products/entities/products.entity';
@@ -45,9 +51,7 @@ export class Users {
   })
   role: Role;
 
-  @Column({
-    type: 'timestamp',
-  })
+  @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 
   @Column({

@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import TypeORMConfig from './Config/TypeORM.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSourceOptions } from 'typeorm';
+import { CloudinaryModule } from './Modules/Cloudinary/cloudinary.module';
 import { AuthModule } from './Modules/Auth/auth.module';
 import { jwtConfig } from './Config/JWT.config';
 import { JwtModule } from '@nestjs/jwt';
@@ -23,6 +24,7 @@ import { JwtModule } from '@nestjs/jwt';
         };
       },
     }),
+    CloudinaryModule,
     AuthModule,
     JwtModule.register(jwtConfig),
   ],
