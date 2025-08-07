@@ -17,6 +17,10 @@ export default function LoginForm() {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
+      const handleSocialLogin = (provider: "google" | "facebook") => {
+            window.location.href = `/auth/${provider}`
+        }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -48,7 +52,7 @@ export default function LoginForm() {
             setError("Error de conexion con el servidor.");
         }
     };
-    
+
     return (
         <form
             onSubmit={handleSubmit}
@@ -85,6 +89,29 @@ export default function LoginForm() {
             >
                 Iniciar Sesión
             </button>
+
+            <div className="flex items-center justify-center">
+                <span className="text-gray-500 text-sm">o continúa con</span>
+            </div>
+
+            <div className="flex flex-col space-y-2">
+                <button type="button"
+                    className="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 px-4 rounded hover:bg-gray-100 transition"
+                    onClick={() => handleSocialLogin("google")}
+                >
+                    <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
+                    Continuar con Google
+                </button>
+
+                <button
+                    type="button"
+                    className="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 px-4 rounded hover:bg-gray-100 transition"
+                    onClick={() => handleSocialLogin("facebook")}
+                >
+                    <img src="/facebook-icon.svg" alt="Facebook" className="w-5 h-5" />
+                    Continuar con Facebook
+                </button>
+            </div>
         </form>
     );
 }
