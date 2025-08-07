@@ -5,3 +5,10 @@ export interface RegisterUserDto { //post
     address: string
     phone: string
 }
+
+export interface ISuscription{
+    id: string,
+    plan: string,
+    price: number,
+    benefits: string[]
+}

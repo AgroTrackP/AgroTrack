@@ -1,4 +1,6 @@
-const agroSubscriptions = [
+import { ISuscription } from "@/types";
+
+export const subscriptions: ISuscription[] = [
     {
         id: "sub_001",
         plan: "Básico",
