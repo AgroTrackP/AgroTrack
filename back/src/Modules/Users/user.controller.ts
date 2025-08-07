@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Put,
-  Delete,
   Param,
   Body,
   HttpCode,
@@ -80,19 +79,19 @@ export class UsersController {
   async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<UserResponseDto> {
+  ): Promise<{ message: string; user: UserResponseDto }> {
     return this.usersService.update(id, updateUserDto);
   }
 
-  @UseGuards(AuthGuard, SelfOnlyGuard)
-  @Delete(':id')
-  @HttpCode(204)
   @ApiBearerAuth('jwt')
+  @UseGuards(AuthGuard, SelfOnlyGuard)
+  @Put('delete/:id')
+  @HttpCode(204)
   @ApiOperation({ summary: 'Delete a user by id' })
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
   @ApiResponse({ status: 204, description: 'User deleted' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id') id: string): Promise<{ message: string }> {
     return this.usersService.remove(id);
   }
 

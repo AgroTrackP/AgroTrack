@@ -54,36 +54,62 @@ export class UsersService {
   }
 
   async findOne(id: string): Promise<UserResponseDto> {
-    const user = await this.usersRepository.findOne({
-      where: { id },
-      relations: {
-        plantations: true,
-        products: true,
-        diseases: true,
-        applicationPlans: true,
-        applicationTypes: true,
-        phenologies: true,
-      },
-    });
+    try {
+      const user = await this.usersRepository.findOne({
+        where: { id },
+        relations: {
+          plantations: true,
+          products: true,
+          diseases: true,
+          applicationPlans: true,
+          applicationTypes: true,
+          phenologies: true,
+        },
+      });
 
-    if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
+      if (!user) {
+        throw new NotFoundException(`User with id ${id} not found`);
+      }
+
+      return plainToInstance(UserResponseDto, user, {
+        excludeExtraneousValues: true,
+      });
+    } catch (error) {
+      throw new Error(`Error fetching user: ${error}`);
     }
-
-    return plainToInstance(UserResponseDto, user, {
-      excludeExtraneousValues: true,
-    });
   }
 
   async update(
     id: string,
     updateUserDto: UpdateUserDto,
-  ): Promise<UserResponseDto> {
-    await this.usersRepository.update(id, updateUserDto);
-    return this.findOne(id);
+  ): Promise<{ message: string; user: UserResponseDto }> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    try {
+      await this.usersRepository.update(id, updateUserDto);
+      return {
+        message: 'User updated successfully',
+        user: await this.findOne(id),
+      };
+    } catch (error) {
+      throw new Error(`Error updating user: ${error}`);
+    }
   }
 
-  async remove(id: string): Promise<void> {
-    await this.usersRepository.delete(id);
+  async remove(id: string): Promise<{ message: string }> {
+    try {
+      const user = await this.usersRepository.findOne({ where: { id } });
+      if (!user) {
+        throw new NotFoundException(`User not found`);
+      }
+      await this.usersRepository.update(user, { isActive: false });
+      return {
+        message: 'User deleted successfully',
+      };
+    } catch (error) {
+      throw new Error(`Error deleting user: ${error}`);
+    }
   }
 }
