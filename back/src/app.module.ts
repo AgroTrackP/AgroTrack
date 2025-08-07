@@ -7,6 +7,8 @@ import { CloudinaryModule } from './Modules/Cloudinary/cloudinary.module';
 import { AuthModule } from './Modules/Auth/auth.module';
 import { jwtConfig } from './Config/JWT.config';
 import { JwtModule } from '@nestjs/jwt';
+import { UserModule } from './Modules/Users/users.module';
+import { ProductsModule } from './Modules/Products/products.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { JwtModule } from '@nestjs/jwt';
     CloudinaryModule,
     AuthModule,
     JwtModule.register(jwtConfig),
+    UserModule,
+    ProductsModule,
   ],
   controllers: [],
   providers: [],

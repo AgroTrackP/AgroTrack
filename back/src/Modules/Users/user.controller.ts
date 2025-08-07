@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
-import { CreateUserDto } from './dtos/createuser.dto';
+import { CreateUserDto } from './dtos/create.user.dto';
 import { UpdateUserDto } from './dtos/update.user.dto';
 import { AuthGuard } from 'src/Guards/auth.guard';
 import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
