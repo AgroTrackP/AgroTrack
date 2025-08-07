@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Users } from './entities/user.entity';
-import { CreateUserDto } from './dtos/createuser.dto';
 import { UpdateUserDto } from './dtos/update.user.dto';
 import { UserResponseDto } from './dtos/user.response.dto';
 import { plainToInstance } from 'class-transformer';
@@ -14,7 +13,7 @@ export class UsersService {
     private readonly usersRepository: Repository<Users>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+  /*async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
     const user = this.usersRepository.create(createUserDto);
     const savedUser = await this.usersRepository.save(user);
     return {
@@ -22,14 +21,18 @@ export class UsersService {
       name: savedUser.name,
       email: savedUser.email,
     };
-  }
+  }*/
 
   async findAll(): Promise<UserResponseDto[]> {
-    const users = await this.usersRepository.find();
-    return users.map((user) => {
-      const { id, name, email } = user;
-      return { id, name, email };
-    });
+    try {
+      const users = await this.usersRepository.find();
+      return users.map((user) => {
+        const { id, name, email } = user;
+        return { id, name, email };
+      });
+    } catch (error) {
+      throw new Error(`Error fetching users: ${error}`);
+    }
   }
 
   async findOne(id: string): Promise<UserResponseDto> {
