@@ -1,8 +1,9 @@
 "use client"
 
 import { useState } from "react";
-
+import { FaGoogle } from "react-icons/fa";
 import { useRouter } from "next/navigation"
+import { FaFacebookF } from "react-icons/fa";
 
 export default function LoginForm() {
     const [form, setForm] = useState({
@@ -99,7 +100,7 @@ export default function LoginForm() {
                     className="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 px-4 rounded hover:bg-gray-100 transition"
                     onClick={() => handleSocialLogin("google")}
                 >
-                    <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
+                    <a><FaGoogle /></a>
                     Continuar con Google
                 </button>
 
@@ -108,7 +109,7 @@ export default function LoginForm() {
                     className="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 px-4 rounded hover:bg-gray-100 transition"
                     onClick={() => handleSocialLogin("facebook")}
                 >
-                    <img src="/facebook-icon.svg" alt="Facebook" className="w-5 h-5" />
+                    <a> <FaFacebookF /></a>
                     Continuar con Facebook
                 </button>
             </div>
