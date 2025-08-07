@@ -4,6 +4,7 @@ import { CreateUserDto } from './dtos/CreateUser.dto';
 import { Users } from '../Users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { LoginUserDto } from './dtos/LoginUser.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -22,8 +23,8 @@ export class AuthController {
 
   //Ruta de inicio de sesión
   @Post('login')
-  login(@Body() username: string, password: string): string {
-    console.log('Login attempt with:', { username, password });
-    return this.authService.login(username, password);
+  async login(@Body() body: LoginUserDto) {
+    const { email, password } = body;
+    return await this.authService.login({ email, password });
   }
 }

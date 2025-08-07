@@ -5,6 +5,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from '../Users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { hashPassword } from 'src/Helpers/hashPassword';
+import { validatePassword } from 'src/Helpers/passwordValidator';
+import { LoginUserDto } from './dtos/LoginUser.dto';
+import { JwtPayload } from 'src/Types/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -12,8 +15,6 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @InjectRepository(Users) private readonly usersDbRepo: Repository<Users>,
   ) {}
-
-  mockUsersDatabase = [];
 
   async register(
     userData: CreateUserDto,
@@ -48,9 +49,35 @@ export class AuthService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  login(username: string, password: string): string {
-    const payload = { username };
+  async login({ email, password }: LoginUserDto) {
+    const user = await this.usersDbRepo.findOne({ where: { email: email } });
+    if (!user) {
+      throw new BadRequestException('Invalid email or password');
+    }
+
+    await validatePassword(password, user.password);
+
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
     const token = this.jwtService.sign(payload);
-    return `User logged in successfully. Token: ${token}`;
+
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    const decoded = this.jwtService.decode(token) as JwtPayload;
+    const { exp, iat } = decoded;
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...userWithoutPassword } = user;
+
+    return {
+      message: `User logged in successfully.`,
+      token,
+      issuedAt: new Date((iat || 0) * 1000).toISOString(),
+      expiresAt: new Date((exp || 0) * 1000).toISOString(),
+      user: userWithoutPassword as Omit<Users, 'password'>,
+    };
   }
 }
