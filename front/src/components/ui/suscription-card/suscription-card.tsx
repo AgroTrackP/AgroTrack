@@ -3,7 +3,6 @@ import React, { FC } from 'react'
 import Button from '../button'
 
 const SuscriptionCard: FC<ISuscription> = ({
-    id,
     plan,
     price,
     benefits
