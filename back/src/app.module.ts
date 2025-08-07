@@ -3,13 +3,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import TypeORMConfig from './Config/TypeORM.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSourceOptions } from 'typeorm';
-<<<<<<< HEAD
 import { CloudinaryModule } from './Modules/Cloudinary/cloudinary.module';
-=======
 import { AuthModule } from './Modules/Auth/auth.module';
 import { jwtConfig } from './Config/JWT.config';
 import { JwtModule } from '@nestjs/jwt';
->>>>>>> f28435d8675becd019da55471989a8579aded7c5
+import { UsersModule } from './Modules/Users/users.module';
+import { ProductsModule } from './Modules/Products/products.module';
 
 @Module({
   imports: [
@@ -27,12 +26,11 @@ import { JwtModule } from '@nestjs/jwt';
         };
       },
     }),
-<<<<<<< HEAD
     CloudinaryModule,
-=======
     AuthModule,
     JwtModule.register(jwtConfig),
->>>>>>> f28435d8675becd019da55471989a8579aded7c5
+    UsersModule,
+    ProductsModule,
   ],
   controllers: [],
   providers: [],
