@@ -10,7 +10,7 @@ const SuscriptionList = () => {
                     <SuscriptionCard {...suscription} key={suscription.id}/>
                 ))}
 
-                {!subscriptions?.length && <span>No hay suscripciones</span>}
+                {!subscriptions?.length && <span>No hay suscripciones..</span>}
             </div>
         </>
     )
