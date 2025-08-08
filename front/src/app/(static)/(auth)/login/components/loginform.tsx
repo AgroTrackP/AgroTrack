@@ -49,6 +49,7 @@ export default function LoginForm() {
             }
 
             router.push("/home");
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             setError("Error de conexion con el servidor.");
         }
