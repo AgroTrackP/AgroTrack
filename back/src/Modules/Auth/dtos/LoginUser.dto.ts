@@ -17,6 +17,6 @@ export class LoginUserDto {
     example: 'JohnDoe.13!',
   })
   @IsNotEmpty()
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,15}$/)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*.])(.{8,15})$/)
   password: string;
 }
