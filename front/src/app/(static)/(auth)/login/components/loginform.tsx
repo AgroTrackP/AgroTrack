@@ -24,7 +24,6 @@ export default function LoginForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         setError("");
 
         if (!form.email || !form.password) {
@@ -33,11 +32,9 @@ export default function LoginForm() {
         }
 
         try {
-            const res = await fetch("/login", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json"},
                 body: JSON.stringify(form)
             });
 
@@ -47,6 +44,9 @@ export default function LoginForm() {
                 setError(data.message || "Datos incorrectos.");
                 return;
             }
+
+            localStorage.setItem("token",data.token);
+            localStorage.setItem("user", JSON.stringify(data.user));
 
             router.push("/home");
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
