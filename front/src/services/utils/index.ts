@@ -1,7 +1,10 @@
 "use server"
 
-import axios from "axios"
+import axios from "axios";
 
-export const axiosApiBack = axios.create ({
-    baseURL: process.env.API_URL,  //http://localhost:3004
+export const axiosApiBack = axios.create({
+    baseURL: "https://agrotrack-develop.onrender.com",
+    headers: {
+        "Content-Type": "application/json",
+    },
 });
