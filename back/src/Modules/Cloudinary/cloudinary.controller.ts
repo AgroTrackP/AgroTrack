@@ -12,11 +12,11 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from './cloudinary.service';
 
-@Controller('clodinary')
+@Controller('cloudinary')
 export class CloudinaryController {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
-  @Post()
+  @Post('/carrucel')
   @UseInterceptors(FileInterceptor('file'))
   async uploadImage(
     @UploadedFile(
@@ -48,8 +48,8 @@ export class CloudinaryController {
     }
   }
 
-  @Get()
-  async getImages() {
+  @Get('/carrucel')
+  async getImagescarrucel() {
     const folder = 'cc407b2851093a4726c1d776dc9b2a3f18';
     try {
       const result = await this.cloudinaryService.getImagesFromFolder(folder);
@@ -57,7 +57,20 @@ export class CloudinaryController {
     } catch (error) {
       console.error('Error al obtener imágenes:', error);
 
-      // El mensaje de error ahora es más descriptivo
+      throw new InternalServerErrorException(
+        'Hubo un error al obtener las imágenes de la carpeta.',
+      );
+    }
+  }
+  @Get('/home')
+  async getimagehome() {
+    const folder = 'folder-home';
+    try {
+      const result = await this.cloudinaryService.getImagesFromFolder(folder);
+      return result;
+    } catch (error) {
+      console.error('Error al obtener imágenes:', error);
+
       throw new InternalServerErrorException(
         'Hubo un error al obtener las imágenes de la carpeta.',
       );
