@@ -6,7 +6,7 @@ import React from "react"
 const NavBar = () => {
     return (
         <>
-            <nav className="bg-primary-500 fixed w-full z-20 top-0 start-0 border-b border-gray-200 border-primary-700">
+            <nav className="bg-primary-500  fixed w-full z-20 top-0 start-0 border-b border-gray-200 border-primary-700">
                 <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
                     <a
                         href={routes.home}

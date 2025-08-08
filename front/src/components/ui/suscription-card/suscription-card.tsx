@@ -8,7 +8,7 @@ const SuscriptionCard: FC<ISuscription> = ({
     benefits
 }) => {
     return (
-        <div className="max-w-sm border border-secondary-300 rounded-lg p-6 shadow-md">
+        <div className="w-full h-[400px] flex flex-col justify-between border border-secondary-300 rounded-lg p-6 shadow-md">
             <h5 className="mb-4 text-xl font-medium text-primary-900">{plan || "Nombre del plan"}</h5>
             <div className="flex items-baseline text-primary-900">
                 <span className="text-sm font-semibold">$</span>
