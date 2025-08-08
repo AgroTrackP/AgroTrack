@@ -78,4 +78,10 @@ export class Users {
 
   @OneToMany(() => Phenology, (phenology) => phenology.user)
   phenologies: Phenology[];
+
+  @Column({
+    type: 'boolean',
+    default: true,
+  })
+  isActive: boolean;
 }
