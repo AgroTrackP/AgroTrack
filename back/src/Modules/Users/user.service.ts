@@ -23,49 +23,93 @@ export class UsersService {
     };
   }*/
 
-  async findAll(): Promise<UserResponseDto[]> {
+  async findAll(
+    pageNum = 1,
+    limitNum = 10,
+  ): Promise<{
+    data: UserResponseDto[];
+    pageNum: number;
+    limitNum: number;
+    total: number;
+  }> {
     try {
-      const users = await this.usersRepository.find();
-      return users.map((user) => {
-        const { id, name, email } = user;
-        return { id, name, email };
+      const [data, total] = await this.usersRepository.findAndCount({
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum,
+        select: ['id', 'name', 'email', 'created_at'],
+        relations: [
+          'plantations',
+          'diseases',
+          'applicationPlans',
+          'products',
+          'applicationTypes',
+          'phenologies',
+        ],
       });
+
+      return { data, pageNum, limitNum, total };
     } catch (error) {
       throw new Error(`Error fetching users: ${error}`);
     }
   }
 
   async findOne(id: string): Promise<UserResponseDto> {
-    const user = await this.usersRepository.findOne({
-      where: { id },
-      relations: {
-        plantations: true,
-        products: true,
-        diseases: true,
-        applicationPlans: true,
-        applicationTypes: true,
-        phenologies: true,
-      },
-    });
+    try {
+      const user = await this.usersRepository.findOne({
+        where: { id },
+        relations: {
+          plantations: true,
+          products: true,
+          diseases: true,
+          applicationPlans: true,
+          applicationTypes: true,
+          phenologies: true,
+        },
+      });
 
-    if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
+      if (!user) {
+        throw new NotFoundException(`User with id ${id} not found`);
+      }
+
+      return plainToInstance(UserResponseDto, user, {
+        excludeExtraneousValues: true,
+      });
+    } catch (error) {
+      throw new Error(`Error fetching user: ${error}`);
     }
-
-    return plainToInstance(UserResponseDto, user, {
-      excludeExtraneousValues: true,
-    });
   }
 
   async update(
     id: string,
     updateUserDto: UpdateUserDto,
-  ): Promise<UserResponseDto> {
-    await this.usersRepository.update(id, updateUserDto);
-    return this.findOne(id);
+  ): Promise<{ message: string; user: UserResponseDto }> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    try {
+      await this.usersRepository.update(id, updateUserDto);
+      return {
+        message: 'User updated successfully',
+        user: await this.findOne(id),
+      };
+    } catch (error) {
+      throw new Error(`Error updating user: ${error}`);
+    }
   }
 
-  async remove(id: string): Promise<void> {
-    await this.usersRepository.delete(id);
+  async remove(id: string): Promise<{ message: string }> {
+    try {
+      const user = await this.usersRepository.findOne({ where: { id } });
+      if (!user) {
+        throw new NotFoundException(`User not found`);
+      }
+      await this.usersRepository.update(user, { isActive: false });
+      return {
+        message: 'User deleted successfully',
+      };
+    } catch (error) {
+      throw new Error(`Error deleting user: ${error}`);
+    }
   }
 }

@@ -6,7 +6,7 @@ import Image from 'next/image';
 
 const Footer = () => {
     return (
-        <footer className=" bg-primary-500 mt-5" >
+        <footer className=" bg-primary-500 " >
             <div className="mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8">
                 <div className="md:flex md:justify-between">
                     <div className="mb-6 md:mb-0">
@@ -28,15 +28,15 @@ const Footer = () => {
                     </span>
                     <div className="flex mt-4 sm:justify-center sm:mt-0">
                         <a href="#" className="text-secondary-400 hover:text-white">
-                            <FaFacebookF />
+                            <FaFacebookF className='text-xl'/>
                             <span className="sr-only">Facebook page</span>
                         </a>
                         <a href="#" className="text-secondary-400 hover:text-white ms-5">
-                            <FaTwitter />
+                            <FaTwitter className='text-xl' />
                             <span className="sr-only">Twitter page</span>
                         </a>
                         <a href="#" className="text-secondary-400 hover:text-white ms-5">
-                            <AiFillInstagram />
+                            <AiFillInstagram className='text-xl' />
                             <span className="sr-only">Instagram page</span>
                         </a>
                     </div>
