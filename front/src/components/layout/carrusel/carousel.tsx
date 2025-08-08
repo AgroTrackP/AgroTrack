@@ -19,9 +19,7 @@ const Carousel: React.FC = () => {
             { id: 3, url: "https://res.cloudinary.com/dbemhu1mr/image/upload/v1754497365/carrusel2_aoj3au.png" },
         ];
 
-        setTimeout(() => {
-            setImages(hardcodedImages);
-        }, 1000);
+        setImages(hardcodedImages);
     }, []);
 
     useEffect(() => {
