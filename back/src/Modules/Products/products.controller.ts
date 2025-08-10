@@ -3,12 +3,12 @@ import {
   Get,
   Post,
   Patch,
-  Delete,
   Param,
   Body,
   Query,
   UseGuards,
   HttpCode,
+  Delete,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dtos/create.products.dto';
@@ -23,24 +23,32 @@ import {
 } from '@nestjs/swagger';
 import { PaginationDto } from './dtos/pagination.dto';
 import { AuthGuard } from 'src/Guards/auth.guard';
-import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
 import { PaginatedProductsDto } from './dtos/paginated.products.dto';
+import { Products } from './entities/products.entity';
+import { RoleGuard } from 'src/Guards/role.guard';
+import { Roles } from '../Auth/decorators/roles.decorator';
+import { Role } from '../Users/user.enum';
 
 @ApiTags('Products')
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  // Crear un nuevo producto
   @Post()
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Crear un nuevo producto' })
   @ApiBody({ type: CreateProductDto })
   @ApiResponse({ status: 201, description: 'Producto creado exitosamente' })
   @HttpCode(201)
-  create(@Body() createProductDto: CreateProductDto) {
+  create(
+    @Body() createProductDto: CreateProductDto,
+  ): Promise<{ message: string; product: Products }> {
     return this.productsService.create(createProductDto);
   }
 
+  // Obtener todos los productos.
   @Get()
   @ApiOperation({ summary: 'Obtener todos los productos' })
   @ApiResponse({ status: 200, description: 'Lista de productos' })
@@ -49,6 +57,7 @@ export class ProductsController {
     return this.productsService.findAll();
   }
 
+  // Obtener productos paginados
   @Get('paginate')
   @ApiOperation({ summary: 'Obtener productos paginados' })
   @ApiResponse({
@@ -73,6 +82,7 @@ export class ProductsController {
     return this.productsService.paginate(paginationDto);
   }
 
+  // Obtener un producto por su ID
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un producto por su ID' })
   @ApiParam({ name: 'id', description: 'ID del producto' })
@@ -82,24 +92,31 @@ export class ProductsController {
     return this.productsService.findOne(id);
   }
 
+  // Actualizar un producto por su ID
   @Patch(':id')
-  @UseGuards(AuthGuard, SelfOnlyGuard)
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Actualizar un producto por su ID' })
   @ApiParam({ name: 'id', description: 'ID del producto' })
   @ApiBody({ type: UpdateProductDto })
   @ApiResponse({ status: 200, description: 'Producto actualizado' })
   @HttpCode(200)
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+  ): Promise<{ message: string; product: Products }> {
     return this.productsService.update(id, updateProductDto);
   }
 
+  // Eliminar un producto por su ID
   @Delete(':id')
-  @UseGuards(AuthGuard, SelfOnlyGuard)
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Eliminar un producto por su ID' })
   @ApiParam({ name: 'id', description: 'ID del producto' })
   @ApiResponse({ status: 204, description: 'Producto eliminado' })
   @HttpCode(204)
-  remove(@Param('id') id: string): Promise<void> {
+  remove(@Param('id') id: string): Promise<string> {
     return this.productsService.remove(id);
   }
 }

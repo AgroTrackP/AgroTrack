@@ -7,6 +7,7 @@ import {
   HttpCode,
   UseGuards,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { UpdateUserDto } from './dtos/update.user.dto';
@@ -85,7 +86,7 @@ export class UsersController {
 
   @ApiBearerAuth('jwt')
   @UseGuards(AuthGuard, SelfOnlyGuard)
-  @Put('delete/:id')
+  @Delete('delete/:id')
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete a user by id' })
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })

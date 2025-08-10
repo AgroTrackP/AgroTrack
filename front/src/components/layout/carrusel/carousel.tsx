@@ -11,16 +11,20 @@ const Carousel: React.FC = () => {
 
     const [images, setImages] = useState<ImgItem[]>([]);
     const [imgActual, setImgActual] = useState<number>(0);
+        useEffect(() => {
+        const fetchImg = async () => {
+            try {
+                const response = await fetch("https://agrotrack-develop.onrender.com/cloudinary/carrucel");
+                const data: ImgItem[] = await response.json();
+                console.log(data);
 
-    useEffect(() => {
-        const hardcodedImages: ImgItem[] = [
-            { id: 1, url: "https://res.cloudinary.com/dbemhu1mr/image/upload/v1754497365/carrusel_pvmmd4.png" },
-            { id: 2, url: "https://res.cloudinary.com/dbemhu1mr/image/upload/v1754497365/carrusel1_mueesa.png" },
-            { id: 3, url: "https://res.cloudinary.com/dbemhu1mr/image/upload/v1754497365/carrusel2_aoj3au.png" },
-        ];
-
-        setImages(hardcodedImages);
-    }, []);
+                setImages(data);
+            } catch (error) {
+                console.log("Error al cargar las imagenes: ", error);
+            }
+        };
+        fetchImg();
+    }, [])
 
     useEffect(() => {
         const interval = setInterval(() => {
