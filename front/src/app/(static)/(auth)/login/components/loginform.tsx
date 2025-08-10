@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { useRouter } from "next/navigation"
 import { FaFacebookF } from "react-icons/fa";
+import { authStorage } from "./utils/authStorage";
 
 export default function LoginForm() {
     const [form, setForm] = useState({
@@ -45,8 +46,7 @@ export default function LoginForm() {
                 return;
             }
 
-            localStorage.setItem("token",data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            authStorage.setSession(data.token, data.user);
 
             router.push("/home");
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
