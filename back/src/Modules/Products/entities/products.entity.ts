@@ -54,4 +54,10 @@ export class Products {
 
   @ManyToMany(() => Diseases, (disease) => disease.products)
   diseases: Diseases[];
+
+  @Column({
+    type: 'boolean',
+    default: true,
+  })
+  isActive: boolean;
 }
