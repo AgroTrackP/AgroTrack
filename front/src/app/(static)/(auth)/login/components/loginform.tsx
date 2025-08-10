@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { useRouter } from "next/navigation"
 import { FaFacebookF } from "react-icons/fa";
+import { authStorage } from "./utils/authStorage";
 
 export default function LoginForm() {
     const [form, setForm] = useState({
@@ -24,7 +25,6 @@ export default function LoginForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         setError("");
 
         if (!form.email || !form.password) {
@@ -33,11 +33,9 @@ export default function LoginForm() {
         }
 
         try {
-            const res = await fetch("/login", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json"},
                 body: JSON.stringify(form)
             });
 
@@ -48,7 +46,10 @@ export default function LoginForm() {
                 return;
             }
 
+            authStorage.setSession(data.token, data.user);
+
             router.push("/home");
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             setError("Error de conexion con el servidor.");
         }
