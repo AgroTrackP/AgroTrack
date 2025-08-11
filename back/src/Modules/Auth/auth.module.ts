@@ -1,9 +1,10 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from '../Users/entities/user.entity';
 import { PassportModule } from '@nestjs/passport';
+import { requiresAuth } from 'express-openid-connect';
 
 @Module({
   imports: [
@@ -14,4 +15,8 @@ import { PassportModule } from '@nestjs/passport';
   providers: [AuthService],
   exports: [],
 })
-export class AuthModule {}
+export class AuthModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(requiresAuth()).forRoutes('user/auth0/protected');
+  }
+}
