@@ -2,6 +2,7 @@ import { routes } from "@/routes"
 import Image from "next/image"
 import Link from "next/link"
 import React from "react"
+import AuthNavbar from "./authNavbar"
 
 const NavBar = () => {
     return (
@@ -22,7 +23,7 @@ const NavBar = () => {
                         <span className="self-center text-4xl font-semibold whitespace-nowrap text-secondary-50">AgroTrack</span>
                     </a>
                     <ul className="flex space-x-4">
-                        <Link
+                        {/* <Link
                             className="block py-2 px-3 text-secondary-50 text-lg font-semibold md:p-0  hover:text-secondary-200"
                             href={routes.login}
                         >
@@ -45,8 +46,9 @@ const NavBar = () => {
                             href={routes.mis_cultivos}
                         >
                             Cultivos
-                        </Link>
+                        </Link> */}
                     </ul>
+                <AuthNavbar />
                 </div>
             </nav>
         </>

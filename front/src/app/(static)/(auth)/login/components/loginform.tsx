@@ -1,70 +1,129 @@
 "use client"
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { FaGoogle } from "react-icons/fa";
 import { useRouter } from "next/navigation"
 import { FaFacebookF } from "react-icons/fa";
+import { useAuthContext } from "@/context/authContext";
+import { postLogin } from "@/services/auth";
+import { routes } from "@/routes";
+import { toast } from "react-toastify";
+import * as yup from "yup";
+
+const loginSchema = yup.object({
+        email: yup
+        .string()
+        .required("El correo electrónico es obligatorio")
+        .email("El correo electrónico no es válido"),
+        
+        password: yup
+        .string()
+        .required()
+        .min(6, "La contraseña debe tener al menos 6 caracteres")
+        .required("La contraseña es obligatoria"),
+});
 
 export default function LoginForm() {
-    const [form, setForm] = useState({
-        email: "",
-        password: "",
-    });
-
-    const [error, setError] = useState("");
+    const {saveUserData} = useAuthContext();
     const router = useRouter();
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+    const [form, setForm] = useState({ 
+        email: "", 
+        password: "" 
+    });
+    const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    //validaciones
+    const handleValidation = async () => {
+        try {
+            await loginSchema.validate(form, { abortEarly: false });
+            setErrors({});
+            return true;
+        } catch (error) {
+            if (error instanceof yup.ValidationError) {
+                const newErrors: Record<string, string> = {};
+                error.inner.forEach((curr) => {
+                    if (curr.path) {
+                        newErrors[curr.path] = curr.message;
+                    }
+                });
+                setErrors(newErrors);
+            }
+            return false;
+        }
     };
 
-      const handleSocialLogin = (provider: "google" | "facebook") => {
-            window.location.href = `/auth/${provider}`
-        }
+const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ 
+        ...prev, 
+        [name]: value
+    }));
+};
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSocialLogin = (provider: "google" | "facebook") => {
+            window.location.href = `/auth/${provider}`; // Redirige al endpoint de autenticación social
+        };
+
+    const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
+        // Evita el comportamiento por defecto del formulario
         e.preventDefault();
-        setError("");
-
-        if (!form.email || !form.password) {
-            setError("Todos los campos son obligatorios.");
-            return;
-        }
+        // Evita el comportamiento por defecto del formulario
+        const isValid = await handleValidation();
+        if (!isValid) return;
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json"},
-                body: JSON.stringify(form)
-            });
+            setLoading(true);
+            const res = await postLogin(form);
+            const data = res.data;
 
-            const data = await res.json();
-
-            if (!res.ok) {
-                setError(data.message || "Datos incorrectos.");
+        if (!data?.token || !data?.user) {
+            toast.error(data?.message || "Datos incorrectos");
                 return;
-            }
-
-            localStorage.setItem("token",data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
-
-            router.push("/home");
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (err) {
-            setError("Error de conexion con el servidor.");
         }
-    };
+    
+        console.log("Datos de inicio de sesión:", data);
+            // Guardar token y usuario
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data.user));
+                
+                // Actualiza el contexto global
+                
+                if (res.data) {
+                saveUserData(res.data);
+};
+                //guardar el token en localStorage o cookies
+                
+                toast.success(" Inició de sesión exitoso");
+
+
+        // redireccionar a la pagina de inicio o dashboard
+        setTimeout (()=>{
+            router.push(routes.home)
+        },2000);
+
+// (error:unknown)
+    } catch {
+        toast.error("Error al iniciar sesión");
+    } finally {
+        setTimeout(() => {
+            setLoading(false);
+        }, 2000);
+    }
+};
 
     return (
         <form
             onSubmit={handleSubmit}
-            className="max-w-md mx-auto bg-white p-6 rounded shadow space-y-4">
+            className="max-w-md mx-auto bg-white p-11 rounded shadow space-y-8">
             <h2 className="text-2xl font-semibold text-center"> Iniciar Sesion</h2>
-            {error && <p className="text-red-600 text-sm">{error}</p>}
+            
 
             <div>
                 <label className="block text-sm font-medium mb-1">Correo electrónico</label>
                 <input
+                    
                     type="email"
                     name="email"
                     value={form.email}
@@ -77,6 +136,7 @@ export default function LoginForm() {
             <div>
                 <label className="block text-sm font-medium mb-1">Contraseña</label>
                 <input
+                    
                     type="password"
                     name="password"
                     value={form.password}
@@ -85,7 +145,9 @@ export default function LoginForm() {
                     required
                 />
             </div>
+            {errors?.password && <p className="text-red-600 text-sm">{errors.password}</p>}
             <button
+                disabled={loading}
                 type="submit"
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
             >
@@ -117,5 +179,3 @@ export default function LoginForm() {
         </form>
     );
 }
-
-//comentario de prueba

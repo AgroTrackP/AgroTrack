@@ -1,6 +1,8 @@
 "use server";
-import { RegisterUserDto } from "@/types";
+import { LoginUserDto, RegisterUserDto } from "@/types";
 import { axiosApiBack } from "./utils";
+import { LoginServiceResponse } from "./utils/types";
+import { LoginResponse } from "./utils/types";
 
 export const postRegister = async (data: RegisterUserDto) => {
   console.log("Enviando datos de registro:", data);
@@ -35,4 +37,32 @@ export const postRegister = async (data: RegisterUserDto) => {
       errors: "Error desconocido",
     };
   }
+};
+///////
+
+export const postLogin = async (data:LoginUserDto): Promise<LoginServiceResponse> => {
+    try {
+        const res = await axiosApiBack.post<LoginResponse>("/auth/login", data); 
+
+        if (!res.data) {
+            console.warn("Invalid post login data format", res.data);
+            return {
+                message: "Error al iniciar sesión",
+                errors: res.data,
+            };
+        }
+
+        return {
+            message: "Usuario inició sesión correctamente",
+            data: res.data,
+        };       
+    } catch (e:unknown) {
+        if (e instanceof Error) {
+            console.warn("Error fetching post login", e?.message);
+        }
+        return {
+            message: "Error al iniciar sesión",
+            errors: (e as Error).message || "Error desconocido",
+        };
+    }
 };
