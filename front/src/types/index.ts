@@ -25,8 +25,8 @@ export interface LoginUserDto {  // post
 }
 
 export interface ISuscription{
-    id: string,
-    plan: string,
+    priceId: string,
+    name: string,
     price: number,
     benefits: string[]
 }

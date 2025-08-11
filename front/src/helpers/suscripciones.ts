@@ -2,8 +2,8 @@ import { ISuscription } from "@/types";
 
 export const subscriptions: ISuscription[] = [
     {
-        id: "sub_001",
-        plan: "Básico",
+        priceId: "sub_001",
+        name: "Básico",
         price: 19.99,
         benefits: [
             "Asesoría mensual",
@@ -12,8 +12,8 @@ export const subscriptions: ISuscription[] = [
         ]
     },
     {
-        id: "sub_002",
-        plan: "Premium",
+        priceId: "sub_002",
+        name: "Premium",
         price: 49.99,
         benefits: [
             "Asesoría semanal",
@@ -23,8 +23,8 @@ export const subscriptions: ISuscription[] = [
         ]
     },
     {
-        id: "sub_003",
-        plan: "Pro",
+        priceId: "sub_003",
+        name: "Pro",
         price: 29.99,
         benefits: [
             "Asesoría quincenal",
