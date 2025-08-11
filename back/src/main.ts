@@ -3,10 +3,13 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import express from 'express';
+import { auth } from 'express-openid-connect';
+import { config as auth0Config } from './Config/auth0.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
+  app.use(auth(auth0Config));
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
