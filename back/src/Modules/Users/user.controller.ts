@@ -50,6 +50,7 @@ export class UsersController {
     return await this.usersService.findAll(pageNum, limitNum);
   }
 
+  // Retornamos un usuario por su ID
   @ApiBearerAuth('jwt')
   @UseGuards(AuthGuard, SelfOnlyGuard)
   @Get(':id')
@@ -65,6 +66,7 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  // Actualizamos un usuario por su ID
   @UseGuards(AuthGuard, SelfOnlyGuard)
   @Put(':id')
   @HttpCode(200)
@@ -84,6 +86,7 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
+  // Eliminamos un usuario por su ID
   @ApiBearerAuth('jwt')
   @UseGuards(AuthGuard, SelfOnlyGuard)
   @Delete('delete/:id')
