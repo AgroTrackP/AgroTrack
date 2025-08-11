@@ -13,15 +13,12 @@ import { hashPassword } from 'src/Helpers/hashPassword';
 import { validatePassword } from 'src/Helpers/passwordValidator';
 import { LoginUserDto } from './dtos/LoginUser.dto';
 import { JwtPayload } from 'src/Types/jwt-payload.interface';
-<<<<<<< HEAD
 import { JwksClient } from 'jwks-rsa';
 import { promisify } from 'util';
 import * as jwt from 'jsonwebtoken';
-=======
 import { MailService } from '../nodemailer/mail.service';
 import { confirmationTemplate } from '../nodemailer/templates/confirmacion.html';
 
->>>>>>> b89e825527a597ade08f1831c6d1e06ff339953b
 @Injectable()
 export class AuthService {
   private jwksClient: JwksClient;
@@ -29,17 +26,13 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     @InjectRepository(Users) private readonly usersDbRepo: Repository<Users>,
-<<<<<<< HEAD
+    private readonly mailService: MailService,
   ) {
     // ⚠️ REEMPLAZA 'YOUR_AUTH0_DOMAIN' con el dominio de tu cuenta de Auth0 ⚠️
     this.jwksClient = new JwksClient({
       jwksUri: `https://agrotrack-project.us.auth0.com.well-known/jwks.json`,
     });
   }
-=======
-    private readonly mailService: MailService,
-  ) {}
->>>>>>> b89e825527a597ade08f1831c6d1e06ff339953b
 
   async register(
     userData: CreateUserDto,
