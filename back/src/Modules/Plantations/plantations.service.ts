@@ -1,0 +1,135 @@
+// src/Modules/Plantations/services/plantations.service.ts
+
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Plantations } from './entities/plantations.entity';
+import { UpdatePlantationDto } from './dtos/update.plantation.dto';
+import { CreatePlantationDto } from './dtos/create.plantation.dto';
+import { Users } from 'src/Modules/Users/entities/user.entity';
+
+@Injectable()
+export class PlantationsService {
+  constructor(
+    @InjectRepository(Plantations)
+    private readonly plantationsRepo: Repository<Plantations>,
+
+    @InjectRepository(Users)
+    private readonly usersRepo: Repository<Users>,
+  ) {}
+
+  async findAll() {
+    try {
+      return await this.plantationsRepo.find({
+        relations: ['user', 'applicationPlans'],
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Error al obtener plantaciones: ${error.message}`,
+        );
+      }
+      throw new BadRequestException(
+        'Error desconocido al obtener plantaciones',
+      );
+    }
+  }
+
+  async findOne(id: string) {
+    try {
+      const plantation = await this.plantationsRepo.findOne({
+        where: { id },
+        relations: ['user', 'applicationPlans'],
+      });
+      if (!plantation) {
+        throw new NotFoundException(`Plantation with id ${id} not found`);
+      }
+      return plantation;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Error al buscar plantación: ${error.message}`,
+        );
+      }
+      throw new BadRequestException('Error desconocido al buscar plantación');
+    }
+  }
+
+  async create(payload: CreatePlantationDto) {
+    try {
+      const plantation = this.plantationsRepo.create(payload);
+
+      if (payload.userId) {
+        const user = await this.usersRepo.findOne({
+          where: { id: payload.userId },
+        });
+        if (!user)
+          throw new NotFoundException(
+            `User with id ${payload.userId} not found`,
+          );
+        plantation.user = user;
+      }
+
+      return await this.plantationsRepo.save(plantation);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Error al crear plantación: ${error.message}`,
+        );
+      }
+      throw new BadRequestException('Error desconocido al crear plantación');
+    }
+  }
+
+  async update(id: string, payload: UpdatePlantationDto) {
+    try {
+      const plantation = await this.plantationsRepo.findOne({ where: { id } });
+      if (!plantation)
+        throw new NotFoundException(`Plantation with id ${id} not found`);
+
+      if (payload.userId) {
+        const user = await this.usersRepo.findOne({
+          where: { id: payload.userId },
+        });
+        if (!user)
+          throw new NotFoundException(
+            `User with id ${payload.userId} not found`,
+          );
+        plantation.user = user;
+      }
+
+      Object.assign(plantation, payload);
+      return await this.plantationsRepo.save(plantation);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Error al actualizar plantación: ${error.message}`,
+        );
+      }
+      throw new BadRequestException(
+        'Error desconocido al actualizar plantación',
+      );
+    }
+  }
+
+  async remove(id: string) {
+    try {
+      const plantation = await this.plantationsRepo.findOne({ where: { id } });
+      if (!plantation)
+        throw new NotFoundException(`Plantation with id ${id} not found`);
+
+      return await this.plantationsRepo.remove(plantation);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Error al eliminar plantación: ${error.message}`,
+        );
+      }
+      throw new BadRequestException('Error desconocido al eliminar plantación');
+    }
+  }
+}
