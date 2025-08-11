@@ -10,6 +10,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from './Modules/Users/users.module';
 import { ProductsModule } from './Modules/Products/products.module';
 import { LoggerMiddleware } from './middleware/logger.midleware';
+import { StripeModule } from './Modules/Stripe/stripe.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { LoggerMiddleware } from './middleware/logger.midleware';
     JwtModule.register(jwtConfig),
     UsersModule,
     ProductsModule,
+    StripeModule,
   ],
   controllers: [],
   providers: [],
