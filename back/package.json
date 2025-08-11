@@ -41,14 +41,11 @@
     "cloudinary": "^2.7.0",
     "copyfiles": "^2.4.1",
     "dotenv": "^17.2.1",
-<<<<<<< HEAD
     "express": "^5.1.0",
     "express-openid-connect": "^2.19.2",
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^3.2.0",
-=======
     "nodemailer": "^7.0.5",
->>>>>>> b89e825527a597ade08f1831c6d1e06ff339953b
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
