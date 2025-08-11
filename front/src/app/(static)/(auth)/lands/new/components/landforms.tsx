@@ -29,7 +29,7 @@ export default function LandForm() {
             return;
         }
         try {
-            const res = await fetch("https://agrotrack-develop.onrender.com/lands", {
+            const res = await fetch("https://agrotrack-develop.onrender.com/plantations", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
