@@ -82,7 +82,6 @@ export class ProductsService {
       throw new Error(`Error fetching product: ${error}`);
     }
   }
-
   async update(
     id: string,
     updateProductDto: UpdateProductDto,

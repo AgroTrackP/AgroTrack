@@ -8,12 +8,15 @@ import { hashPassword } from 'src/Helpers/hashPassword';
 import { validatePassword } from 'src/Helpers/passwordValidator';
 import { LoginUserDto } from './dtos/LoginUser.dto';
 import { JwtPayload } from 'src/Types/jwt-payload.interface';
+import { MailService } from '../nodemailer/mail.service';
+import { confirmationTemplate } from '../nodemailer/templates/confirmacion.html';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     @InjectRepository(Users) private readonly usersDbRepo: Repository<Users>,
+    private readonly mailService: MailService,
   ) {}
 
   async register(
@@ -36,6 +39,15 @@ export class AuthService {
 
       await this.usersDbRepo.save(newUser);
 
+      await this.mailService.sendMail(
+        newUser.email,
+        'Confirmación de registro',
+        confirmationTemplate({
+          name: newUser.name || 'Usuario',
+          email: newUser.email,
+        }),
+      );
+
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...userWithoutPassword } = newUser;
 
@@ -48,7 +60,6 @@ export class AuthService {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async login({ email, password }: LoginUserDto) {
     const user = await this.usersDbRepo.findOne({ where: { email: email } });
     if (!user) {
