@@ -4,13 +4,13 @@ import React from 'react'
 const AboutMe = () => {
     return (
         <section className="w-full max-w-6xl mx-auto px-4 py-20 flex flex-col md:flex-row items-center gap-32">
-            <div className="w-full md:w-1/2">
+            <div className="w-full md:w-1/2 " >
                 <Image
-                    src='https://res.cloudinary.com/dbemhu1mr/image/upload/v1754660428/5e8c0676-b496-45be-b4dd-928deaa0766f.png'
+                    src='https://res.cloudinary.com/dbemhu1mr/image/upload/v1754863524/img_1_pwjyxj.png'
                     alt='about me'
-                    width={100}
-                    height={300}
-                    className='rounded-br-full object-cover w-full h-auto shadow-lg ring-6'
+                    width={1024}
+                    height={559}
+                    className='rounded-br-full object-cover w-full h-auto shadow-lg'
                 />
             </div>
 

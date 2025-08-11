@@ -84,4 +84,7 @@ export class Users {
     default: true,
   })
   isActive: boolean;
+
+  @Column({ unique: true, nullable: true })
+  auth0Id: string;
 }
