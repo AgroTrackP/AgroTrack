@@ -11,7 +11,8 @@ import {
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
 import { StripeService } from './stripe.service';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { CreateCheckoutSessionDto } from './dtos/createCheckoutSession.dto';
 
 @ApiTags('Stripe')
 @Controller('stripe')
@@ -24,6 +25,7 @@ export class StripeWebhookController {
     });
   }
 
+  // Endpoint para recibir eventos webhook de Stripe
   @Post('webhook')
   @HttpCode(200)
   @ApiOperation({ summary: 'Recibe eventos webhook de Stripe' })
@@ -73,7 +75,17 @@ export class StripeWebhookController {
     return { received: true };
   }
 
+  // Endpoint para crear una sesión de checkout
   @Post('create-checkout-session')
+  @ApiOperation({ summary: 'Crear sesión de checkout' })
+  @ApiBody({ type: CreateCheckoutSessionDto })
+  @ApiResponse({
+    status: 201,
+    description: 'URL de sesión de checkout creada',
+    schema: {
+      example: { url: 'https://checkout.stripe.com/session/abc123' },
+    },
+  })
   async createCheckoutSession(
     @Body() createCheckoutSessionDto: CreateCheckoutSessionDto,
   ) {
