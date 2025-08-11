@@ -19,12 +19,30 @@ export class ProductsService {
   ) {}
 
   async create(createProductDto: CreateProductDto): Promise<Products> {
-    const product = this.productsRepository.create(createProductDto);
-    return this.productsRepository.save(product);
+    try {
+      const product = this.productsRepository.create(createProductDto);
+      return await this.productsRepository.save(product);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Error al crear el producto: ${error.message}`,
+        );
+      }
+      throw new BadRequestException('Error desconocido al crear el producto');
+    }
   }
 
   async findAll(): Promise<Products[]> {
-    return this.productsRepository.find();
+    try {
+      return await this.productsRepository.find();
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Error al obtener productos: ${error.message}`,
+        );
+      }
+      throw new BadRequestException('Error desconocido al obtener productos');
+    }
   }
 
   async paginate(paginationDto: PaginationDto): Promise<PaginatedProductsDto> {
@@ -41,47 +59,86 @@ export class ProductsService {
       throw new BadRequestException('La página debe ser mayor o igual a 1');
     }
 
-    const [data, total] = await this.productsRepository.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    try {
+      const [data, total] = await this.productsRepository.findAndCount({
+        skip: (page - 1) * limit,
+        take: limit,
+      });
 
-    return {
-      data,
-      total,
-      currentPage: page,
-      totalPages: Math.ceil(total / limit),
-    };
+      return {
+        data,
+        total,
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Error al paginar productos: ${error.message}`,
+        );
+      }
+      throw new BadRequestException('Error desconocido al paginar productos');
+    }
   }
 
   async findOne(id: string): Promise<Products> {
-    const product = await this.productsRepository.findOneBy({ id });
-    if (!product) {
-      throw new NotFoundException(`Producto con id ${id} no encontrado`);
+    try {
+      const product = await this.productsRepository.findOneBy({ id });
+      if (!product) {
+        throw new NotFoundException(`Producto con id ${id} no encontrado`);
+      }
+      return product;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Error al buscar el producto: ${error.message}`,
+        );
+      }
+      throw new BadRequestException('Error desconocido al buscar el producto');
     }
-    return product;
   }
-
   async update(
     id: string,
     updateProductDto: UpdateProductDto,
   ): Promise<Products> {
-    await this.findOne(id);
-    if (
-      Object.keys(updateProductDto).length === 0 ||
-      !Object.values(updateProductDto).some((value) => value !== undefined)
-    ) {
+    try {
+      await this.findOne(id);
+      if (
+        Object.keys(updateProductDto).length === 0 ||
+        !Object.values(updateProductDto).some((value) => value !== undefined)
+      ) {
+        throw new BadRequestException(
+          'Debe enviar al menos un campo para actualizar',
+        );
+      }
+
+      await this.productsRepository.update(id, updateProductDto);
+      return this.findOne(id);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Error al actualizar el producto: ${error.message}`,
+        );
+      }
       throw new BadRequestException(
-        'Debe enviar al menos un campo para actualizar',
+        'Error desconocido al actualizar el producto',
       );
     }
-
-    await this.productsRepository.update(id, updateProductDto);
-    return this.findOne(id);
   }
 
   async remove(id: string): Promise<void> {
-    await this.findOne(id);
-    await this.productsRepository.delete(id);
+    try {
+      await this.findOne(id);
+      await this.productsRepository.delete(id);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Error al eliminar el producto: ${error.message}`,
+        );
+      }
+      throw new BadRequestException(
+        'Error desconocido al eliminar el producto',
+      );
+    }
   }
 }
