@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-export default function LandForm() {
+export default function LandForm({ coords }: { coords: string}) {
     const [form, setForm] = useState({
 
         name: "",
@@ -14,6 +14,12 @@ export default function LandForm() {
 
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+
+    useEffect(() => {
+        if(coords) {
+            setForm((prev) => ({ ...prev, location: coords}));
+        }
+    }, [coords]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value });
