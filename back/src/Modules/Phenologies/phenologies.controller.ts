@@ -1,4 +1,3 @@
-// src/Modules/Phenologies/phenologies.controller.ts
 import {
   Controller,
   Get,

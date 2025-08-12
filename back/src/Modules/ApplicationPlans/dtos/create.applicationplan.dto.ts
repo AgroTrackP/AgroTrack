@@ -1,4 +1,3 @@
-// src/Modules/ApplicationPlans/dtos/create-applicationplan.dto.ts
 import {
   IsUUID,
   IsDateString,

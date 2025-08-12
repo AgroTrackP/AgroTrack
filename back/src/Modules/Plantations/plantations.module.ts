@@ -1,5 +1,3 @@
-// src/Modules/Plantations/plantations.module.ts
-
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Plantations } from './entities/plantations.entity';
