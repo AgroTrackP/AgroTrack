@@ -24,7 +24,7 @@ import { UpdateApplicationTypeDto } from './dtos/update.applicationtypes.dto';
 import { Request } from 'express';
 
 @ApiTags('Application Types')
-@ApiBearerAuth() // si usas JWT Bearer auth
+@ApiBearerAuth()
 @Controller('application-types')
 export class ApplicationTypesController {
   constructor(private readonly appTypesService: ApplicationTypesService) {}
