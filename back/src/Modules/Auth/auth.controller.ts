@@ -69,6 +69,8 @@ export class AuthController {
     const appToken = this.authService.generateAppToken(user);
 
     // Se redirige al frontend con el token en la URL
-    res.redirect(`http://tu-frontend.com/dashboard?token=${appToken}`);
+    res.redirect(
+      `https://agrotrack-demo1-hhcln2gtq-agrotrackprojects-projects.vercel.app/dashboard?token=${appToken}`,
+    );
   }
 }
