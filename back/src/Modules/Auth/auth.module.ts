@@ -1,24 +1,20 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from '../Users/entities/user.entity';
 import { PassportModule } from '@nestjs/passport';
-import { requiresAuth } from 'express-openid-connect';
 import { NodemailerModule } from '../nodemailer/mail.module';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Users]),
-    PassportModule.register({ session: true }),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     NodemailerModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService],
-  exports: [],
+  providers: [AuthService, JwtStrategy],
+  exports: [PassportModule, JwtStrategy],
 })
-export class AuthModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(requiresAuth()).forRoutes('user/auth0/protected');
-  }
-}
+export class AuthModule {}

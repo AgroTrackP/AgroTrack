@@ -1,11 +1,20 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dtos/CreateUser.dto';
 import { Users } from '../Users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LoginUserDto } from './dtos/LoginUser.dto';
-import { Request } from 'express';
+import { Request, Response } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -28,21 +37,35 @@ export class AuthController {
     const { email, password } = body;
     return await this.authService.login({ email, password });
   }
-  @Get('auth0/protected')
-  auth0Protected(@Req() req: Request) {
-    console.log(req.oidc.accessToken);
-    return JSON.stringify(req.oidc.user);
+
+  // Ruta protegida con el token JWT
+  @Get('protected')
+  @UseGuards(AuthGuard('jwt'))
+  protectedRoute(@Req() req: Request) {
+    // req.user contendrá el user
+    const user = req.user;
+    return `Hola ${user.name}, esta es una ruta protegida.`;
   }
-  @Post('auth0/login')
-  async auth0Login(@Body() body: { token: string }) {
-    // El controlador solo toma el token del body
-    const { token } = body;
 
-    // Y se lo pasa al servicio, que es quien tiene toda la lógica
-    const result = await this.authService.auth0Login(token);
+  // Ruta para iniciar el flujo de Auth0. Redirige al login de Auth0.
+  @Get('auth0/login')
+  @UseGuards(AuthGuard('auth0'))
+  auth0Login() {
+    // La redirección a Auth0 se maneja automáticamente por el guard
+  }
 
-    // Devuelve el resultado del servicio al frontend
+  // Esta es la ruta de callback de Auth0.
+  // El guard 'auth0' procesa el código de autorización y ejecuta la estrategia.
+  @Get('auth0/callback')
+  @UseGuards(AuthGuard('auth0'))
+  auth0Callback(@Req() req: Request, @Res() res: Response) {
+    // req.user contiene el user
+    const user = req.user as Users;
 
-    return result;
+    // Generamos un token JWT
+    const appToken = this.authService.generateAppToken(user);
+
+    // Se redirige al frontend con el token en la URL
+    res.redirect(`http://tu-frontend.com/dashboard?token=${appToken}`);
   }
 }
