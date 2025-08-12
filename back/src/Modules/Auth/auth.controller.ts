@@ -43,7 +43,10 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   protectedRoute(@Req() req: Request) {
     // req.user contendrá el user
-    const user = req.user;
+    const user = req.user as Users;
+    if (!user) {
+      throw new Error('User not found in request');
+    }
     return `Hola ${user.name}, esta es una ruta protegida.`;
   }
 
