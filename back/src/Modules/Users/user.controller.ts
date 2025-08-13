@@ -11,7 +11,10 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { UpdateUserDto } from './dtos/update.user.dto';
+<<<<<<< HEAD
 import { AuthGuard } from '@nestjs/passport';
+=======
+>>>>>>> 083e84a32b5a880fb349e2320ca41debbe5f32a0
 import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
 import {
   ApiBearerAuth,
@@ -24,6 +27,7 @@ import { UserResponseDto } from './dtos/user.response.dto';
 import { RoleGuard } from 'src/Guards/role.guard';
 import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from './user.enum';
+import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 
 @ApiTags('Users')
 @Controller('users')
@@ -32,7 +36,11 @@ export class UsersController {
 
   // Retornamos todos los usuarios paginados
   @ApiBearerAuth('jwt')
+<<<<<<< HEAD
   @UseGuards(AuthGuard('jwt'), RoleGuard)
+=======
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+>>>>>>> 083e84a32b5a880fb349e2320ca41debbe5f32a0
   @Roles(Role.Admin)
   @Get()
   async findAll(
@@ -52,7 +60,11 @@ export class UsersController {
 
   // Retornamos un usuario por su ID
   @ApiBearerAuth('jwt')
+<<<<<<< HEAD
   @UseGuards(AuthGuard('jwt'), SelfOnlyGuard)
+=======
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+>>>>>>> 083e84a32b5a880fb349e2320ca41debbe5f32a0
   @Get(':id')
   @ApiOperation({ summary: 'Get a user by id' })
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
@@ -67,7 +79,11 @@ export class UsersController {
   }
 
   // Actualizamos un usuario por su ID
+<<<<<<< HEAD
   @UseGuards(AuthGuard('jwt'), SelfOnlyGuard)
+=======
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+>>>>>>> 083e84a32b5a880fb349e2320ca41debbe5f32a0
   @Put(':id')
   @HttpCode(200)
   @ApiBearerAuth('jwt')
@@ -88,7 +104,11 @@ export class UsersController {
 
   // Eliminamos un usuario por su ID
   @ApiBearerAuth('jwt')
+<<<<<<< HEAD
   @UseGuards(AuthGuard('jwt'), SelfOnlyGuard)
+=======
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+>>>>>>> 083e84a32b5a880fb349e2320ca41debbe5f32a0
   @Delete('delete/:id')
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete a user by id' })

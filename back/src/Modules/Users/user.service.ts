@@ -104,12 +104,32 @@ export class UsersService {
       if (!user) {
         throw new NotFoundException(`User not found`);
       }
-      await this.usersRepository.update(user, { isActive: false });
+      await this.usersRepository.update({ id }, { isActive: false });
       return {
         message: 'User deleted successfully',
       };
     } catch (error) {
       throw new Error(`Error deleting user: ${error}`);
+    }
+  }
+  async updateUserProfileImage(
+    userId: string,
+    { url, public_id }: { url: string; public_id: string },
+  ) {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    try {
+      // Actualizamos con la nueva imagen
+      return await this.usersRepository.update(userId, {
+        imgUrl: url,
+        imgPublicId: public_id,
+      });
+    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      throw new Error(`Error updating user profile image: ${error.message}`);
     }
   }
 }
