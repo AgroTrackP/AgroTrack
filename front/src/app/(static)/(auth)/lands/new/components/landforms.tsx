@@ -58,6 +58,7 @@ export default function LandForm({ coords }: { coords: string}) {
                 setError("Error al guardar el terreno.");
                 return;
             }
+
             setSuccess("Terreno reservado correctamente.");
             setForm({
                 name: "",
