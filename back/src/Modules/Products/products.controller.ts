@@ -22,7 +22,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { PaginationDto } from './dtos/pagination.dto';
-import { AuthGuard } from 'src/Guards/auth.guard';
+import { AuthGuard } from 'src/Guards/passportJwt.guard';
 import { PaginatedProductsDto } from './dtos/paginated.products.dto';
 import { Products } from './entities/products.entity';
 import { RoleGuard } from 'src/Guards/role.guard';

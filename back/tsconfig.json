@@ -19,7 +19,7 @@
     "noFallthroughCasesInSwitch": false,
     "esModuleInterop": true,
     "typeRoots": [
-      "./src/types",
+      "src/Types",
       "./node_modules/@types"
     ]
   }

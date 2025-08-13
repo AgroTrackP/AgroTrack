@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { UpdateUserDto } from './dtos/update.user.dto';
-import { AuthGuard } from 'src/Guards/auth.guard';
+import { AuthGuard } from 'src/Guards/passportJwt.guard';
 import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
 import {
   ApiBearerAuth,
