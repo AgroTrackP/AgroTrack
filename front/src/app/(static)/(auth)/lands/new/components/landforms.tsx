@@ -2,8 +2,20 @@
 
 
 import React, { useState, useEffect } from "react";
+import { useAuthContext } from "@/context/authContext";
+import { useRouter } from "next/navigation";
 
 export default function LandForm({ coords }: { coords: string}) {
+    const { user } = useAuthContext();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!user) {
+            router.push("/login"); 
+        }
+    }, [user, router]);
+
+
     const [form, setForm] = useState({
 
         name: "",
@@ -59,6 +71,11 @@ export default function LandForm({ coords }: { coords: string}) {
             setError("Error en la conexión con el servidor")
         }
     };
+
+      if (!user) {
+        return null; 
+    }
+    
     return (
         <form
             onSubmit={handleSubmit}

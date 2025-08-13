@@ -5,12 +5,18 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useState } from "react";
 
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png"
+import iconUrl from "leaflet/dist/images/marker-icon.png"
+import shadowUrl from "leaflet/dist/images/marker-shadow.png"
+
+
+delete (L.Icon.Default.prototype as unknown as {_getIconUrl?: () => void})._getIconUrl;
+
 L.Icon.Default.mergeOptions({
-    iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
-    iconUrl: require("leaflet/dist/images/marker-icon.png"),
-    shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
-});
+    iconRetinaUrl,
+    iconUrl,
+    shadowUrl
+})
 
 
 function LocationSelector({ onSelect }: { onSelect: (lat: number, lng: number) => void }) {
@@ -34,7 +40,7 @@ function LocationSelector({ onSelect }: { onSelect: (lat: number, lng: number) =
 export default function Map({ onLocationSelect }: { onLocationSelect: (coords: string) => void }) {
     return (
         <MapContainer
-            center={[-12.0464, -77.0428]} // Coordenadas iniciales (Lima, Perú)
+            center={[-12.0464, -77.0428]} 
             zoom={13}
             style={{ height: "500px", width: "100%" }}
         >
