@@ -22,6 +22,32 @@ export class PlantationsService {
     private readonly usersRepo: Repository<Users>,
   ) {}
 
+  async create(payload: CreatePlantationDto) {
+    try {
+      const plantation = this.plantationsRepo.create(payload);
+
+      if (payload.userId) {
+        const user = await this.usersRepo.findOne({
+          where: { id: payload.userId },
+        });
+        if (!user)
+          throw new NotFoundException(
+            `User with id ${payload.userId} not found`,
+          );
+        plantation.user = user;
+      }
+
+      return await this.plantationsRepo.save(plantation);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Error al crear plantación: ${error.message}`,
+        );
+      }
+      throw new BadRequestException('Error desconocido al crear plantación');
+    }
+  }
+
   async findAll() {
     try {
       return await this.plantationsRepo.find({
@@ -56,32 +82,6 @@ export class PlantationsService {
         );
       }
       throw new BadRequestException('Error desconocido al buscar plantación');
-    }
-  }
-
-  async create(payload: CreatePlantationDto) {
-    try {
-      const plantation = this.plantationsRepo.create(payload);
-
-      if (payload.userId) {
-        const user = await this.usersRepo.findOne({
-          where: { id: payload.userId },
-        });
-        if (!user)
-          throw new NotFoundException(
-            `User with id ${payload.userId} not found`,
-          );
-        plantation.user = user;
-      }
-
-      return await this.plantationsRepo.save(plantation);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        throw new BadRequestException(
-          `Error al crear plantación: ${error.message}`,
-        );
-      }
-      throw new BadRequestException('Error desconocido al crear plantación');
     }
   }
 
