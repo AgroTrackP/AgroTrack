@@ -87,4 +87,11 @@ export class Users {
 
   @Column({ unique: true, nullable: true })
   auth0Id: string;
+
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  profilePicture: string;
 }
