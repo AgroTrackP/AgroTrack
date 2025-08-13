@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { UpdateUserDto } from './dtos/update.user.dto';
-import { AuthGuard } from 'src/Guards/auth.guard';
 import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
 import {
   ApiBearerAuth,
@@ -24,6 +23,7 @@ import { UserResponseDto } from './dtos/user.response.dto';
 import { RoleGuard } from 'src/Guards/role.guard';
 import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from './user.enum';
+import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 
 @ApiTags('Users')
 @Controller('users')
@@ -32,7 +32,7 @@ export class UsersController {
 
   // Retornamos todos los usuarios paginados
   @ApiBearerAuth('jwt')
-  @UseGuards(AuthGuard, RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
   @Roles(Role.Admin)
   @Get()
   async findAll(
@@ -52,7 +52,7 @@ export class UsersController {
 
   // Retornamos un usuario por su ID
   @ApiBearerAuth('jwt')
-  @UseGuards(AuthGuard, SelfOnlyGuard)
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Get a user by id' })
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
@@ -67,7 +67,7 @@ export class UsersController {
   }
 
   // Actualizamos un usuario por su ID
-  @UseGuards(AuthGuard, SelfOnlyGuard)
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
   @Put(':id')
   @HttpCode(200)
   @ApiBearerAuth('jwt')
@@ -88,7 +88,7 @@ export class UsersController {
 
   // Eliminamos un usuario por su ID
   @ApiBearerAuth('jwt')
-  @UseGuards(AuthGuard, SelfOnlyGuard)
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
   @Delete('delete/:id')
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete a user by id' })
