@@ -67,6 +67,7 @@ export default function LandForm({ coords }: { coords: string}) {
                 start_date: "",
             });
         } catch (err) {
+            console.error("Detalle del error:", err);
             setError("Error en la conexión con el servidor")
         }
     };

@@ -3,6 +3,7 @@ import React, { FC } from 'react'
 import Button from '../button'
 interface SuscriptionCardProps extends ISuscription {
     onSubscribe: (plan: ISuscription) => void;
+    isLoading: boolean;
 }
 
 const SuscriptionCard: FC<SuscriptionCardProps> = ({
@@ -10,7 +11,8 @@ const SuscriptionCard: FC<SuscriptionCardProps> = ({
     name,
     price,
     benefits,
-    onSubscribe 
+    onSubscribe,
+    isLoading
 }) => {
     return (
         <div className="w-full h-[400px] flex flex-col justify-between border border-secondary-300 rounded-lg p-6 shadow-md">
@@ -34,8 +36,9 @@ const SuscriptionCard: FC<SuscriptionCardProps> = ({
                 )}
             </ul>
             <Button
-                label="Suscribirme"
+                label={isLoading ? 'Procesando...' : 'Suscribirme'}
                 onClick={() => onSubscribe({ priceId, name, price, benefits })}
+                disabled={isLoading}
             />
         </div>
     )
