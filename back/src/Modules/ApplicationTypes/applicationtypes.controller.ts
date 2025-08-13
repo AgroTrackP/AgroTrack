@@ -18,7 +18,7 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
-import { ApplicationTypesService } from './applicationTypes.service';
+import { ApplicationTypesService } from './applicationtypes.service';
 import { CreateApplicationTypeDto } from './dtos/create.applicationtypes.dto';
 import { UpdateApplicationTypeDto } from './dtos/update.applicationtypes.dto';
 import { Request } from 'express';

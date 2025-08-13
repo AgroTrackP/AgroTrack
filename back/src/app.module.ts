@@ -13,7 +13,7 @@ import { LoggerMiddleware } from './middleware/logger.midleware';
 import { StripeModule } from './Modules/Stripe/stripe.module';
 import { PlantationsModule } from './Modules/Plantations/plantations.module';
 import { ApplicationPlansModule } from './Modules/ApplicationPlans/applicationplans.module';
-import { ApplicationTypesModule } from './Modules/ApplicationTypes/applicationTypes.module';
+import { ApplicationTypesModule } from './Modules/ApplicationTypes/applicationtypes.module';
 import { DiseasesModule } from './Modules/Diseases/diseases.module';
 import { PhenologiesModule } from './Modules/Phenologies/phenologies.module';
 
