@@ -21,9 +21,9 @@ export class CreatePlantationDto {
   location: string;
 
   @IsDateString()
-  start_date: string; // mejor que Date para validación en DTO
+  start_date: string;
 
   @IsOptional()
   @IsString()
-  userId?: string; // payload para relacionar usuario
+  userId?: string;
 }
