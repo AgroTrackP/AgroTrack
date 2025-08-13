@@ -4,17 +4,23 @@ import {
   Get,
   InternalServerErrorException,
   MaxFileSizeValidator,
+  Param,
   ParseFilePipe,
   Post,
+  Put,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from './cloudinary.service';
+import { UsersService } from '../Users/user.service';
 
 @Controller('cloudinary')
 export class CloudinaryController {
-  constructor(private readonly cloudinaryService: CloudinaryService) {}
+  constructor(
+    private readonly cloudinaryService: CloudinaryService,
+    private readonly userService: UsersService,
+  ) {}
 
   @Post('/carrucel')
   @UseInterceptors(FileInterceptor('file'))
@@ -65,6 +71,59 @@ export class CloudinaryController {
   @Get('/home')
   async getimagehome() {
     const folder = 'folder-home';
+    try {
+      const result = await this.cloudinaryService.getImagesFromFolder(folder);
+      return result;
+    } catch (error) {
+      console.error('Error al obtener imágenes:', error);
+
+      throw new InternalServerErrorException(
+        'Hubo un error al obtener las imágenes de la carpeta.',
+      );
+    }
+  }
+  @Put('/perfil/:userId')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadimageperfil(
+    @Param('userId') userId: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 300000,
+            message: 'el archivo es muy grande',
+          }),
+          new FileTypeValidator({
+            fileType: /(jpg|jpeg|png|webp)/,
+          }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    try {
+      const result = await this.cloudinaryService.uploadfileperfil(file);
+
+      await this.userService.updateUserProfileImage(userId, {
+        url: result.secure_url,
+        public_id: result.public_id,
+      });
+
+      return {
+        message: 'Imagen de perfil subida correctamente',
+        url: result.secure_url,
+        public_id: result.public_id,
+      };
+    } catch (error) {
+      console.error('Error al subir imagen:', error);
+      throw new InternalServerErrorException(
+        'Hubo un error al subir la imagen',
+      );
+    }
+  }
+  @Get('/perfil')
+  async getimageperfil() {
+    const folder = 'users';
     try {
       const result = await this.cloudinaryService.getImagesFromFolder(folder);
       return result;

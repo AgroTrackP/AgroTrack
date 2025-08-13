@@ -24,6 +24,7 @@ import { UserResponseDto } from './dtos/user.response.dto';
 import { RoleGuard } from 'src/Guards/role.guard';
 import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from './user.enum';
+import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 
 @ApiTags('Users')
 @Controller('users')
