@@ -12,9 +12,13 @@ import {
 import { UsersService } from './user.service';
 import { UpdateUserDto } from './dtos/update.user.dto';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { AuthGuard } from '@nestjs/passport';
 =======
 >>>>>>> 083e84a32b5a880fb349e2320ca41debbe5f32a0
+=======
+import { AuthGuard } from '@nestjs/passport';
+>>>>>>> ba5f4acecddf366968a78caa608f8c8a264c89e3
 import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
 import {
   ApiBearerAuth,
@@ -37,10 +41,14 @@ export class UsersController {
   // Retornamos todos los usuarios paginados
   @ApiBearerAuth('jwt')
 <<<<<<< HEAD
+<<<<<<< HEAD
   @UseGuards(AuthGuard('jwt'), RoleGuard)
 =======
   @UseGuards(PassportJwtAuthGuard, RoleGuard)
 >>>>>>> 083e84a32b5a880fb349e2320ca41debbe5f32a0
+=======
+  @UseGuards(AuthGuard('jwt'), RoleGuard)
+>>>>>>> ba5f4acecddf366968a78caa608f8c8a264c89e3
   @Roles(Role.Admin)
   @Get()
   async findAll(
@@ -61,10 +69,14 @@ export class UsersController {
   // Retornamos un usuario por su ID
   @ApiBearerAuth('jwt')
 <<<<<<< HEAD
+<<<<<<< HEAD
   @UseGuards(AuthGuard('jwt'), SelfOnlyGuard)
 =======
   @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
 >>>>>>> 083e84a32b5a880fb349e2320ca41debbe5f32a0
+=======
+  @UseGuards(AuthGuard('jwt'), SelfOnlyGuard)
+>>>>>>> ba5f4acecddf366968a78caa608f8c8a264c89e3
   @Get(':id')
   @ApiOperation({ summary: 'Get a user by id' })
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
@@ -80,10 +92,14 @@ export class UsersController {
 
   // Actualizamos un usuario por su ID
 <<<<<<< HEAD
+<<<<<<< HEAD
   @UseGuards(AuthGuard('jwt'), SelfOnlyGuard)
 =======
   @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
 >>>>>>> 083e84a32b5a880fb349e2320ca41debbe5f32a0
+=======
+  @UseGuards(AuthGuard('jwt'), SelfOnlyGuard)
+>>>>>>> ba5f4acecddf366968a78caa608f8c8a264c89e3
   @Put(':id')
   @HttpCode(200)
   @ApiBearerAuth('jwt')
@@ -105,10 +121,14 @@ export class UsersController {
   // Eliminamos un usuario por su ID
   @ApiBearerAuth('jwt')
 <<<<<<< HEAD
+<<<<<<< HEAD
   @UseGuards(AuthGuard('jwt'), SelfOnlyGuard)
 =======
   @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
 >>>>>>> 083e84a32b5a880fb349e2320ca41debbe5f32a0
+=======
+  @UseGuards(AuthGuard('jwt'), SelfOnlyGuard)
+>>>>>>> ba5f4acecddf366968a78caa608f8c8a264c89e3
   @Delete('delete/:id')
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete a user by id' })
