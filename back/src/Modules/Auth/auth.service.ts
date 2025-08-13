@@ -7,7 +7,7 @@ import { Repository } from 'typeorm';
 import { hashPassword } from 'src/Helpers/hashPassword';
 import { validatePassword } from 'src/Helpers/passwordValidator';
 import { LoginUserDto } from './dtos/LoginUser.dto';
-import { JwtPayload } from 'src/Types/jwt-payload.interface';
+import { JwtPayload } from 'src/types/jwt-payload.interface';
 import { MailService } from '../nodemailer/mail.service';
 import { confirmationTemplate } from '../nodemailer/templates/confirmacion.html';
 
@@ -28,9 +28,10 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  async register(
-    userData: CreateUserDto,
-  ): Promise<{ message: string; user: Omit<Users, 'password'> }> {
+  async register(userData: CreateUserDto): Promise<{
+    message: string;
+    user: Omit<Users, 'password'>;
+  }> {
     const checkUser = await this.usersDbRepo.findOne({
       where: { email: userData.email },
     });
@@ -57,12 +58,27 @@ export class AuthService {
         }),
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: _, ...userWithoutPassword } = newUser;
+      const {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        password: _,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        imgUrl,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        imgPublicId,
+        ...userWithoutSensitive
+      } = newUser;
+
+      const userWithMethods = {
+        ...userWithoutSensitive,
+        imgUrl: newUser.imgUrl,
+        imgPublicId: newUser.imgPublicId,
+        setDefaultImgUrl: newUser.setDefaultImgUrl.bind(newUser),
+        setDefaultImgPublicId: newUser.setDefaultImgPublicId.bind(newUser),
+      };
 
       return {
         message: 'User registered successfully',
-        user: userWithoutPassword,
+        user: userWithMethods,
       };
     } catch (error) {
       throw new Error(`Error registering user: ${error}`);
