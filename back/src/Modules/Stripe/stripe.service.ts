@@ -35,15 +35,14 @@ export class StripeService {
       });
     } catch (error) {
       console.error('Error creating checkout session:', error);
-      throw new BadRequestException('Unable to create checkout session');
+      throw new BadRequestException(
+        `Unable to create checkout session: ${error}`,
+      );
     }
   }
 
   // Manejar la validación de la firma del webhook
-  async constructEventFromPayload(
-    payload: Buffer,
-    sig: string,
-  ): Promise<Stripe.Event> {
+  constructEventFromPayload(payload: Buffer, sig: string): Stripe.Event {
     try {
       return this.stripe.webhooks.constructEvent(
         payload,
@@ -56,7 +55,7 @@ export class StripeService {
   }
 
   // Método para la lógica de negocio del webhook
-  async handleWebhookEvent(event: Stripe.Event) {
+  handleWebhookEvent(event: Stripe.Event) {
     switch (event.type) {
       case 'checkout.session.completed': {
         console.log('Checkout session completed:', event.data.object);
