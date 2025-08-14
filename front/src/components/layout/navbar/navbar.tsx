@@ -47,6 +47,12 @@ const NavBar = () => {
                         >
                             Cultivos
                         </Link> */}
+                        {/* <Link
+                            className="block py-2 px-3 text-secondary-50 text-lg font-semibold md:p-0 hover:text-secondary-200"
+                            href={routes.ContactForm}
+                        >
+                            Contacto
+                        </Link>  */}
                     </ul>
                 <AuthNavbar />
                 </div>

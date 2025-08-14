@@ -1,112 +1,92 @@
-import React, { useState, useCallback } from "react";
-import { useDropzone, Accept } from "react-dropzone";
+"use client";
+import React, { useState } from "react";
+import axios from "axios";
+import { useAuthContext } from "@/context/authContext"; 
 
-const ProfileUploader = () => {
-    const [file, setFile] = useState<File | null>(null);
-    const [preview, setPreview] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+const ProfileImageUploader = () => {
 
-    const onDrop = useCallback((acceptedFiles: File[]) => {
-        const selectedFile = acceptedFiles[0];
-        if (selectedFile) {
-        setFile(selectedFile);
-        setPreview(URL.createObjectURL(selectedFile));
+    const { user, setUser } = useAuthContext();
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+        const file = e.target.files[0];
+        setSelectedFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
     }
-}, []);
-
-const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { "image/jpeg": [], "image/png": [] } as Accept,
-    multiple: false,
-});
-
-const handleUpload = async () => {
-    if (!file) return;
-    setIsLoading(true);
-
-    try {
-      // 1️⃣ Subir imagen a Cloudinary
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", "TU_UPLOAD_PRESET"); // Reemplazar con tu preset
-
-      const cloudinaryRes = await fetch(
-        `https://api.cloudinary.com/v1_1/TU_CLOUD_NAME/image/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      const data = await cloudinaryRes.json();
-      if (!data.secure_url) throw new Error("Error subiendo a Cloudinary");
-
-      // 2️⃣ Enviar SOLO la URL al backend
-      const backendRes = await fetch("/api/users/upload-avatar", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ avatarUrl: data.secure_url }),
-      });
-
-      if (!backendRes.ok) throw new Error("Error guardando en backend");
-
-      alert("¡Foto actualizada!");
-      setPreview(data.secure_url);
-    } catch (error) {
-      alert("No se pudo subir la imagen.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <div>
-      <div
-        {...getRootProps()}
-        className={`
-          relative w-40 h-40 rounded-full cursor-pointer overflow-hidden
-          border-2 border-dashed transition-colors duration-300
-          ${isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"}
-        `}
-      >
-        <input {...getInputProps()} />
-
-        <img
-          src={preview || "/default-avatar.png"}
-          alt="Previsualización"
-          className="w-full h-full object-cover"
-        />
-
-        <div
-          className="
-            absolute inset-0 bg-black bg-opacity-50 text-white
-            flex flex-col items-center justify-center
-            opacity-0 hover:opacity-100 transition-opacity duration-300
-          "
-        >
-          {isDragActive ? (
-            <p className="text-center font-semibold">¡Suelta la imagen!</p>
-          ) : (
-            <p className="text-center font-semibold">📸 Cambiar Foto</p>
-          )}
-        </div>
-      </div>
-
-      {preview && (
-        <button
-          onClick={handleUpload}
-          disabled={isLoading}
-          className="
-            px-6 py-2 bg-blue-600 text-white font-bold rounded-lg
-            hover:bg-blue-700 transition-colors
-            disabled:bg-gray-400 disabled:cursor-not-allowed
-          "
-        >
-          {isLoading ? "Guardando..." : "Guardar Foto"}
-        </button>
-      )}
-    </div>
-  );
 };
 
-export default ProfileUploader;
+    const handleUpload = async () => {
+        if (!selectedFile || !user) return;
+        setLoading(true);
+    try {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        const cloudinaryRes = await axios.put(
+            `http://localhost:3010/cloudinary/perfil/${user.id}`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+    );
+        const imageUrl = cloudinaryRes.data.url;
+        const updateRes = await axios.put(
+            `http://localhost:3010/usuarios/${user.id}`,
+            { profileImage: imageUrl }
+    );
+
+        setUser({ ...user, picture: imageUrl });
+        localStorage.setItem("user", JSON.stringify({ ...user, picture: imageUrl }));
+        alert("Imagen de perfil actualizada correctamente");
+
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        
+    } catch (error) {
+        console.error("Error subiendo imagen:", error);
+        alert("Ocurrió un error al subir la imagen");
+    } finally {
+        setLoading(false);
+    }
+};
+
+
+return (
+    <div className="flex flex-col items-center gap-4 p-4">
+    <h2 className="text-xl font-semibold text-gray-800">Foto de perfil</h2>
+
+    <label htmlFor="file-input" className="relative cursor-pointer">
+        <img
+          // La imagen muestra la foto actual del usuario o un avatar por defecto
+            src={previewUrl || user?.picture || "/default-avatar.png"}
+            alt="Foto de perfil"
+            className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
+        />
+        
+        <div className="absolute inset-0 rounded-full bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity">
+        📸 Cambiar
+        </div>
+    </label>
+    
+    <input
+        id="file-input"
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+    />
+    {selectedFile && (
+        <p className="text-sm text-gray-600">Archivo: {selectedFile.name}</p>
+    )}
+    <button
+        onClick={handleUpload}
+        disabled={loading || !selectedFile}
+        className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+    >
+        {loading ? "Subiendo..." : "Subir foto"}
+    </button>
+    </div>
+);
+};
+
+export default ProfileImageUploader;
