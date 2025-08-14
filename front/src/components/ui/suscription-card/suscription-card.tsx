@@ -40,6 +40,14 @@ const SuscriptionCard: FC<SuscriptionCardProps> = ({
                 onClick={() => onSubscribe({ priceId, name, price, benefits })}
                 disabled={isLoading}
             />
+
+            {/* <a
+                href="https://buy.stripe.com/test_14A28r2JOaSF1H38mM2kw08"
+                target="_blank" 
+                className="bg-green-500 text-white text-center font-bold py-2 px-4 rounded"
+            >
+                Probar Flujo de Pago
+            </a> */}
         </div>
     )
 }
