@@ -72,7 +72,7 @@ export default function LandForm({ coords }: { coords: string}) {
         }
     };
 
-      if (!user) {
+        if (!user) {
         return null; 
     }
     

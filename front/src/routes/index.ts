@@ -1,5 +1,3 @@
-import ContactForm from "@/app/(views)/contact/components/contactForm";
-
 export const routes = {
 	home: "/",
 	profile: "/profile",
