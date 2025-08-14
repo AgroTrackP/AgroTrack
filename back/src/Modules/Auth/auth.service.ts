@@ -7,7 +7,7 @@ import { Repository } from 'typeorm';
 import { hashPassword } from 'src/Helpers/hashPassword';
 import { validatePassword } from 'src/Helpers/passwordValidator';
 import { LoginUserDto } from './dtos/LoginUser.dto';
-import { JwtPayload } from '../../types/jwt-payload.interface';
+import { JwtPayload } from 'src/types/jwt-payload.interface';
 import { MailService } from '../nodemailer/mail.service';
 import { confirmationTemplate } from '../nodemailer/templates/confirmacion.html';
 
