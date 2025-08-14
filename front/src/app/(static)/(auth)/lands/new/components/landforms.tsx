@@ -3,14 +3,16 @@
 import React, { useState, useEffect } from "react";
 import { useAuthContext } from "@/context/authContext";
 import { useRouter } from "next/navigation";
+import { useLand } from "@/context/landContext";
 
-export default function LandForm({ coords }: { coords: string}) {
+export default function LandForm({ coords }: { coords: string }) {
     const { user } = useAuthContext();
+    const { setLand } = useLand();
     const router = useRouter();
 
     useEffect(() => {
         if (!user) {
-            router.push("/login"); 
+            router.push("/login");
         }
     }, [user, router]);
 
@@ -28,8 +30,8 @@ export default function LandForm({ coords }: { coords: string}) {
     const [success, setSuccess] = useState("");
 
     useEffect(() => {
-        if(coords) {
-            setForm((prev) => ({ ...prev, location: coords}));
+        if (coords) {
+            setForm((prev) => ({ ...prev, location: coords }));
         }
     }, [coords]);
 
@@ -59,6 +61,14 @@ export default function LandForm({ coords }: { coords: string}) {
                 return;
             }
 
+            setLand({
+                name: form.name,
+                location: form.location,
+                size: form.area_m2,
+                description: form.crop_type,
+            })
+
+            router.push(`/lands/mis-cultivos`);
             setSuccess("Terreno reservado correctamente.");
             setForm({
                 name: "",
@@ -67,15 +77,18 @@ export default function LandForm({ coords }: { coords: string}) {
                 location: "",
                 start_date: "",
             });
+
+            
+
         } catch (err) {
             setError("Error en la conexión con el servidor")
         }
     };
 
-      if (!user) {
-        return null; 
+    if (!user) {
+        return null;
     }
-    
+
     return (
         <form
             onSubmit={handleSubmit}
