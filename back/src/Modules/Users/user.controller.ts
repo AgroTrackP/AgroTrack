@@ -67,8 +67,8 @@ export class UsersController {
   }
 
   // Actualizamos un usuario por su ID
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
   @Put(':id')
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
   @HttpCode(200)
   @ApiBearerAuth('jwt')
   @ApiOperation({ summary: 'Update a user by id' })
