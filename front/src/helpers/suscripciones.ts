@@ -2,7 +2,7 @@ import { ISuscription } from "@/types";
 
 export const subscriptions: ISuscription[] = [
     {
-        priceId: "sub_001",
+        priceId: "price_1RuwJoGaHr3A0Zt9f2EPWn9J",
         name: "Básico",
         price: 19.99,
         benefits: [
@@ -12,7 +12,7 @@ export const subscriptions: ISuscription[] = [
         ]
     },
     {
-        priceId: "sub_002",
+        priceId: "price_1RvnLSGaHr3A0Zt9Se81h8fi",
         name: "Premium",
         price: 49.99,
         benefits: [
@@ -23,7 +23,7 @@ export const subscriptions: ISuscription[] = [
         ]
     },
     {
-        priceId: "sub_003",
+        priceId: " price_1RuvH0GaHr3A0Zt992CMxHOZ",
         name: "Pro",
         price: 29.99,
         benefits: [

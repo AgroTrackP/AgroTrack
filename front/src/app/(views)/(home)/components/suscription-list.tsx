@@ -12,7 +12,7 @@ const stripeKey = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 const SuscriptionList = () => {
     const router = useRouter();
-    const { user, isAuth } = useAuthContext();
+    const { user, isAuth, token } = useAuthContext();
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
     const handleSubscribeClick = async (plan: ISuscription) => {
@@ -26,6 +26,13 @@ const SuscriptionList = () => {
 
         try {
 
+            console.log("Verificando el token antes de enviar: ", token);
+            if (!token) {
+                alert("Error: El token de autenticación no está disponible. Por favor, vuelve a iniciar sesión.");
+                setLoadingPlan(null);
+                return;
+            }
+
             //este bloque solo es para ver q se envia
             const dataToSend = {
                 userId: user.id,
@@ -36,7 +43,9 @@ const SuscriptionList = () => {
 
             const response = await fetch('/api/stripe/create-checkout-session', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     userId: user.id,
                     priceId: plan.priceId, 
