@@ -1,3 +1,5 @@
+import ContactForm from "@/app/(views)/contact/components/contactForm";
+
 export const routes = {
 	home: "/",
 	profile: "/profile",
@@ -5,4 +7,5 @@ export const routes = {
 	register: "/register",
 	mis_cultivos: "/mis-cultivos",
 	notFound: "/not-found",
+	ContactForm: "/contact",
 };
