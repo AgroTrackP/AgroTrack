@@ -1,7 +1,8 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateCheckoutSessionDto } from './dtos/createCheckoutSession.dto';
+import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 
 @ApiTags('Stripe')
 @Controller('stripe')
@@ -10,6 +11,7 @@ export class StripeController {
 
   // Endpoint para crear una sesión de checkout
   @Post('create-checkout-session')
+  @UseGuards(PassportJwtAuthGuard)
   @HttpCode(201)
   @ApiOperation({ summary: 'Crear sesión de checkout' })
   @ApiBody({ type: CreateCheckoutSessionDto })
