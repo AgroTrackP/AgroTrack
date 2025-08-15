@@ -38,7 +38,7 @@ export class StripeController {
       priceId,
       userId,
     );
-    // Devuelve la URL al frontend para la redirección
-    return { url: session.url };
+    // Devuelve la URL al frontend para la redirección y el session ID
+    return { url: session.url, id: session.id };
   }
 }
