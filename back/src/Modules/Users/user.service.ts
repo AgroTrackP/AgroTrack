@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { Users } from './entities/user.entity';
 import { UpdateUserDto } from './dtos/update.user.dto';
 import { UserResponseDto } from './dtos/user.response.dto';
-import { plainToInstance } from 'class-transformer';
 import { Role } from './user.enum';
 
 @Injectable()
