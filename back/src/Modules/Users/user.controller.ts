@@ -86,6 +86,22 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
+  // convierte user en admin
+  @Put(':id/make-admin')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(Role.Admin)
+  makeAdmin(@Param('id') id: string) {
+    return this.usersService.setAdminRole(id, true);
+  }
+
+  // remueve admin a un user
+  @Put(':id/remove-admin')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(Role.Admin)
+  removeAdmin(@Param('id') id: string) {
+    return this.usersService.setAdminRole(id, false);
+  }
+
   // Eliminamos un usuario por su ID
   @ApiBearerAuth('jwt')
   @UseGuards(AuthGuard, SelfOnlyGuard)

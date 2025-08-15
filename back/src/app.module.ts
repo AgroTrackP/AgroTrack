@@ -11,6 +11,7 @@ import { UsersModule } from './Modules/Users/users.module';
 import { ProductsModule } from './Modules/Products/products.module';
 import { LoggerMiddleware } from './middleware/logger.midleware';
 import { StripeModule } from './Modules/Stripe/stripe.module';
+import { ContactModule } from './Modules/Contacto/contacto.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { StripeModule } from './Modules/Stripe/stripe.module';
     UsersModule,
     ProductsModule,
     StripeModule,
+    ContactModule,
   ],
   controllers: [],
   providers: [],

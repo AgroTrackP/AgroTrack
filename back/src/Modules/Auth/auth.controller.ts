@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dtos/CreateUser.dto';
 import { Users } from '../Users/entities/user.entity';
@@ -33,6 +33,16 @@ export class AuthController {
     console.log(req.oidc.accessToken);
     return JSON.stringify(req.oidc.user);
   }
+
+  @Get('confirmation/:email')
+  async confirmationEmail(@Param('email') email: string) {
+    console.log(email);
+    await this.authService.confirmationEmail({ email });
+    return {
+      message: 'Tu cuenta ha sido verificada',
+    };
+  }
+
   @Post('auth0/login')
   async auth0Login(@Body() body: { token: string }) {
     // El controlador solo toma el token del body

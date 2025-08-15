@@ -54,9 +54,10 @@ export class AuthService {
 
       await this.usersDbRepo.save(newUser);
 
+      //enviar mail a usuario al registrarse
       await this.mailService.sendMail(
         newUser.email,
-        'Confirmación de registro',
+        'Bienvenido a Agrotrack',
         confirmationTemplate({
           name: newUser.name || 'Usuario',
           email: newUser.email,
@@ -73,6 +74,17 @@ export class AuthService {
     } catch (error) {
       throw new Error(`Error registering user: ${error}`);
     }
+  }
+
+  // confirmacion del usuario al registrarse
+  async confirmationEmail({ email }: Pick<LoginUserDto, 'email'>) {
+    const user = await this.usersDbRepo.findOne({
+      where: { email },
+    });
+    if (!user) {
+      throw new BadRequestException('Invalid email or password');
+    }
+    await this.usersDbRepo.update({ email }, { isConfirmed: true });
   }
 
   async login({ email, password }: LoginUserDto) {
