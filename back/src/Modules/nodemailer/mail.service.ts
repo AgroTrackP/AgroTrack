@@ -40,12 +40,7 @@ export class MailService {
     return template;
   }
 
-  async sendMail(
-    to: string,
-    subject: string,
-    templateName: string,
-    // replacements: Record<string, string>,
-  ) {
+  async sendMail(to: string, subject: string, templateName: string) {
     try {
       await this.transporter.sendMail({
         from: `"Agrotrack" <${process.env.SMTP_USER}>`,

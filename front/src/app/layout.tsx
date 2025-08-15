@@ -1,7 +1,10 @@
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
-import { AuthProvider } from "@/context/authContext";
+import { Providers } from "@/app/Providers";
+import RoutesProtection from "@/hooks/routesProtection";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,15 +23,18 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <AuthProvider>
-        {children}
-        </AuthProvider>
+        <Providers>
+          <RoutesProtection>
+            {children}
+          </RoutesProtection>
+        </Providers>
+
       </body>
     </html>
   );

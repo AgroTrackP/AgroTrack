@@ -5,4 +5,8 @@ export const routes = {
 	register: "/register",
 	mis_cultivos: "/mis-cultivos",
 	notFound: "/not-found",
+	ContactForm: "/contact",
+	pagos:"/payments",
+	success:"/success",
+	cancel:"/cancel",
 };

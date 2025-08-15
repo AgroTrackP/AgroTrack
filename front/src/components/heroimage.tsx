@@ -1,5 +1,6 @@
 import Image from 'next/image';
-import React from 'react'
+import Link from 'next/link';
+import React from 'react';
 
 const HeroImage = () => {
     return (
@@ -10,7 +11,6 @@ const HeroImage = () => {
                 width={1920}
                 height={1080}
                 className="absolute inset-0 w-full h-full object-cover brightness-75"
-                
             />
             <div className="relative z-10 flex flex-col items-center justify-center text-center h-full px-4">
                 <h1 className="text-secondary-50 text-4xl md:text-5xl font-bold mb-4 drop-shadow-lg">
@@ -19,15 +19,15 @@ const HeroImage = () => {
                 <p className="text-slate-50 text-lg md:text-xl mb-6 max-w-xl drop-shadow-md">
                     Tecnología para el campo. Gestiona tus cultivos, mejora tus decisiones y haz crecer tu producción.
                 </p>
-                <a
-                    href="#contacto"
+                <Link
+                    href="/contact"
                     className="bg-primary-600 hover:bg-primary-700 text-slate-50 font-semibold py-3 px-6 rounded-lg shadow-lg transition duration-300"
                 >
                     Contáctanos
-                </a>
+                </Link>
             </div>
         </section>
     );
-}
+};
 
-export default HeroImage
+export default HeroImage;

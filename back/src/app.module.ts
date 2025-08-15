@@ -5,8 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSourceOptions } from 'typeorm';
 import { CloudinaryModule } from './Modules/Cloudinary/cloudinary.module';
 import { AuthModule } from './Modules/Auth/auth.module';
-import { jwtConfig } from './Config/JWT.config';
-import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from './Modules/Users/users.module';
 import { ProductsModule } from './Modules/Products/products.module';
 import { LoggerMiddleware } from './middleware/logger.midleware';
@@ -15,6 +13,7 @@ import { PlantationsModule } from './Modules/Plantations/plantations.module';
 import { ApplicationTypesModule } from './Modules/ApplicationTypes/applicationtypes.module';
 import { DiseasesModule } from './Modules/Diseases/diseases.module';
 import { PhenologiesModule } from './Modules/Phenologies/phenologies.module';
+import { ContactModule } from './Modules/Contacto/contacto.module';
 
 @Module({
   imports: [
@@ -32,16 +31,16 @@ import { PhenologiesModule } from './Modules/Phenologies/phenologies.module';
         };
       },
     }),
+    UsersModule,
     CloudinaryModule,
     AuthModule,
-    JwtModule.register(jwtConfig),
-    UsersModule,
     ProductsModule,
     PlantationsModule,
     DiseasesModule,
     ApplicationTypesModule,
     PhenologiesModule,
     StripeModule,
+    ContactModule,
   ],
   controllers: [],
   providers: [],

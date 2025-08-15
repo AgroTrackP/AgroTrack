@@ -4,7 +4,7 @@ import UserData from "./components/userData";
 const PageProfile = () => {
 
 return (
-    <div style={{ 
+    <div style={{    
         margin: "2rem", 
         padding: "2rem", 
         border: "1px solid #ddd", 

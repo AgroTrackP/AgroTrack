@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Req,
   Res,
@@ -50,15 +51,21 @@ export class AuthController {
     return `Hola ${user.name}, esta es una ruta protegida.`;
   }
 
-  // Ruta para iniciar el flujo de Auth0. Redirige al login de Auth0.
-  @Get('auth0/login')
-  @UseGuards(AuthGuard('auth0'))
-  auth0Login() {
-    // La redirección a Auth0 se maneja automáticamente por el guard
+  @Get('confirmation/:email')
+  async confirmationEmail(@Param('email') email: string) {
+    console.log(email);
+    await this.authService.confirmationEmail({ email });
+    return {
+      message: 'Tu cuenta ha sido verificada',
+    };
   }
 
-  // Esta es la ruta de callback de Auth0.
-  // El guard 'auth0' procesa el código de autorización y ejecuta la estrategia.
+  @Get('auth0/login')
+  @UseGuards(AuthGuard('auth0'))
+  auth0Login(): void {
+    return;
+  }
+
   @Get('auth0/callback')
   @UseGuards(AuthGuard('auth0'))
   auth0Callback(@Req() req: Request, @Res() res: Response) {

@@ -1,9 +1,12 @@
-import { CanActivate, ExecutionContext } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { ROLES_KEY } from 'src/Modules/Auth/decorators/roles.decorator';
-import { Users } from 'src/Modules/Users/entities/user.entity';
-import { Role } from 'src/Modules/Users/user.enum';
+// src/Guards/role.guard.ts
 
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { ROLES_KEY } from '../Modules/Auth/decorators/roles.decorator';
+import { Users } from '../Modules/Users/entities/user.entity';
+import { Role } from '../Modules/Users/user.enum';
+
+@Injectable() // ✅ Asegúrate de tener este decorador
 export class RoleGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 

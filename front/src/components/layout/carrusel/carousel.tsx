@@ -16,11 +16,9 @@ const Carousel: React.FC = () => {
             try {
                 const response = await fetch("https://agrotrack-develop.onrender.com/cloudinary/carrucel");
                 const data: ImgItem[] = await response.json();
-                console.log(data);
-
                 setImages(data);
             } catch (error) {
-                console.log("Error al cargar las imagenes: ", error);
+                console.error("Error al cargar las imagenes: ", error);
             }
         };
         fetchImg();
