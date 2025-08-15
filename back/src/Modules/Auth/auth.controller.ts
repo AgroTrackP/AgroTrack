@@ -60,20 +60,12 @@ export class AuthController {
     };
   }
 
-  @Post('auth0/login')
-  async auth0Login(@Body() body: { token: string }) {
-    // El controlador solo toma el token del body
-    const { token } = body;
-
-    // Ruta para iniciar el flujo de Auth0. Redirige al login de Auth0.
-    // @Get('auth0/login')
-    // @UseGuards(AuthGuard('auth0'))
-    // auth0Login() {
-    // La redirección a Auth0 se maneja automáticamente por el guard
+  @Get('auth0/login')
+  @UseGuards(AuthGuard('auth0'))
+  auth0Login(): void {
+    return;
   }
 
-  // Esta es la ruta de callback de Auth0.
-  // El guard 'auth0' procesa el código de autorización y ejecuta la estrategia.
   @Get('auth0/callback')
   @UseGuards(AuthGuard('auth0'))
   auth0Callback(@Req() req: Request, @Res() res: Response) {
