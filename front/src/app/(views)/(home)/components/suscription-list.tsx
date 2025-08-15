@@ -76,7 +76,6 @@ const SuscriptionList = () => {
             }
             alert(errorMessage)
         } finally {
-            
             setLoadingPlan(null);
         }
     };

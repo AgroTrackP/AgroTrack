@@ -6,5 +6,7 @@ export const routes = {
 	mis_cultivos: "/mis-cultivos",
 	notFound: "/not-found",
 	ContactForm: "/contact",
-	pagos:"/payments"
+	pagos:"/payments",
+	success:"/success",
+	cancel:"/cancel",
 };

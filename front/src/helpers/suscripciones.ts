@@ -23,7 +23,7 @@ export const subscriptions: ISuscription[] = [
         ]
     },
     {
-        priceId: " price_1RuvH0GaHr3A0Zt992CMxHOZ",
+        priceId: "price_1RuvH0GaHr3A0Zt992CMxHOZ",
         name: "Pro",
         price: 29.99,
         benefits: [
