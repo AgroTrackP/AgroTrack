@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form, Field, ErrorMessage, FormikHelpers } from "formik";
 import * as yup from "yup";
 import { toast } from "react-toastify";
 
@@ -14,8 +14,11 @@ const contactSchema = yup.object({
   message: yup.string().required("El mensaje no puede estar vacío"),
 });
 
+type FormValues = yup.InferType<typeof contactSchema>;
+
+
 export default function ContactForm() {
-  const handleSubmit = async (values: any, { resetForm }: any) => {
+  const handleSubmit = async (values: FormValues, { resetForm }: FormikHelpers<FormValues>) => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/contact`, {
         method: "POST",
@@ -30,6 +33,7 @@ export default function ContactForm() {
       toast.success("Mensaje enviado con éxito ✅");
       resetForm();
     } catch (error) {
+      console.error("detalle del eeror", error)
       toast.error("Hubo un error al enviar el mensaje ❌");
     }
   };
