@@ -15,6 +15,7 @@ import { PlantationsModule } from './Modules/Plantations/plantations.module';
 import { ApplicationTypesModule } from './Modules/ApplicationTypes/applicationtypes.module';
 import { DiseasesModule } from './Modules/Diseases/diseases.module';
 import { PhenologiesModule } from './Modules/Phenologies/phenologies.module';
+import { ContactModule } from './Modules/Contacto/contacto.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { PhenologiesModule } from './Modules/Phenologies/phenologies.module';
     ApplicationTypesModule,
     PhenologiesModule,
     StripeModule,
+    ContactModule,
   ],
   controllers: [],
   providers: [],

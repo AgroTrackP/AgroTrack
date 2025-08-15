@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Req,
   Res,
@@ -50,10 +51,24 @@ export class AuthController {
     return `Hola ${user.name}, esta es una ruta protegida.`;
   }
 
-  // Ruta para iniciar el flujo de Auth0. Redirige al login de Auth0.
-  @Get('auth0/login')
-  @UseGuards(AuthGuard('auth0'))
-  auth0Login() {
+  @Get('confirmation/:email')
+  async confirmationEmail(@Param('email') email: string) {
+    console.log(email);
+    await this.authService.confirmationEmail({ email });
+    return {
+      message: 'Tu cuenta ha sido verificada',
+    };
+  }
+
+  @Post('auth0/login')
+  async auth0Login(@Body() body: { token: string }) {
+    // El controlador solo toma el token del body
+    const { token } = body;
+
+    // Ruta para iniciar el flujo de Auth0. Redirige al login de Auth0.
+    // @Get('auth0/login')
+    // @UseGuards(AuthGuard('auth0'))
+    // auth0Login() {
     // La redirección a Auth0 se maneja automáticamente por el guard
   }
 
