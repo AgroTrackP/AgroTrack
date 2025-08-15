@@ -5,9 +5,8 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Role } from 'src/Modules/Users/user.enum';
-import { AuthRequest } from 'src/Types/express';
-
+import { Role } from '../Modules/Users/user.enum';
+import { AuthRequest } from 'src/types/express';
 @Injectable()
 export class SelfOnlyGuard implements CanActivate {
   constructor(private reflector: Reflector) {}

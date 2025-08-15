@@ -8,6 +8,7 @@ import { config as auth0Config } from './Config/auth0.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use('/stripe/webhook', express.raw({ type: 'application/json' }));
   app.enableCors();
   app.use(auth(auth0Config));
   app.useGlobalPipes(
@@ -36,8 +37,6 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-
-  app.use('/stripe/webhook', express.raw({ type: 'application/json' }));
 
   await app.listen(process.env.PORT ?? 3010);
   console.log(`🚀 Server running on: ${await app.getUrl()}`);

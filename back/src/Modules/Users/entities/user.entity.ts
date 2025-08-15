@@ -4,6 +4,8 @@ import {
   Column,
   OneToMany,
   CreateDateColumn,
+  BeforeUpdate,
+  BeforeInsert,
 } from 'typeorm';
 import { Role } from '../user.enum';
 import { Plantations } from 'src/Modules/Plantations/entities/plantations.entity';
@@ -93,4 +95,30 @@ export class Users {
 
   @Column({ unique: true, nullable: true })
   auth0Id: string;
+
+  @Column({
+    nullable: true,
+    default:
+      'https://res.cloudinary.com/dbemhu1mr/image/upload/v1755097246/icon-7797704_640_t4vlks.png',
+  })
+  imgUrl: string;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  setDefaultImgUrl() {
+    if (!this.imgUrl || this.imgUrl.trim() === '') {
+      this.imgUrl =
+        'https://res.cloudinary.com/dbemhu1mr/image/upload/v1755097246/icon-7797704_640_t4vlks.png';
+    }
+  }
+  @Column({ nullable: true, default: 'icon-7797704_640_t4vlks' })
+  imgPublicId: string;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  setDefaultImgPublicId() {
+    if (!this.imgPublicId || this.imgPublicId.trim() === '') {
+      this.imgPublicId = 'icon-7797704_640_t4vlks';
+    }
+  }
 }
