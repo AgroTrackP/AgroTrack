@@ -5,6 +5,7 @@ import { Users } from './entities/user.entity';
 import { UpdateUserDto } from './dtos/update.user.dto';
 import { UserResponseDto } from './dtos/user.response.dto';
 import { plainToInstance } from 'class-transformer';
+import { Role } from './user.enum';
 
 @Injectable()
 export class UsersService {
@@ -75,6 +76,20 @@ export class UsersService {
     } catch (error) {
       throw new Error(`Error fetching user: ${error}`);
     }
+  }
+
+  async setAdminRole(id: string, makeAdmin: boolean) {
+    const user = await this.usersRepository.findOneBy({ id });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    user.role = makeAdmin ? Role.Admin : Role.User;
+    await this.usersRepository.save(user);
+
+    return {
+      message: makeAdmin
+        ? 'Usuario ahora es admin'
+        : 'Usuario ahora es usuario',
+    };
   }
 
   async update(

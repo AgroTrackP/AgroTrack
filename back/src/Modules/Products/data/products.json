@@ -1,0 +1,21 @@
+[
+  { "name": "Fungicida Alpha", "concentration": 5, "water_per_liter": 1, "stock": 30, "alert_threshold": 5, "isActive": true, "categoryName": "Fungicida" },
+  { "name": "Fungicida Beta", "concentration": 7.5, "water_per_liter": 0.9, "stock": 40, "alert_threshold": 10, "isActive": true, "categoryName": "Fungicida" },
+  { "name": "Fungicida Gamma", "concentration": 6, "water_per_liter": 1, "stock": 25, "alert_threshold": 5, "isActive": true, "categoryName": "Fungicida" },
+  { "name": "Fungicida Delta", "concentration": 8, "water_per_liter": 1.2, "stock": 35, "alert_threshold": 7, "isActive": true, "categoryName": "Fungicida" },
+
+  { "name": "Alguicida A", "concentration": 3, "water_per_liter": 1, "stock": 20, "alert_threshold": 5, "isActive": true, "categoryName": "Alguicida" },
+  { "name": "Alguicida B", "concentration": 4, "water_per_liter": 0.8, "stock": 15, "alert_threshold": 3, "isActive": true, "categoryName": "Alguicida" },
+  { "name": "Alguicida C", "concentration": 2.5, "water_per_liter": 1, "stock": 25, "alert_threshold": 5, "isActive": true, "categoryName": "Alguicida" },
+  { "name": "Alguicida D", "concentration": 3.5, "water_per_liter": 0.9, "stock": 18, "alert_threshold": 4, "isActive": true, "categoryName": "Alguicida" },
+
+  { "name": "Fertilizante A", "concentration": 12.5, "water_per_liter": 1, "stock": 100, "alert_threshold": 10, "isActive": true, "categoryName": "Fertilizante" },
+  { "name": "Fertilizante B", "concentration": 10, "water_per_liter": 0.8, "stock": 50, "alert_threshold": 5, "isActive": true, "categoryName": "Fertilizante" },
+  { "name": "Fertilizante C", "concentration": 15, "water_per_liter": 1.2, "stock": 70, "alert_threshold": 7, "isActive": true, "categoryName": "Fertilizante" },
+  { "name": "Fertilizante D", "concentration": 8, "water_per_liter": 0.5, "stock": 120, "alert_threshold": 20, "isActive": true, "categoryName": "Fertilizante" },
+
+  { "name": "Herbicida X", "concentration": 15, "water_per_liter": 1.2, "stock": 70, "alert_threshold": 7, "isActive": true, "categoryName": "Herbicida" },
+  { "name": "Herbicida Y", "concentration": 8, "water_per_liter": 0.5, "stock": 120, "alert_threshold": 20, "isActive": true, "categoryName": "Herbicida" },
+  { "name": "Herbicida Z", "concentration": 10, "water_per_liter": 0.9, "stock": 60, "alert_threshold": 10, "isActive": true, "categoryName": "Herbicida" },
+  { "name": "Herbicida W", "concentration": 12, "water_per_liter": 1, "stock": 80, "alert_threshold": 12, "isActive": true, "categoryName": "Herbicida" }
+]
