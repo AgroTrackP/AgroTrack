@@ -25,7 +25,11 @@ export class AuthService {
       email: user.email,
       role: user.role,
     };
-    return this.jwtService.sign(payload);
+
+    return this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: '1h',
+    });
   }
 
   async register(userData: CreateUserDto): Promise<{
@@ -49,9 +53,10 @@ export class AuthService {
 
       await this.usersDbRepo.save(newUser);
 
+      //enviar mail a usuario al registrarse
       await this.mailService.sendMail(
         newUser.email,
-        'Confirmación de registro',
+        'Bienvenido a Agrotrack',
         confirmationTemplate({
           name: newUser.name || 'Usuario',
           email: newUser.email,
@@ -85,6 +90,17 @@ export class AuthService {
     }
   }
 
+  // confirmacion del usuario al registrarse
+  async confirmationEmail({ email }: Pick<LoginUserDto, 'email'>) {
+    const user = await this.usersDbRepo.findOne({
+      where: { email },
+    });
+    if (!user) {
+      throw new BadRequestException('Invalid email or password');
+    }
+    await this.usersDbRepo.update({ email }, { isConfirmed: true });
+  }
+
   async login({ email, password }: LoginUserDto) {
     const user = await this.usersDbRepo.findOne({ where: { email: email } });
     if (!user) {
@@ -98,7 +114,7 @@ export class AuthService {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...userWithoutPassword } = user;
-
+    console.log(appToken);
     return {
       message: `User logged in successfully.`,
       token: appToken,

@@ -63,6 +63,12 @@ export class Users {
   })
   suscription_level: string;
 
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  isConfirmed: boolean;
+
   @OneToMany(() => Plantations, (plantation) => plantation.user)
   plantations: Plantations[];
 
