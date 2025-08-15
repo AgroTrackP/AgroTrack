@@ -71,9 +71,7 @@ export class UsersService {
         throw new NotFoundException(`User with id ${id} not found`);
       }
 
-      return plainToInstance(UserResponseDto, user, {
-        excludeExtraneousValues: true,
-      });
+      return user;
     } catch (error) {
       throw new Error(`Error fetching user: ${error}`);
     }

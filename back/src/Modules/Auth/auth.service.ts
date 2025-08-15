@@ -25,7 +25,11 @@ export class AuthService {
       email: user.email,
       role: user.role,
     };
-    return this.jwtService.sign(payload);
+
+    return this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: '1h',
+    });
   }
 
   async register(userData: CreateUserDto): Promise<{
@@ -98,7 +102,7 @@ export class AuthService {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...userWithoutPassword } = user;
-
+    console.log(appToken);
     return {
       message: `User logged in successfully.`,
       token: appToken,
