@@ -24,6 +24,7 @@ import { RoleGuard } from 'src/Guards/role.guard';
 import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from './user.enum';
 import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Users')
 @Controller('users')

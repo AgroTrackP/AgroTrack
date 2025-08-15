@@ -3,6 +3,15 @@ import { Products } from '../entities/products.entity';
 import { Categories } from '../../Categories/entities/categories.entity';
 import * as fs from 'fs';
 import * as path from 'path';
+type ProductSeed = {
+  name: string;
+  concentration: number;
+  water_per_liter: number;
+  stock: number;
+  alert_threshold: number;
+  isActive: boolean;
+  categoryName: string; // Nombre de la categoría para relacionar
+};
 
 export class ProductsSeeder {
   static async run(dataSource: DataSource) {
@@ -11,7 +20,9 @@ export class ProductsSeeder {
     if (count > 0) return; // ya está poblado
 
     const filePath = path.join(__dirname, '../data/products.json');
-    const productsData: any[] = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    const productsData: ProductSeed[] = JSON.parse(
+      fs.readFileSync(filePath, 'utf-8'),
+    );
     const categoryRepo = dataSource.getRepository(Categories);
 
     for (const prod of productsData) {
