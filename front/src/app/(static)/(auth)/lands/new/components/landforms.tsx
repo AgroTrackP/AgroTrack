@@ -1,8 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuthContext } from "@/context/authContext";
+import { useRouter } from "next/navigation";
 
-export default function LandForm() {
+export default function LandForm({ coords }: { coords: string}) {
+    const { user } = useAuthContext();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!user) {
+            router.push("/login"); 
+        }
+    }, [user, router]);
+
+
     const [form, setForm] = useState({
 
         name: "",
@@ -14,6 +26,12 @@ export default function LandForm() {
 
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+
+    useEffect(() => {
+        if(coords) {
+            setForm((prev) => ({ ...prev, location: coords}));
+        }
+    }, [coords]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -52,6 +70,11 @@ export default function LandForm() {
             setError("Error en la conexión con el servidor")
         }
     };
+
+      if (!user) {
+        return null; 
+    }
+    
     return (
         <form
             onSubmit={handleSubmit}

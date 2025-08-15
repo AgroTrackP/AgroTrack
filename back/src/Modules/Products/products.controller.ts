@@ -22,12 +22,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { PaginationDto } from './dtos/pagination.dto';
-import { AuthGuard } from 'src/Guards/passportJwt.guard';
 import { PaginatedProductsDto } from './dtos/paginated.products.dto';
 import { Products } from './entities/products.entity';
 import { RoleGuard } from 'src/Guards/role.guard';
 import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from '../Users/user.enum';
+import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 
 @ApiTags('Products')
 @Controller('products')
@@ -36,7 +36,7 @@ export class ProductsController {
 
   // Crear un nuevo producto
   @Post()
-  @UseGuards(AuthGuard, RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
   @Roles(Role.Admin)
   @ApiOperation({ summary: 'Crear un nuevo producto' })
   @ApiBody({ type: CreateProductDto })
@@ -94,7 +94,7 @@ export class ProductsController {
 
   // Actualizar un producto por su ID
   @Patch(':id')
-  @UseGuards(AuthGuard, RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
   @Roles(Role.Admin)
   @ApiOperation({ summary: 'Actualizar un producto por su ID' })
   @ApiParam({ name: 'id', description: 'ID del producto' })
@@ -110,7 +110,7 @@ export class ProductsController {
 
   // Eliminar un producto por su ID
   @Delete(':id')
-  @UseGuards(AuthGuard, RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
   @Roles(Role.Admin)
   @ApiOperation({ summary: 'Eliminar un producto por su ID' })
   @ApiParam({ name: 'id', description: 'ID del producto' })

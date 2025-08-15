@@ -10,6 +10,9 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "src/*": ["src/*"]
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
@@ -19,8 +22,9 @@
     "noFallthroughCasesInSwitch": false,
     "esModuleInterop": true,
     "typeRoots": [
-      "src/Types",
+      "src/types",
       "./node_modules/@types"
     ]
-  }
+  },
+  "include": ["src/**/*"]
 }

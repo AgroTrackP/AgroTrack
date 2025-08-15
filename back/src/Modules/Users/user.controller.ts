@@ -8,10 +8,11 @@ import {
   UseGuards,
   Query,
   Delete,
+  ParseUUIDPipe,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { UpdateUserDto } from './dtos/update.user.dto';
-import { AuthGuard } from 'src/Guards/passportJwt.guard';
 import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
 import {
   ApiBearerAuth,
@@ -24,6 +25,8 @@ import { UserResponseDto } from './dtos/user.response.dto';
 import { RoleGuard } from 'src/Guards/role.guard';
 import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from './user.enum';
+import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
+import { ExcludePasswordInterceptor } from 'src/interceptor/exclude-pass.interceptor';
 
 @ApiTags('Users')
 @Controller('users')
@@ -32,9 +35,12 @@ export class UsersController {
 
   // Retornamos todos los usuarios paginados
   @ApiBearerAuth('jwt')
-  @UseGuards(AuthGuard, RoleGuard)
-  @Roles(Role.Admin)
   @Get()
+  @UseGuards(PassportJwtAuthGuard, RoleGuard) // ✅ Solo usamos RoleGuard
+  @Roles(Role.Admin)
+  @ApiOperation({ summary: 'Get all users (Admin only)' })
+  @ApiResponse({ status: 200, description: 'All users found' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
   async findAll(
     @Query('page') page: string | null,
     @Query('limit') limit?: string,
@@ -52,8 +58,9 @@ export class UsersController {
 
   // Retornamos un usuario por su ID
   @ApiBearerAuth('jwt')
-  @UseGuards(AuthGuard, SelfOnlyGuard)
   @Get(':id')
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+  @UseInterceptors(ExcludePasswordInterceptor)
   @ApiOperation({ summary: 'Get a user by id' })
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
   @ApiResponse({
@@ -62,13 +69,16 @@ export class UsersController {
     type: UserResponseDto,
   })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async findOne(@Param('id') id: string): Promise<UserResponseDto> {
-    return this.usersService.findOne(id);
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<UserResponseDto> {
+    return await this.usersService.findOne(id);
   }
 
   // Actualizamos un usuario por su ID
-  @UseGuards(AuthGuard, SelfOnlyGuard)
   @Put(':id')
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+  @UseInterceptors(ExcludePasswordInterceptor)
   @HttpCode(200)
   @ApiBearerAuth('jwt')
   @ApiOperation({ summary: 'Update a user by id' })
@@ -83,32 +93,20 @@ export class UsersController {
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<{ message: string; user: UserResponseDto }> {
-    return this.usersService.update(id, updateUserDto);
+    return await this.usersService.update(id, updateUserDto);
   }
 
   // Eliminamos un usuario por su ID
   @ApiBearerAuth('jwt')
-  @UseGuards(AuthGuard, SelfOnlyGuard)
   @Delete('delete/:id')
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+  @UseInterceptors(ExcludePasswordInterceptor)
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete a user by id' })
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
   @ApiResponse({ status: 204, description: 'User deleted' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async remove(@Param('id') id: string): Promise<{ message: string }> {
-    return this.usersService.remove(id);
+    return await this.usersService.remove(id);
   }
-
-  // Create user implementado con Fel
-  /*@Post()
-  @HttpCode(201)
-  @ApiOperation({ summary: 'Create a new user' })
-  @ApiResponse({
-    status: 201,
-    description: 'User created',
-    type: UserResponseDto,
-  })
-  async create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    return this.usersService.create(createUserDto);
-  }*/
 }

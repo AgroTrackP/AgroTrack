@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import Stripe from 'stripe';
 import { Repository } from 'typeorm';
@@ -8,10 +13,8 @@ import { Users } from '../Users/entities/user.entity';
 export class StripeService {
   constructor(
     @InjectRepository(Users) private userDbService: Repository<Users>,
+    @Inject('STRIPE_CLIENT') private stripe: Stripe,
   ) {}
-  private stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-07-30.basil',
-  });
 
   async createCheckoutSession(
     priceId: string,
@@ -32,7 +35,47 @@ export class StripeService {
       });
     } catch (error) {
       console.error('Error creating checkout session:', error);
-      throw new Error('Unable to create checkout session');
+      throw new BadRequestException(
+        `Unable to create checkout session: ${error}`,
+      );
+    }
+  }
+
+  // Manejar la validación de la firma del webhook
+  constructEventFromPayload(payload: Buffer, sig: string): Stripe.Event {
+    try {
+      return this.stripe.webhooks.constructEvent(
+        payload,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET!,
+      );
+    } catch (err) {
+      throw new BadRequestException(`Webhook Error: ${err}`);
+    }
+  }
+
+  // Método para la lógica de negocio del webhook
+  handleWebhookEvent(event: Stripe.Event) {
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        console.log('Checkout session completed:', event.data.object);
+        // Añadir la lógica para activar la suscripción del usuario en la base de datos
+        break;
+      }
+      case 'invoice.payment_succeeded':
+        console.log('Renovación completada:', event.data.object);
+        // Lógica para registrar un pago exitoso
+        break;
+      case 'invoice.payment_failed':
+        console.log('Pago fallido:', event.data.object);
+        // Lógica para manejar un pago fallido, como notificar al usuario
+        break;
+      case 'customer.subscription.deleted':
+        console.log('Suscripción cancelada:', event.data.object);
+        // Lógica para desactivar la suscripción del usuario
+        break;
+      default:
+        console.warn(`Unhandled event type ${event.type}`);
     }
   }
 }
