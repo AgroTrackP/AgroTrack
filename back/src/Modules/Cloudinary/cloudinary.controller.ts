@@ -9,11 +9,17 @@ import {
   Post,
   Put,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from './cloudinary.service';
 import { UsersService } from '../Users/user.service';
+import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
+import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
+import { RoleGuard } from 'src/Guards/role.guard';
+import { Roles } from '../Auth/decorators/roles.decorator';
+import { Role } from '../Users/user.enum';
 
 @Controller('cloudinary')
 export class CloudinaryController {
@@ -23,6 +29,8 @@ export class CloudinaryController {
   ) {}
 
   @Post('/carrucel')
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @Roles(Role.Admin)
   @UseInterceptors(FileInterceptor('file'))
   async uploadImage(
     @UploadedFile(
@@ -83,6 +91,7 @@ export class CloudinaryController {
     }
   }
   @Put('/perfil/:userId')
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadimageperfil(
     @Param('userId') userId: string,
@@ -122,6 +131,7 @@ export class CloudinaryController {
     }
   }
   @Get('/perfil')
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
   async getimageperfil() {
     const folder = 'users';
     try {
