@@ -11,6 +11,10 @@ import { UsersModule } from './Modules/Users/users.module';
 import { ProductsModule } from './Modules/Products/products.module';
 import { LoggerMiddleware } from './middleware/logger.midleware';
 import { StripeModule } from './Modules/Stripe/stripe.module';
+import { PlantationsModule } from './Modules/Plantations/plantations.module';
+import { ApplicationTypesModule } from './Modules/ApplicationTypes/applicationtypes.module';
+import { DiseasesModule } from './Modules/Diseases/diseases.module';
+import { PhenologiesModule } from './Modules/Phenologies/phenologies.module';
 
 @Module({
   imports: [
@@ -33,6 +37,10 @@ import { StripeModule } from './Modules/Stripe/stripe.module';
     JwtModule.register(jwtConfig),
     UsersModule,
     ProductsModule,
+    PlantationsModule,
+    DiseasesModule,
+    ApplicationTypesModule,
+    PhenologiesModule,
     StripeModule,
   ],
   controllers: [],

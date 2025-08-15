@@ -4,11 +4,12 @@ enum eRole {
 }
 
 export interface IUser {
-    id: number;
+    id?: number;
     name: string;
     email: string;
-    role: eRole;
-    credential: Credential;      
+    role?: eRole;
+    credential?: Credential;      
+    picture?: string;
 }
 
 export interface RegisterUserDto { //post

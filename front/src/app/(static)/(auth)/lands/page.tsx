@@ -1,10 +1,10 @@
 "use client"
 
-import LandForm from "@/app/(static)/(auth)/lands/new/components/landforms";
+import LandForm from "@/app/(views)/crops/components/landforms";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
-const MapComponent = dynamic(() => import("@/app/(static)/(auth)/lands/new/components/map"), { ssr: false });
+const MapComponent = dynamic(() => import("@/app/(views)/crops/components/map"), { ssr: false });
 
 export default function NewLandPage() {
     const [coords, setCoords] = useState("");
@@ -16,7 +16,7 @@ export default function NewLandPage() {
 
       <div className="w-full">
 
-        <MapComponent onLocationSelect={(newCoords) => setCoords(newCoords)} />
+        {/* <MapComponent onLocationSelect={(newCoords) => setCoords(newCoords)} /> */}
       </div>
     </main>
     )

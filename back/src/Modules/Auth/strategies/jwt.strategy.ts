@@ -1,30 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import * as jwksRsa from 'jwks-rsa';
-import {
-  ExtractJwt,
-  Strategy,
-  StrategyOptionsWithoutRequest,
-} from 'passport-jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Users } from 'src/Modules/Users/entities/user.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(
+    @InjectRepository(Users) private readonly userDbRepo: Repository<Users>,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKeyProvider: jwksRsa.passportJwtSecret({
-        cache: true,
-        rateLimit: true,
-        jwksRequestsPerMinute: 5,
-        jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
-      }),
-      issuer: `https://${process.env.AUTH0_DOMAIN}/`,
-      audience: process.env.AUTH0_AUDIENCE,
-    } as StrategyOptionsWithoutRequest);
+      secretOrKey: process.env.JWT_SECRET!,
+    });
   }
 
-  validate(payload: any) {
+  async validate(payload) {
+    const user = await this.userDbRepo.findOne({
+      where: { auth0Id: payload.sub },
+    });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
     return payload;
   }
 }

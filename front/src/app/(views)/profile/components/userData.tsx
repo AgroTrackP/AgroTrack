@@ -1,6 +1,9 @@
 "use client";
 // import Loader from "@/components/ui/loader/loader";
 import { useAuthContext } from "@/context/authContext";
+import ProfileUploader from "./profileUploader";
+
+
 import React from "react";
 
 
@@ -17,6 +20,7 @@ const UserData = () => {
 
     return (
 <div className="mb-8 space-y-2">
+    <ProfileUploader/>
     <p>
         <span className="font-semibold">Nombre:</span> {user.name}
     {/* Cannot find name 'user'. */}
