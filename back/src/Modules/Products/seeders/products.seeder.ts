@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 import { Products } from '../entities/products.entity';
-import { CategoriesSeeder } from '../../Categories/seeders/categories.seeder';
+import { Categories } from '../../Categories/entities/categories.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 type ProductSeed = {

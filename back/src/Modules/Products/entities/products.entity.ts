@@ -1,4 +1,5 @@
 import { ApplicationPlanItem } from 'src/Modules/ApplicationPlans/entities/applicationplan.item.entity';
+import { Categories } from 'src/Modules/Categories/entities/categories.entity';
 import { Diseases } from 'src/Modules/Diseases/entities/diseases.entity';
 import { Users } from 'src/Modules/Users/entities/user.entity';
 import {
@@ -45,6 +46,12 @@ export class Products {
   })
   alert_threshold: number;
 
+  @Column({
+    type: 'boolean',
+    default: true,
+  })
+  isActive: boolean;
+
   @ManyToOne(() => Users, (user) => user.products)
   @JoinColumn({ name: 'user_id' })
   user: Users;
@@ -55,9 +62,7 @@ export class Products {
   @ManyToMany(() => Diseases, (disease) => disease.products)
   diseases: Diseases[];
 
-  @Column({
-    type: 'boolean',
-    default: true,
-  })
-  isActive: boolean;
+  @ManyToOne(() => Categories, (category) => category.products)
+  @JoinColumn({ name: 'category_id' })
+  category: Categories;
 }
