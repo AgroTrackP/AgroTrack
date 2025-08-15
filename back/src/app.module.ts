@@ -5,8 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSourceOptions } from 'typeorm';
 import { CloudinaryModule } from './Modules/Cloudinary/cloudinary.module';
 import { AuthModule } from './Modules/Auth/auth.module';
-import { jwtConfig } from './Config/JWT.config';
-import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from './Modules/Users/users.module';
 import { ProductsModule } from './Modules/Products/products.module';
 import { LoggerMiddleware } from './middleware/logger.midleware';
@@ -33,10 +31,9 @@ import { ContactModule } from './Modules/Contacto/contacto.module';
         };
       },
     }),
+    UsersModule,
     CloudinaryModule,
     AuthModule,
-    JwtModule.register(jwtConfig),
-    UsersModule,
     ProductsModule,
     PlantationsModule,
     DiseasesModule,
