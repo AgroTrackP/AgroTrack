@@ -39,6 +39,7 @@ function LocationSelector({ onLocationSelect = () => {} }: { onLocationSelect?: 
 export default function Map({ onLocationSelect = () => {} }: MapProps) {
   return (
     <div style={{ width: "100%", height: "100%", minHeight: 300, position: "relative", zIndex: 0 }}>
+      
       <MapContainer center={[-12.0464, -77.0428]} zoom={13} style={{ width: "100%", height: "100%" }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -46,7 +47,7 @@ export default function Map({ onLocationSelect = () => {} }: MapProps) {
         />
         <LocationSelector onLocationSelect={onLocationSelect} />
       </MapContainer>
-    </div>
+      </div>
   );
 }
 
