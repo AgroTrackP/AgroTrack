@@ -23,7 +23,7 @@ export default function MisCultivosPage() {
 
     const fetchCultivo = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/miscultivos/${id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/mis-cultivos/${id}`, {
           credentials: "include", 
         });
         if (!res.ok) throw new Error("Error al obtener datos");
