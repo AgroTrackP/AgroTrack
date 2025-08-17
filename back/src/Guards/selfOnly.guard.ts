@@ -7,7 +7,6 @@ import {
   Injectable,
 } from '@nestjs/common';
 // Importa tu entidad de usuario directamente
-import { Users } from '../Modules/Users/entities/user.entity';
 import { Role } from '../Modules/Users/user.enum';
 
 @Injectable()
@@ -16,14 +15,16 @@ export class SelfOnlyGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     // ✅ Le decimos a TypeScript que 'user' es del tipo 'Users'
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const user: Users = request.user;
+    const user = request.user;
 
     // Ahora 'user.id' no dará un error
-    const userIdFromToken = user.id;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const userIdFromToken = user.sub;
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const userIdFromParams = request.params.id;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const isAdmin = user.role === Role.Admin;
 
     if (isAdmin || userIdFromToken === userIdFromParams) {
