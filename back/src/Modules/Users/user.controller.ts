@@ -26,9 +26,7 @@ import { RoleGuard } from 'src/Guards/role.guard';
 import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from './user.enum';
 import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
-import { AuthGuard } from '@nestjs/passport';
 import { ExcludePasswordInterceptor } from 'src/interceptor/exclude-pass.interceptor';
-
 
 @ApiTags('Users')
 @Controller('users')
@@ -100,7 +98,7 @@ export class UsersController {
 
   // convierte user en admin
   @Put(':id/make-admin')
-  @UseGuards(AuthGuard, RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
   @Roles(Role.Admin)
   makeAdmin(@Param('id') id: string) {
     return this.usersService.setAdminRole(id, true);
@@ -108,7 +106,7 @@ export class UsersController {
 
   // remueve admin a un user
   @Put(':id/remove-admin')
-  @UseGuards(AuthGuard, RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
   @Roles(Role.Admin)
   removeAdmin(@Param('id') id: string) {
     return this.usersService.setAdminRole(id, false);

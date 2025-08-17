@@ -38,7 +38,6 @@ export const postRegister = async (data: RegisterUserDto) => {
     };
   }
 };
-///////
 
 export const postLogin = async (data:LoginUserDto): Promise<LoginServiceResponse> => {
     try {

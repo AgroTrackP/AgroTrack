@@ -4,12 +4,13 @@ enum eRole {
 }
 
 export interface IUser {
-    id?: number;
+    id?: string;
     name: string;
     email: string;
     role?: eRole;
     credential?: Credential;      
     picture?: string;
+    imgUrl?: string; // para el profileUploader
 }
 
 export interface RegisterUserDto { //post
@@ -25,8 +26,8 @@ export interface LoginUserDto {  // post
 }
 
 export interface ISuscription{
-    id: string,
-    plan: string,
+    priceId: string,
+    name: string,
     price: number,
     benefits: string[]
 }
