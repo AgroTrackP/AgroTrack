@@ -2,6 +2,7 @@
 const nextConfig = {
   // Permite que Next.js optimice imágenes desde estos dominios.
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -13,14 +14,7 @@ const nextConfig = {
       },
     ],
   },
-
-    webpack: (config) => {
-    config.externals.push({
-      sharp: 'commonjs sharp',
-    });
-    return config;
-  },
-
+  
   // Redirige las peticiones a la API del front-end hacia el back-end en Render.
   async rewrites() {
     return [
