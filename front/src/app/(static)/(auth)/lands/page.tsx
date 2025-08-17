@@ -11,7 +11,7 @@ export default function NewLandPage() {
 
     return (
         <main className="min-h-screen flex flex-col gap-6 p-6 bg-gray-50">
-     
+    
       <LandForm coords={coords} />
 
       <div className="w-full">

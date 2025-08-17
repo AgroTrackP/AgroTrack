@@ -14,7 +14,7 @@ import { SiTerraform } from "react-icons/si";
 export const AuthNavbar = () => {
     const {isAuth, resetUserData} = useAuthContext();
     const pathname = usePathname();
-    // const isAuthenticated = false;
+    //const isAuthenticated = true;
 
     const user = {
     id: 1,

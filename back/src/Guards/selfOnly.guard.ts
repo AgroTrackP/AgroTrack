@@ -1,22 +1,30 @@
+// src/Guards/selfOnly.guard.ts
+
 import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { Role } from 'src/Modules/Users/user.enum';
-import { AuthRequest } from '../types/express';
+// Importa tu entidad de usuario directamente
+import { Role } from '../Modules/Users/user.enum';
+
 @Injectable()
 export class SelfOnlyGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
-
   canActivate(context: ExecutionContext): boolean {
-    const request: AuthRequest = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest();
+    // ✅ Le decimos a TypeScript que 'user' es del tipo 'Users'
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const user = request.user;
-    const userIdFromToken = request.user.sub;
+
+    // Ahora 'user.id' no dará un error
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const userIdFromToken = user.sub;
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const userIdFromParams = request.params.id;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const isAdmin = user.role === Role.Admin;
 
     if (isAdmin || userIdFromToken === userIdFromParams) {

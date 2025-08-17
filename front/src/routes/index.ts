@@ -10,4 +10,7 @@ export const routes = {
 	page:"/crops",
 	notFound: "/not-found",
 	ContactForm: "/contact",
+	pagos:"/payments",
+	success:"/success",
+	cancel:"/cancel",
 };
