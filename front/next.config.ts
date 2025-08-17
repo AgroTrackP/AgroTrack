@@ -1,16 +1,26 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Tu configuración de 'images'
+  // Permite que Next.js optimice imágenes desde estos dominios.
   images: {
-    domains: ['res.cloudinary.com', 'plus.unsplash.com'],
+    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'plus.unsplash.com',
+      },
+    ],
   },
-
-  // Tu configuración de 'rewrites' para el proxy
+  
+  // Redirige las peticiones a la API del front-end hacia el back-end en Render.
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'https://agrotrack-develop.onrender.com/:path*',
+        destination: 'https://agrotrack-develop.onrender.com/api/:path*', // Corregido para incluir /api/
       },
     ];
   },
