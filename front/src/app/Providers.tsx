@@ -2,6 +2,7 @@
 
 import { AuthProvider } from "@/context/authContext";
 import { Auth0Provider } from "@auth0/auth0-react";
+import { LandProvider } from "@/context/landContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   // const redirectUri = process.env.NEXT_PUBLIC_AUTH0_REDIRECT_URI || "";
@@ -16,7 +17,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
         redirect_uri: redirectUri,
       }}
     >
-      <AuthProvider>{children}</AuthProvider>
+      <AuthProvider>
+       <LandProvider>
+        {children}
+        </LandProvider>
+        </AuthProvider>
     </Auth0Provider>
   );
 }
