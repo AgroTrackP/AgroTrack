@@ -68,7 +68,7 @@ useEffect(() => {
 });
 
     // 2️⃣ intercambiar en tu backend por un JWT propio
-        const res = await fetch(`http://localhost:3010/auth/auth0/login`, {
+        const res = await fetch(`https://agrotrack-develop.onrender.com/auth/auth0/login`, {
       method: "POST", // 👈 ¡Cambia GET a POST!
       headers: {
         "Content-Type": "application/json",
