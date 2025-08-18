@@ -1,0 +1,6 @@
+[
+  { "name": "Oídio", "description": "Hongo que afecta hojas y tallos" },
+  { "name": "Mildiu", "description": "Enfermedad fúngica que da manchas" },
+  { "name": "Tizón", "description": "Enfermedad que provoca necrosis en hojas" },
+  { "name": "Marchitez", "description": "Afecta el sistema radicular y causa deshidratación" }
+]

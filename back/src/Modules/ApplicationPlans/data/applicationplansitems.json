@@ -1,0 +1,18 @@
+[
+  {
+    "dosage_per_m2": 2,
+    "calculated_quantity": 20
+  },
+  {
+    "dosage_per_m2": 1.5,
+    "calculated_quantity": 15
+  },
+  {
+    "dosage_per_m2": 2.5,
+    "calculated_quantity": 25
+  },
+  {
+    "dosage_per_m2": 3,
+    "calculated_quantity": 30
+  }
+]
