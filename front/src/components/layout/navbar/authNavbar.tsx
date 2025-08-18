@@ -13,6 +13,7 @@ import { SiTerraform } from "react-icons/si";
 
 export const AuthNavbar = () => {
     const {isAuth, logoutUser} = useAuthContext();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const pathname = usePathname();
     const router = useRouter();
     // const isAuthenticated = false;
