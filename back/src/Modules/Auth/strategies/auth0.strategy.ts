@@ -1,64 +1,37 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Strategy, Profile } from 'passport-auth0';
-import { Repository } from 'typeorm';
-import { Users } from 'src/Modules/Users/entities/user.entity';
-import { hashPassword } from 'src/Helpers/hashPassword';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { passportJwtSecret } from 'jwks-rsa';
 
 @Injectable()
-export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
-  constructor(
-    @InjectRepository(Users) private readonly userDbRepo: Repository<Users>,
-  ) {
-    const auth0StrategyOptions = {
-      domain: process.env.AUTH0_DOMAIN!,
-      clientID: process.env.AUTH0_CLIENT_ID!,
-      clientSecret: process.env.AUTH0_CLIENT_SECRET!,
-      callbackURL: process.env.AUTH0_CALLBACK_URL!,
-      scope: 'openid profile email',
-    };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    super(auth0StrategyOptions);
+export class Auth0JwtStrategy extends PassportStrategy(Strategy, 'auth0-jwt') {
+  constructor() {
+    super({
+      // extrae el JWT del header Authorization: Bearer xxx
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      // le dice a passport que use la JWKS de Auth0 (llaves públicas rotativas)
+      secretOrKeyProvider: passportJwtSecret({
+        cache: true,
+        rateLimit: true,
+        jwksRequestsPerMinute: 5,
+        jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
+      }),
+      audience: process.env.AUTH0_AUDIENCE, // 👈 debe coincidir con el Identifier de tu API
+      issuer: `https://${process.env.AUTH0_DOMAIN}/`, // 👈 debe coincidir con el `iss` del token
+      algorithms: ['RS256'],
+    });
   }
 
-  async validate(
-    accessToken: string,
-    refreshToken: string,
-    extraParams: any,
-    profile: Profile,
-    done: (err: any, user: any, info?: any) => void,
-  ): Promise<any> {
-    try {
-      const auth0Id = profile.id;
-      const email = profile.emails?.[0]?.value;
-      const name = profile.displayName;
-
-      if (!email || !auth0Id) {
-        return done(new Error('Email or Auth0 ID not found'), false);
-      }
-
-      let user = await this.userDbRepo.findOne({
-        where: { auth0Id },
-      });
-
-      if (!user) {
-        const secureRandomPassword = await hashPassword(
-          'A-secure-for-auth0-users-that-is-never-used',
-        );
-        user = this.userDbRepo.create({
-          auth0Id,
-          email,
-          name,
-          password: secureRandomPassword,
-        });
-        await this.userDbRepo.save(user);
-      }
-
-      return done(null, user);
-    } catch (error) {
-      done(error, false);
-    }
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async validate(payload: any) {
+    // El payload ya viene verificado por Auth0 (firma, aud, iss)
+    // Puedes mapearlo a tu modelo de usuario si quieres
+    return {
+      sub: payload.sub, // Auth0 user id
+      email: payload.email,
+      name: payload.name,
+      roles: payload['../../Users/user.enum.ts'] || ['user'], // custom claim si tienes
+    };
   }
 }
