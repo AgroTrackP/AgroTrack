@@ -24,8 +24,8 @@ const useProtection = (): ProteccionStatus => {
             return;
         }
 
-        const publicRoutes = [routes.login, routes.register];
-        const privateRoutes = [routes.profile, routes.mis_cultivos, routes.cancel, routes.success]
+        const publicRoutes = [routes.login, routes.register, routes.cancel, routes.success];
+        const privateRoutes = [routes.profile, routes.mis_cultivos]
 
         const isPublicRoute = publicRoutes.includes(pathname);
         const isPrivateRoute = privateRoutes.includes(pathname);
