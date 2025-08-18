@@ -1,0 +1,6 @@
+[
+  { "name": "Plantación Norte", "area_m2": 1000, "crop_type": "Tomate", "location": "Sector Norte", "start_date": "2025-08-01T00:00:00.000Z" },
+  { "name": "Plantación Sur", "area_m2": 800, "crop_type": "Lechuga", "location": "Sector Sur", "start_date": "2025-08-05T00:00:00.000Z" },
+  { "name": "Plantación Este", "area_m2": 1200, "crop_type": "Maíz", "location": "Sector Este", "start_date": "2025-08-10T00:00:00.000Z" },
+  { "name": "Plantación Oeste", "area_m2": 950, "crop_type": "Pimiento", "location": "Sector Oeste", "start_date": "2025-08-15T00:00:00.000Z" }
+]

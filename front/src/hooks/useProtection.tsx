@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface ProteccionStatus {
-    isLoanding: boolean;
+    isLoading: boolean;
     isAllowed: boolean;
 }
 
@@ -14,34 +14,44 @@ const useProtection = (): ProteccionStatus => {
     const router = useRouter();
     const pathname = usePathname();
 
-    const [isLoading, setIsLoanding] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isAllowed, setIsAllowed] = useState<boolean>(false);
 
     useEffect(() => {
-
         if (isAuth === null) {
-            setIsLoanding(true);
+            setIsLoading(true);
             return;
         }
 
-        const publicRoutes = [routes.login, routes.register, routes.cancel, routes.success];
-        const privateRoutes = [routes.profile, routes.mis_cultivos]
+        // Rutas a las que un usuario sin loguear no pueda ingresar
+        const privateRoutes = [routes.profile, routes.mis_cultivos];
 
-        const isPublicRoute = publicRoutes.includes(pathname);
+        // Rutas a las que un usuario logueado pueda ingresar
+        const guestRoutes = [routes.login, routes.register];
+
         const isPrivateRoute = privateRoutes.includes(pathname);
+        const isGuestRoute = guestRoutes.includes(pathname);
 
-        let userHasPermission = true;
-        if ((isAuth && isPublicRoute) || (!isAuth && isPrivateRoute)) {
+        // Usuario no logueado intenta acceder a una ruta privada
+        if (!isAuth && isPrivateRoute) {
+            router.push(routes.login);
+            setIsAllowed(false);
+        }
+        //Usuario si logueado intenta acceder a login / register
+        else if (isAuth && isGuestRoute) {
             router.push(routes.home);
-            userHasPermission = false;
+            setIsAllowed(false);
+        }
+        // En cualquier otro caso, el acceso está permitido
+        else {
+            setIsAllowed(true);
         }
 
-        setIsAllowed(userHasPermission);
-        setIsLoanding(false)
+        setIsLoading(false);
 
     }, [isAuth, pathname, router]);
 
-    return { isLoanding: isLoading, isAllowed };
+    return { isLoading, isAllowed };
 }
 
 export default useProtection;
