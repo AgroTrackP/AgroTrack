@@ -13,10 +13,11 @@ type AuthContextType = {
     saveUserData: (data: LoginResponse) => void;
     logoutUser: () => void;
     resetUserData: () => void;
-    setUser: React.Dispatch<React.SetStateAction<IUser | null>>; // ✅ imagen de perfil
+    setUser: React.Dispatch<React.SetStateAction<IUser | null>>;
 };
 
 const AUTH_KEY = "authData";
+const AUTH0_FLAG = "auth0Login"; // evita auto-login después de logout
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -28,7 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const { user: auth0User, isAuthenticated, getAccessTokenSilently, logout } = useAuth0();
 
-    // ✅ Recuperar sesión del localStorage en cliente
+    //  Recuperar sesión del localStorage
     useEffect(() => {
         if (typeof window === "undefined") return;
         const stored = localStorage.getItem(AUTH_KEY);
@@ -48,27 +49,51 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     }, []);
 
-    // ✅ Login automático con Auth0
-    useEffect(() => {
-        if (!isAuthenticated || !auth0User) return;
-        const loginWithAuth0 = async () => {
-            try {
-                const accessToken = await getAccessTokenSilently();
-                saveUserData({
-                    login: true,
-                    user: {
-                        name: auth0User.name || "",
-                        email: auth0User.email || "",
-                        picture: auth0User.picture || "", 
-                    },
-                    token: accessToken,
-                });
-            } catch (error) {
-                console.error("Error obteniendo token de Auth0:", error);
-            }
-        };
-        loginWithAuth0();
-    }, [isAuthenticated, auth0User]);
+    console.log({auth0User, isAuthenticated});
+
+    // ✅ login automático con Auth0 solo si NO hay sesión local
+useEffect(() => {
+    if (!isAuthenticated || !auth0User) return;
+
+    const stored = localStorage.getItem(AUTH_KEY);
+    if (stored) return; // ya hay sesión local, no hacer nada
+
+    const loginWithAuth0 = async () => {
+        try {
+    // 1️⃣ pedir access token de Auth0
+            const accessToken = await getAccessTokenSilently();
+
+    // 2️⃣ intercambiar en tu backend por un JWT propio
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/auth0/callback`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ accessToken }),
+    });
+
+        const data = await res.json()
+
+            // 3️⃣ guardar datos en localStorage/context
+            localStorage.setItem(AUTH0_FLAG, "true");
+            
+            saveUserData({
+                login: true,
+                user: {
+                    role: auth0User.role || "user",
+                    name: auth0User.name || "",
+                    email: auth0User.email || "",
+                    picture: auth0User.picture || "",
+                },
+                // token: accessToken,
+                token: data.token, // 👈 este es el JWT de tu backend
+
+            });
+        } catch (error) {
+            console.error("Error obteniendo token de Auth0:", error);
+        }
+    };
+
+    loginWithAuth0();
+}, [isAuthenticated, auth0User]);
 
     const saveUserData = (data: LoginResponse) => {
         setUser(data.user);
@@ -80,14 +105,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
-    const logoutUser = () => {
-        resetUserData();
+const logoutUser = () => {
+    const isAuth0Session = localStorage.getItem(AUTH0_FLAG) === "true";
+
+    resetUserData();
+    console.log({isAuth0Session});
+
+  // si la sesión es de Auth0, cerrar también en Auth0
+    if (isAuth0Session) {
         logout({
-            logoutParams: {
-                returnTo: typeof window !== "undefined" ? window.location.origin : "/",
-            },
+            logoutParams: { returnTo: window.location.origin },
         });
-    };
+
+    return;
+}
+};
 
     const resetUserData = () => {
         setUser(null);
@@ -96,6 +128,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsAuth(false);
         if (typeof window !== "undefined") {
             localStorage.removeItem(AUTH_KEY);
+            localStorage.removeItem(AUTH0_FLAG);
         }
     };
 
@@ -109,7 +142,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 saveUserData,
                 logoutUser,
                 resetUserData,
-                setUser, // ✅ lo agregamos al provider
+                setUser,
             }}
         >
             {children}

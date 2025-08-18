@@ -11,6 +11,7 @@ export interface LoginResponse {
     user: IUser;
     token: string;
     message?: string;
+    provider?: "local" | "auth0";
 }
 
 
