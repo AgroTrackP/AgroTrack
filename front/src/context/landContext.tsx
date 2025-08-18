@@ -49,7 +49,7 @@ export const LandProvider = ({ children }: { children: ReactNode }) => {
       console.log(newLand);
 
 
-      setLands((prevLands) => [...prevLands, newLand as LandData]);
+      setLands((prevLands) => [...prevLands, newLand as unknown as LandData]);
 
      
       
