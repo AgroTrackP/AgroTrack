@@ -1,16 +1,16 @@
 import {
-  BadRequestException,
   Controller,
   Headers,
   HttpCode,
   Post,
-  RawBodyRequest,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { StripeService } from './stripe.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import Stripe from 'stripe';
+import { StripeSignatureGuard } from 'src/Guards/stripeSignature.guard';
 
 @ApiTags('Stripe Webhooks')
 @Controller('stripe/webhook')
@@ -18,6 +18,7 @@ export class StripeWebhookController {
   constructor(private readonly stripeService: StripeService) {}
 
   @Post()
+  @UseGuards(StripeSignatureGuard)
   @HttpCode(200)
   @ApiOperation({ summary: 'Recibe eventos webhook de Stripe' })
   @ApiResponse({
@@ -25,24 +26,9 @@ export class StripeWebhookController {
     description: 'Webhook recibido correctamente',
     schema: { example: { received: true } },
   })
-  async handleWebhook(
-    @Headers('stripe-signature') sig: string,
-    @Req() req: RawBodyRequest<Request>,
-  ) {
-    if (!sig) {
-      throw new BadRequestException('Missing Stripe signature header');
-    }
+  async handleWebhook(@Req() req: Request) {
+    const event = (req as any).stripeEvent as Stripe.Event;
 
-    let event: Stripe.Event;
-
-    try {
-      // La validación de la firma se hace en el controlador
-      event = await this.stripeService.constructEventFromPayload(req.body, sig);
-    } catch (err) {
-      throw new BadRequestException(`Webhook signature verification failed.`);
-    }
-
-    // La lógica de negocio del evento se delega al servicio
     await this.stripeService.handleWebhookEvent(event);
 
     return { received: true };
