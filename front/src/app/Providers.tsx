@@ -1,3 +1,4 @@
+// src/app/Providers.tsx
 "use client";
 
 import { AuthProvider } from "@/context/authContext";

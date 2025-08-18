@@ -6,14 +6,17 @@ import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from "react-leaf
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useLands } from "@/context/landContext";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 
-// @ts-ignore
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
-  iconUrl: require("leaflet/dist/images/marker-icon.png"),
-  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
+ // @ts-expect-error The Leaflet icon prototype has a typing bug in Next.js
+ delete L.Icon.Default.prototype._getIconUrl;
+ L.Icon.Default.mergeOptions({
+   iconRetinaUrl: markerIcon2x.src,
+   iconUrl: markerIcon.src,
+   shadowUrl: markerShadow.src,
 });
 
 interface LatLng {
@@ -81,7 +84,7 @@ const LandForm = () => {
       areaTerreno: areaHectareas.toString(),
     };
 
-    await createLand(formData);
+    await createLand(landData);
 
     setFormData({
       nombreCultivo: '',
