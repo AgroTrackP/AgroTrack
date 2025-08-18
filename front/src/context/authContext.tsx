@@ -58,21 +58,45 @@ useEffect(() => {
     const stored = localStorage.getItem(AUTH_KEY);
     if (stored) return; // ya hay sesión local, no hacer nada
 
-    const loginWithAuth0 = async () => {
+    // const loginWithAuth0 = async () => {
+    //     try {
+    // // 1️⃣ pedir access token de Auth0
+    //         const accessToken = await getAccessTokenSilently();
+
+    // // 2️⃣ intercambiar en tu backend por un JWT propio
+    //         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/auth0/callback`, {
+    //             method: "POST",
+    //             headers: { "Content-Type": "application/json" },
+    //             body: JSON.stringify({ accessToken }),
+    // });
+
+    //     const data = await res.json()
+
+    //         // 3️⃣ guardar datos en localStorage/context
+    //         localStorage.setItem(AUTH0_FLAG, "true");
+            
+    //         saveUserData({
+    //             login: true,
+    //             user: {
+    //                 role: auth0User.role || "user",
+    //                 name: auth0User.name || "",
+    //                 email: auth0User.email || "",
+    //                 picture: auth0User.picture || "",
+    //             },
+    //             // token: accessToken,
+    //             token: data.token, // 👈 este es el JWT de tu backend
+
+    //         });
+    //     } catch (error) {
+    //         console.error("Error obteniendo token de Auth0:", error);
+    //     }
+    // };
+
+        const loginWithAuth0 = async () => {
         try {
-    // 1️⃣ pedir access token de Auth0
             const accessToken = await getAccessTokenSilently();
+            
 
-    // 2️⃣ intercambiar en tu backend por un JWT propio
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/auth0/callback`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ accessToken }),
-    });
-
-        const data = await res.json()
-
-            // 3️⃣ guardar datos en localStorage/context
             localStorage.setItem(AUTH0_FLAG, "true");
             
             saveUserData({
@@ -83,9 +107,7 @@ useEffect(() => {
                     email: auth0User.email || "",
                     picture: auth0User.picture || "",
                 },
-                // token: accessToken,
-                token: data.token, // 👈 este es el JWT de tu backend
-
+                token: accessToken,
             });
         } catch (error) {
             console.error("Error obteniendo token de Auth0:", error);
