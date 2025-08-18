@@ -8,9 +8,21 @@ import { config as auth0Config } from './Config/auth0.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.use('/stripe/webhook', express.raw({ type: 'application/json' }));
-  app.enableCors();
+
+  // Asegura que el CORS esté habilitado con un origen explícito para el frontend
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
+
+  // Middleware de Auth0 para express
   app.use(auth(auth0Config));
+
+  // Middleware para el webhook de Stripe
+  app.use('/stripe/webhook', express.raw({ type: 'application/json' }));
+
+  // Middleware de validación global
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

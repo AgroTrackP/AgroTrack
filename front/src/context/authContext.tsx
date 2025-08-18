@@ -61,17 +61,31 @@ useEffect(() => {
     const loginWithAuth0 = async () => {
         try {
     // 1️⃣ pedir access token de Auth0
-            const accessToken = await getAccessTokenSilently();
+           const accessToken = await getAccessTokenSilently({
+  authorizationParams: {
+    audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE,
+  },
+});
 
     // 2️⃣ intercambiar en tu backend por un JWT propio
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/auth0/callback`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ accessToken }),
+        const res = await fetch(`http://localhost:3010/auth/auth0/login`, {
+      method: "POST", // 👈 ¡Cambia GET a POST!
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      // 👈 Aquí enviamos los datos del usuario en el cuerpo de la solicitud
+      body: JSON.stringify({
+        name: auth0User.name,
+        email: auth0User.email,
+        picture: auth0User.picture,
+        auth0Id: auth0User.sub, // 'sub' es el ID único del usuario en Auth0
+      }),
     });
 
+console.log(accessToken)
         const data = await res.json()
-
+console.log(data)
             // 3️⃣ guardar datos en localStorage/context
             localStorage.setItem(AUTH0_FLAG, "true");
             
@@ -93,7 +107,7 @@ useEffect(() => {
     };
 
     loginWithAuth0();
-}, [isAuthenticated, auth0User]);
+}, [isAuthenticated, auth0User, getAccessTokenSilently]);
 
     const saveUserData = (data: LoginResponse) => {
         setUser(data.user);
