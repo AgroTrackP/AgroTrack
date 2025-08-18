@@ -11,8 +11,8 @@ async function bootstrap() {
 
   // Asegura que el CORS esté habilitado con un origen explícito para el frontend
   app.enableCors({
-    origin: 'http://localhost:3000',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: ['http://localhost:3000', 'https://agrotrack-develop.vercel.app'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
 
