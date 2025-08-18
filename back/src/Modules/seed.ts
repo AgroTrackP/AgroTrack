@@ -5,8 +5,8 @@ import { ProductsSeeder } from './Products/seeders/products.seeder';
 async function runSeeders() {
   await connectionSource.initialize();
 
-  await CategoriesSeeder.run(connectionSource);
-  await ProductsSeeder.run(connectionSource);
+  await CategoriesSeeder.run();
+  await ProductsSeeder.run();
 
   console.log('🎉 All seeders completed');
   process.exit(0);
