@@ -10,6 +10,7 @@ import { LoginUserDto } from './dtos/LoginUser.dto';
 import { JwtPayload } from 'src/types/jwt-payload.interface';
 import { MailService } from '../nodemailer/mail.service';
 import { confirmationTemplate } from '../nodemailer/templates/confirmacion.html';
+import { Role } from '../Users/user.enum'; // ✅ Correct import
 
 @Injectable()
 export class AuthService {
@@ -122,5 +123,36 @@ export class AuthService {
       expiresAt: new Date((exp || 0) * 1000).toISOString(),
       user: userWithoutPassword as Omit<Users, 'password'>,
     };
+  }
+  async validateUserAndGetToken(auth0User: any): Promise<{ token: string }> {
+    const { email, name, picture } = auth0User;
+
+    // 1. Buscar el usuario en tu base de datos por el email de Auth0
+    let user = await this.usersDbRepo.findOne({
+      where: { email },
+    });
+    // 2. Si el usuario no existe, crearlo
+    if (!user) {
+      user = this.usersDbRepo.create({
+        email,
+        name,
+        imgUrl: picture,
+        role: Role.User,
+        isConfirmed: true,
+      });
+      await this.usersDbRepo.save(user);
+    }
+
+    // 3. Crear el payload para tu propio JWT
+    const payload = {
+      sub: user.id, // O el ID que uses en tu base de datos
+      email: user.email,
+      role: user.role,
+    };
+
+    // 4. Firmar y devolver tu propio JWT
+    const token = this.jwtService.sign(payload);
+
+    return { token };
   }
 }

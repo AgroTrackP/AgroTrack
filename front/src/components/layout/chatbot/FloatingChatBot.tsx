@@ -21,6 +21,7 @@ export default function FloatingChatBot() {
         },
     ]);
     }
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, [open]);
 
 const sendMessage = async () => {
@@ -39,6 +40,7 @@ const sendMessage = async () => {
             ...newMessages,
             { role: "assistant", content: res.data.reply },
     ]);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         setMessages([
         ...newMessages,
