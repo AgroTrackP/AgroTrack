@@ -6,9 +6,9 @@ import { BiLoader } from 'react-icons/bi';
 
 const RoutesProtection = ({ children }: { children: React.ReactNode }) => {
 
-    const { isLoanding } = useProtection();
+    const { isLoading } = useProtection();
 
-    if (isLoanding) {
+    if (isLoading) {
         return <div className='w-screen h-screen justify-center flex items-center'>
             <BiLoader />
         </div>
