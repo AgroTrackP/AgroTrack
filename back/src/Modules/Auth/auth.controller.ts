@@ -5,7 +5,6 @@ import {
   Param,
   Post,
   Req,
-  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -16,6 +15,7 @@ import { Repository } from 'typeorm';
 import { LoginUserDto } from './dtos/LoginUser.dto';
 import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
+import { hashPassword } from 'src/Helpers/hashPassword';
 
 @Controller('auth')
 export class AuthController {
@@ -59,25 +59,48 @@ export class AuthController {
       message: 'Tu cuenta ha sido verificada',
     };
   }
+  // Esta ruta inicia el flujo de autenticación, redirigiendo a Auth0.
+  // La guardia 'auth0' maneja la redirección.
+  @Post('auth0/login')
+  @UseGuards(AuthGuard('auth0-jwt'))
+  async handleAuth0Login(
+    @Req() req,
+    // Aquí recibimos los datos que enviaste desde el frontend
+    @Body()
+    body: {
+      name: string;
+      email: string;
+      picture: string;
+    },
+  ) {
+    // El ID de Auth0 siempre viene en el payload del token como 'sub'
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const auth0Id = req.user.sub;
 
-  @Get('auth0/login')
-  @UseGuards(AuthGuard('auth0'))
-  auth0Login(): void {
-    return;
-  }
+    // Aquí usamos los datos del 'body' para el nombre y el correo
+    const email = body.email;
+    const name = body.name;
 
-  @Get('auth0/callback')
-  @UseGuards(AuthGuard('auth0'))
-  auth0Callback(@Req() req: Request, @Res() res: Response) {
-    // req.user contiene el user
-    const user = req.user as Users;
+    let user = await this.usersDbRepo.findOne({
+      where: { auth0Id },
+    });
 
-    // Generamos un token JWT
-    const appToken = this.authService.generateAppToken(user);
+    if (!user) {
+      // Genera una contraseña aleatoria de relleno
+      const secureRandomPassword = await hashPassword('password-never-used');
 
-    // Se redirige al frontend con el token en la URL
-    res.redirect(
-      `https://agrotrack-demo1-hhcln2gtq-agrotrackprojects-projects.vercel.app/dashboard?token=${appToken}`,
-    );
+      user = this.usersDbRepo.create({
+        auth0Id: auth0Id,
+        email: email, // Usamos el email del body
+        name: name, // Usamos el nombre del body
+        password: secureRandomPassword,
+        imgUrl: body.picture,
+      });
+      user = await this.usersDbRepo.save(user);
+    }
+
+    const yourApiToken = this.authService.generateAppToken(user);
+
+    return { user, token: yourApiToken };
   }
 }

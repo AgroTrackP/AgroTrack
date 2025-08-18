@@ -20,7 +20,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'https://agrotrack-develop.onrender.com/api/:path*', // Corregido para incluir /api/
+        destination: 'https://agrotrack-develop.onrender.com/:path*', // Corregido para incluir /api/
       },
     ];
   },

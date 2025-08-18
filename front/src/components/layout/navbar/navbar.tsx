@@ -3,6 +3,7 @@ import Image from "next/image"
 import React from "react"
 import AuthNavbar from "./authNavbar"
 
+
 const NavBar = () => {
     return (
         <>

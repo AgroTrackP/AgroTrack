@@ -5,16 +5,18 @@ import Button from "@/components/ui/button";
 import { useAuthContext } from "@/context/authContext";
 import { routes } from "@/routes";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 import { FaRegUser } from "react-icons/fa";
 import { MdLogout } from "react-icons/md";
 import { SiTerraform } from "react-icons/si";
 
 export const AuthNavbar = () => {
-    const {isAuth, resetUserData} = useAuthContext();
+    const {isAuth, logoutUser} = useAuthContext();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const pathname = usePathname();
-    //const isAuthenticated = true;
+    const router = useRouter();
+    // const isAuthenticated = false;
 
     const user = {
     id: 1,
@@ -29,13 +31,8 @@ export const AuthNavbar = () => {
 };
 
 const logout = () => {
-    resetUserData();
-
-    if(pathname === routes.home){
-        location.href = routes.login;
-        return
-    }
-    location.href = routes.home;
+    logoutUser();   
+    router.push(routes.home);
 
 };
 if (isAuth === null) {
