@@ -25,9 +25,23 @@ export interface LoginUserDto {  // post
     password: string
 }
 
+// export interface ISuscription{
+//     priceId: string,
+//     name: string,
+//     price: number,
+//     benefits: string[]
+// }
 export interface ISuscription{
-    priceId: string,
+    id: string,
     name: string,
     price: number,
-    benefits: string[]
+    maxUsers: number,
+    maxDevices: number,
+    features: string[],
+    stripePriceId:string
+}
+
+export interface IPlanSucription{
+    status: string,
+    planName: string,
 }
