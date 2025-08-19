@@ -15,6 +15,8 @@ import { DiseasesModule } from './Modules/Diseases/diseases.module';
 import { PhenologiesModule } from './Modules/Phenologies/phenologies.module';
 import { ContactModule } from './Modules/Contacto/contacto.module';
 import { SubscriptionPlanModule } from './Modules/SubscriptionPlan/subscriptionPlan.module';
+import { ChatModule } from './Modules/chatbot/chatbox.module';
+
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { SubscriptionPlanModule } from './Modules/SubscriptionPlan/subscriptionP
         };
       },
     }),
+   
+    ChatModule,
     UsersModule,
     CloudinaryModule,
     AuthModule,
