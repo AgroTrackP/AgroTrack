@@ -6,6 +6,8 @@ import {
   CreateDateColumn,
   BeforeUpdate,
   BeforeInsert,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Role } from '../user.enum';
 import { Plantations } from 'src/Modules/Plantations/entities/plantations.entity';
@@ -14,6 +16,7 @@ import { Diseases } from 'src/Modules/Diseases/entities/diseases.entity';
 import { ApplicationPlans } from 'src/Modules/ApplicationPlans/entities/applicationplan.entity';
 import { ApplicationType } from 'src/Modules/ApplicationTypes/entities/applicationtype.entity';
 import { Phenology } from 'src/Modules/Phenologies/entities/phenologies.entity';
+import { SubscriptionPlan } from 'src/Modules/SubscriptionPlan/entities/subscriptionplan.entity';
 
 @Entity({
   name: 'USERS',
@@ -56,12 +59,9 @@ export class Users {
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 
-  @Column({
-    type: 'varchar',
-    nullable: true,
-    default: null,
-  })
-  suscription_level: string;
+  @ManyToOne(() => SubscriptionPlan, (suscriptionPlan) => suscriptionPlan.users)
+  @JoinColumn({ name: 'subscription_plan_id' })
+  suscription_level: SubscriptionPlan;
 
   @Column({
     type: 'boolean',
@@ -121,4 +121,7 @@ export class Users {
       this.imgPublicId = 'icon-7797704_640_t4vlks';
     }
   }
+
+  @Column({ unique: true, nullable: true })
+  stripeCustomerId: string;
 }
