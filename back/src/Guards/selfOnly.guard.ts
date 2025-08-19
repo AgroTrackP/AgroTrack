@@ -16,7 +16,7 @@ export class SelfOnlyGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<AuthRequest>();
     const user = request.user;
 
-    const userIdFromToken = user.sub;
+    const userIdFromToken = user.id;
 
     const userIdFromParams = request.params.id;
 

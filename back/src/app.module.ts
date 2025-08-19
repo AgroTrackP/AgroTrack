@@ -17,7 +17,6 @@ import { ContactModule } from './Modules/Contacto/contacto.module';
 import { SubscriptionPlanModule } from './Modules/SubscriptionPlan/subscriptionPlan.module';
 import { ChatModule } from './Modules/chatbot/chatbox.module';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -34,7 +33,7 @@ import { ChatModule } from './Modules/chatbot/chatbox.module';
         };
       },
     }),
-   
+
     ChatModule,
     UsersModule,
     CloudinaryModule,
