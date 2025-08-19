@@ -5,10 +5,15 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import express from 'express';
 import { auth } from 'express-openid-connect';
 import { config as auth0Config } from './Config/auth0.config';
+import { runSeeders } from './Modules/seed';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Ejecutar seeders solo en desarrollo
+  if (process.env.NODE_ENV === 'development') {
+    await runSeeders();
+  }
   // Asegura que el CORS esté habilitado con un origen explícito para el frontend
   app.enableCors();
 
