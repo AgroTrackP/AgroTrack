@@ -14,6 +14,8 @@ import { ApplicationTypesModule } from './Modules/ApplicationTypes/applicationty
 import { DiseasesModule } from './Modules/Diseases/diseases.module';
 import { PhenologiesModule } from './Modules/Phenologies/phenologies.module';
 import { ContactModule } from './Modules/Contacto/contacto.module';
+// 👇 1. Importa tu nuevo ChatModule aquí
+import { ChatModule } from './Modules/chatbot/chatbox.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { ContactModule } from './Modules/Contacto/contacto.module';
         };
       },
     }),
+    // 👇 2. Añádelo a la lista de imports
+    ChatModule,
     UsersModule,
     CloudinaryModule,
     AuthModule,
