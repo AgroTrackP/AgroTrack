@@ -88,16 +88,18 @@ console.log(accessToken)
 console.log(data)
             // 3️⃣ guardar datos en localStorage/context
             localStorage.setItem(AUTH0_FLAG, "true");
-            
+
             saveUserData({
                 login: true,
                 user: {
-                    role: auth0User.role || "user",
-                    name: auth0User.name || "",
-                    email: auth0User.email || "",
-                    picture: auth0User.picture || "",
+                    id:data.user.id,
+                    role: data.user.role || "user",
+                    name: data.user.name || "",
+                    email: data.user.email || "",
+                    picture: data.user.imgUrl || auth0User.picture,
                 },
-                token: accessToken,
+                token: accessToken || data.token, // Asegúrate de que tu backend devuelva el token
+                // token: accessToken,
             });
         } catch (error) {
             console.error("Error obteniendo token de Auth0:", error);

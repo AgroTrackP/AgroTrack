@@ -5,9 +5,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from '../Users/entities/user.entity';
 import { StripeWebhookController } from './stripeWebhook.controller';
 import Stripe from 'stripe';
+import { SubscriptionPlan } from '../SubscriptionPlan/entities/subscriptionplan.entity';
+import { MailService } from '../nodemailer/mail.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Users])],
+  imports: [TypeOrmModule.forFeature([Users, SubscriptionPlan])],
   controllers: [StripeWebhookController, StripeController],
   providers: [
     StripeService,
@@ -19,6 +21,7 @@ import Stripe from 'stripe';
         });
       },
     },
+    MailService,
   ],
 })
 export class StripeModule {}

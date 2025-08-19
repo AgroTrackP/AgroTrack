@@ -13,6 +13,7 @@ import { SiTerraform } from "react-icons/si";
 
 export const AuthNavbar = () => {
     const {isAuth, logoutUser} = useAuthContext();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const pathname = usePathname();
     const router = useRouter();
     // const isAuthenticated = false;
@@ -66,7 +67,7 @@ if (isAuth === null) {
             <FaRegUser  className="h-5 w-5 text-gray-500" />
         <span className='cursor-pointer font-medium'> {user.name}</span>
         </Link>
-        <Link href={routes.mis_cultivos} className='flex items-center space-x-2 rtl:space-x-reverse'>
+        <Link href={routes.page} className='flex items-center space-x-2 rtl:space-x-reverse'>
             <SiTerraform  className="h-5 w-5 text-gray-500" />
         <span className='cursor-pointer font-medium'>Mis Cultivos</span>
         </Link>

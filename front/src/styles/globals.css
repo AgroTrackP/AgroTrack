@@ -3,6 +3,13 @@
 @tailwind utilities;
 @import "leaflet/dist/leaflet.css";
 
+
+
+.leaflet-container {
+  position: relative; 
+  z-index: 0 !important;  
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

@@ -10,11 +10,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Asegura que el CORS esté habilitado con un origen explícito para el frontend
-  app.enableCors({
-    origin: 'http://localhost:3000',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-  });
+  app.enableCors();
 
   // Middleware de Auth0 para express
   app.use(auth(auth0Config));
