@@ -2,6 +2,8 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
+import { SubscriptionPlan } from '../SubscriptionPlan/entities/subscriptionplan.entity';
+import { Users } from '../Users/entities/user.entity';
 
 @Injectable()
 export class MailService {
@@ -53,6 +55,34 @@ export class MailService {
     } catch (error) {
       console.error('❌ Error enviando correo:', error);
       throw new InternalServerErrorException('No se pudo enviar el correo');
+    }
+  }
+
+  async sendPaymentSuccessEmail(user: Users, plan: SubscriptionPlan) {
+    const mailOptions = {
+      from: `"Agrotrack" <${process.env.SMTP_USER}>`,
+      to: user.email,
+      subject: '✅ ¡Tu suscripción a AgroTrack está activa!',
+      html: `
+        <h1>¡Hola, ${user.name}!</h1>
+        <p>Gracias por suscribirte a AgroTrack. Tu pago ha sido procesado exitosamente.</p>
+        <p>Has activado el plan: <strong>${plan.name}</strong></p>
+        <p>Precio: $${plan.price} ARS</p>
+        <p>Ahora tienes acceso a las siguientes características:</p>
+        <ul>
+          ${plan.features.map((feature) => `<li>${feature}</li>`).join('')}
+        </ul>
+        <p>¡Gracias por confiar en nosotros para optimizar tus cultivos!</p>
+        <br>
+        <p>El equipo de AgroTrack</p>
+      `,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`Payment confirmation email sent to ${user.email}`);
+    } catch (error) {
+      console.log(`Failed to send email to ${user.email}`, error);
     }
   }
 }

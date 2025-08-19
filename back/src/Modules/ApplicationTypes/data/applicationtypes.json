@@ -1,0 +1,6 @@
+[
+  { "name": "Preventiva", "description": "Aplicación antes de síntomas" },
+  { "name": "Curativa", "description": "Aplicación tras aparición de síntomas" },
+  { "name": "Fertilizante", "description": "Aplicación de fertilizantes" },
+  { "name": "Herbicida", "description": "Control de malezas" }
+]

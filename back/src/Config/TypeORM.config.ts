@@ -17,7 +17,7 @@ export const databaseConfig: DataSourceOptions = {
   password: process.env.DB_PASSWORD,
   synchronize: false,
   logging: true,
-  entities: ['dist/**/*.entity{.ts,.js}'],
+  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: ['dist/migrations/*.js'],
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 };

@@ -24,6 +24,15 @@
     "migration:run": "npm run build && typeorm migration:run -d dist/config/typeorm.config.js",
     "migration:revert": "npm run build && typeorm migration:revert -d dist/config/typeorm.config.js",
     "migration:create": "typeorm migration:create src/migrations/MigrationName",
+
+    "seed:categories": "ts-node -r tsconfig-paths/register src/Modules/Categories/seeders/categories.seeder.ts",
+    "seed:products": "ts-node -r tsconfig-paths/register src/Modules/Products/seeders/products.seeder.ts",
+    "seed:plantations": "ts-node -r tsconfig-paths/register src/Modules/Plantations/seeders/plantations.seeder.ts",
+    "seed:phenologies": "ts-node -r tsconfig-paths/register src/Modules/Phenologies/seeders/phenologies.seeder.ts",
+    "seed:diseases": "ts-node -r tsconfig-paths/register src/Modules/Diseases/seeders/diseases.seeder.ts",
+    "seed:applicationtype": "ts-node -r tsconfig-paths/register src/Modules/ApplicationTypes/seeders/applicationtypes.seeder.ts",
+    "seed:applicationplan": "ts-node -r tsconfig-paths/register src/Modules/ApplicationPlans/seeders/applicationplans.seeder.ts",
+  
     "run:category:seed": "ts-node -r tsconfig-paths/register src/Modules/Categories/seeders/categories.seeder.ts",
     "run:product:seed": "ts-node -r tsconfig-paths/register src/Modules/Products/seeders/products.seeder.ts "
   },
