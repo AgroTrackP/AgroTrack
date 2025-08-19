@@ -95,6 +95,7 @@ export class AuthController {
         name: name, // Usamos el nombre del body
         password: secureRandomPassword,
         imgUrl: body.picture,
+        isConfirmed: true,
       });
       user = await this.usersDbRepo.save(user);
     }
