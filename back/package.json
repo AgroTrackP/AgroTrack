@@ -34,7 +34,7 @@
     "seed:applicationplan": "ts-node -r tsconfig-paths/register src/Modules/ApplicationPlans/seeders/applicationplans.seeder.ts",
   
     "run:category:seed": "ts-node -r tsconfig-paths/register src/Modules/Categories/seeders/categories.seeder.ts",
-    "run:product:seed": "ts-node -r tsconfig-paths/register src/Modules/Products/seeders/products.seeder.ts ",
+    "run:product:seed": "ts-node -r tsconfig-paths/register src/Modules/Products/seeders/products.seeder.ts "
   },
   "dependencies": {
     "@nestjs/common": "^11.1.5",

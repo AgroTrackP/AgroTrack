@@ -39,4 +39,10 @@ export class SubscriptionPlan {
 
   @OneToMany(() => Users, (user) => user.suscription_level)
   users: Users[];
+
+  @Column({
+    unique: true,
+    nullable: false, // Cada plan en la DB debe tener su price_id de Stripe.
+  })
+  stripePriceId: string;
 }

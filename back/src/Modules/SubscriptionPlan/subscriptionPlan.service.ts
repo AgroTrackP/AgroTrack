@@ -4,10 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { SubscriptionPlan } from './entities/suscriptionplan.entity';
+import { SubscriptionPlan } from './entities/subscriptionplan.entity';
 import { Repository } from 'typeorm';
 import { Users } from '../Users/entities/user.entity';
-import { CreateSuscriptionDto } from './dtos/createSuscriptionPlan.dto';
+import { CreateSuscriptionDto } from './dtos/createSubscriptionPlan.dto';
 
 @Injectable()
 export class SuscriptionPlanService {
@@ -58,19 +58,26 @@ export class SuscriptionPlanService {
     }
   }
 
-  async bulkCreatePlans(plansData: CreateSuscriptionDto[]) {
-    try {
-      const createdSuscriptions: SubscriptionPlan[] = [];
-      for (const suscriptionData of plansData) {
-        const result = await this.createSuscriptionPlan(suscriptionData);
-        createdSuscriptions.push(result.suscriptionCreated);
+  async bulkCreatePlans(
+    plansData: CreateSuscriptionDto[],
+  ): Promise<SubscriptionPlan[]> {
+    const createdPlans: SubscriptionPlan[] = [];
+
+    // Usamos un bucle for...of para poder usar await dentro de él
+    for (const planData of plansData) {
+      // 1. Verificamos si el plan ya existe para no crear duplicados
+      const planExists = await this.suscriptionPlanRepository.findOneBy({
+        stripePriceId: planData.stripePriceId,
+      });
+
+      // 2. Si no existe, lo creamos
+      if (!planExists) {
+        const newPlan = this.suscriptionPlanRepository.create(planData);
+        const savedPlan = await this.suscriptionPlanRepository.save(newPlan);
+        createdPlans.push(savedPlan);
       }
-      return {
-        message: 'Subscriptions created successfully.',
-        data: createdSuscriptions,
-      };
-    } catch (error) {
-      throw new BadRequestException(`Error creating subscriptions: ${error}`);
     }
+
+    return createdPlans;
   }
 }

@@ -16,7 +16,7 @@ import { Diseases } from 'src/Modules/Diseases/entities/diseases.entity';
 import { ApplicationPlans } from 'src/Modules/ApplicationPlans/entities/applicationplan.entity';
 import { ApplicationType } from 'src/Modules/ApplicationTypes/entities/applicationtype.entity';
 import { Phenology } from 'src/Modules/Phenologies/entities/phenologies.entity';
-import { SubscriptionPlan } from 'src/Modules/SubscriptionPlan/entities/suscriptionplan.entity';
+import { SubscriptionPlan } from 'src/Modules/SubscriptionPlan/entities/subscriptionplan.entity';
 
 @Entity({
   name: 'USERS',

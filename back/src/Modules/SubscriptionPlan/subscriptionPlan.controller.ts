@@ -1,14 +1,14 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { SubscriptionPlan } from './entities/suscriptionplan.entity';
+import { SubscriptionPlan } from './entities/subscriptionplan.entity';
 import { Repository } from 'typeorm';
 import { Users } from '../Users/entities/user.entity';
-import { SuscriptionPlanService } from './suscriptionPlan.service';
+import { SuscriptionPlanService } from './subscriptionPlan.service';
 import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 import { RoleGuard } from 'src/Guards/role.guard';
 import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from '../Users/user.enum';
-import { CreateSuscriptionDto } from './dtos/createSuscriptionPlan.dto';
+import { CreateSuscriptionDto } from './dtos/createSubscriptionPlan.dto';
 import { CreateMultipleSubscriptionsDto } from './dtos/createMultipleSubscription.dto';
 
 @Controller('suscriptionPlan')
@@ -38,7 +38,7 @@ export class SuscriptionPlanController {
     return this.suscriptionPlanService.createSuscriptionPlan(suscriptionData);
   }
 
-  @Post('seed-manual')
+  @Post('manual-seed')
   @UseGuards(PassportJwtAuthGuard, RoleGuard)
   @Roles(Role.Admin)
   async createMultipleSuscriptionPlans(

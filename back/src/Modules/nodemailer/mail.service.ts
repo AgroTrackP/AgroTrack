@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
-import { SubscriptionPlan } from '../SubscriptionPlan/entities/suscriptionplan.entity';
+import { SubscriptionPlan } from '../SubscriptionPlan/entities/subscriptionplan.entity';
 import { Users } from '../Users/entities/user.entity';
 
 @Injectable()
