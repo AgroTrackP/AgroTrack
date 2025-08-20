@@ -10,13 +10,12 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
-
- // @ts-expect-error The Leaflet icon prototype has a typing bug in Next.js
- delete L.Icon.Default.prototype._getIconUrl;
- L.Icon.Default.mergeOptions({
-   iconRetinaUrl: markerIcon2x.src,
-   iconUrl: markerIcon.src,
-   shadowUrl: markerShadow.src,
+// @ts-expect-error The Leaflet icon prototype has a typing bug in Next.js
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x.src,
+  iconUrl: markerIcon.src,
+  shadowUrl: markerShadow.src,
 });
 
 interface LatLng {
@@ -54,14 +53,25 @@ const LandForm = () => {
     longitud: null as number | null,
   });
 
-   const [showForm, setShowForm] = useState(false);
+  const [filters, setFilters] = useState({
+    nombreCultivo: '',
+    tipoPlantacion: '',
+    temporada: '',
+  });
+
+  const [showForm, setShowForm] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-    const handleAreaUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAreaUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setAreaUnit(e.target.value);
   };
 
@@ -98,10 +108,18 @@ const LandForm = () => {
       longitud: null,
     });
     setAreaUnit('ha');
-     setShowForm(false);
+    setShowForm(false);
   };
+  
+  const filteredLands = lands.filter(land => {
+    const nombreMatch = land.nombreCultivo.toLowerCase().includes(filters.nombreCultivo.toLowerCase());
+    const tipoMatch = filters.tipoPlantacion ? land.tipoPlantacion === filters.tipoPlantacion : true;
+    const temporadaMatch = filters.temporada ? land.temporada === filters.temporada : true;
 
-   return (
+    return nombreMatch && tipoMatch && temporadaMatch;
+  });
+
+  return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">
@@ -117,8 +135,46 @@ const LandForm = () => {
         )}
       </div>
 
+      {!showForm && (
+        <div className="flex flex-col md:flex-row gap-4 mb-6 bg-gray-100 p-4 rounded-lg shadow-inner">
+          <input
+            type="text"
+            name="nombreCultivo"
+            placeholder="Filtrar por nombre..."
+            value={filters.nombreCultivo}
+            onChange={handleFilterChange}
+            className="w-full md:w-1/3 border rounded-lg p-2"
+          />
+          <select
+            name="tipoPlantacion"
+            value={filters.tipoPlantacion}
+            onChange={handleFilterChange}
+            className="w-full md:w-1/3 border rounded-lg p-2"
+          >
+            <option value="">Todos los tipos</option>
+            <option value="frutas">Frutas</option>
+            <option value="vegetales">Vegetales</option>
+            <option value="hortalizas">Hortalizas</option>
+            <option value="cereales">Cereales</option>
+            <option value="ornamentales">Ornamentales</option>
+            <option value="pastos">Pastos</option>
+          </select>
+          <select
+            name="temporada"
+            value={filters.temporada}
+            onChange={handleFilterChange}
+            className="w-full md:w-1/3 border rounded-lg p-2"
+          >
+            <option value="">Todas las temporadas</option>
+            <option value="verano">Verano</option>
+            <option value="invierno">Invierno</option>
+            <option value="primavera">Primavera</option>
+            <option value="otono">Otoño</option>
+          </select>
+        </div>
+      )}
+      
       {showForm ? (
-       
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <form
             onSubmit={handleSubmit}
@@ -224,7 +280,7 @@ const LandForm = () => {
               {isLoading ? "Guardando..." : "Guardar Cultivo"}
             </button>
             {error && <p className="text-red-500 text-sm">{error}</p>}
-           </form>
+          </form>
           <div>
             <h3 className="text-lg font-semibold mb-2">Haz clic en el mapa para marcar las coordenadas:</h3>
             <div className="rounded-2xl overflow-hidden shadow">
@@ -240,28 +296,27 @@ const LandForm = () => {
           </div>
         </div>
       ) : (
-     
         <div className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {lands.length > 0 ? (
-              lands.map((land, index) => (
+            {filteredLands.length > 0 ? (
+              filteredLands.map((land, index) => (
                 <div key={index} className="bg-white p-6 rounded-2xl shadow border-l-4 border-green-500">
                   <p className="text-lg font-semibold">{land.nombreCultivo}</p>
                   <p className="text-gray-600 text-sm">
-                    **Tipo:** {land.tipoPlantacion} | **Temporada:** {land.temporada}
+                    <b>Tipo:</b> {land.tipoPlantacion} | <b>Temporada:</b> {land.temporada}
                   </p>
                   <p className="text-gray-600 text-sm">
-                    **Área:** {parseFloat(land.areaTerreno).toFixed(2)} ha | **Fecha:** {land.fechaPlantacion}
+                    <b>Área:</b> {parseFloat(land.areaTerreno).toFixed(2)} ha | <b>Fecha:</b> {land.fechaPlantacion}
                   </p>
                   {land.latitud && land.longitud && (
                     <p className="text-xs text-gray-500 mt-2">
-                      **Coordenadas:** Lat {land.latitud.toFixed(4)}, Lng {land.longitud.toFixed(4)}
+                      <b>Coordenadas:</b> Lat {land.latitud.toFixed(4)}, Lng {land.longitud.toFixed(4)}
                     </p>
                   )}
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">Aún no hay cultivos registrados.</p>
+              <p className="text-gray-500">No se encontraron cultivos que coincidan con los filtros.</p>
             )}
           </div>
         </div>

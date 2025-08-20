@@ -10,16 +10,20 @@ import { toast } from "react-toastify";
 import * as yup from "yup";
 
 const loginSchema = yup.object({
-    email: yup
-        .string()
-        .required("El correo electrónico es obligatorio")
-        .email("El correo electrónico no es válido"),
-        
-        password: yup
-        .string()
-        .min(6, "La contraseña debe tener al menos 6 caracteres")
-        .required("La contraseña es obligatoria"),
+  email: yup
+    .string()
+    .required("El correo electrónico es obligatorio")
+    .email("El correo electrónico no es válido"),
+  password: yup
+    .string()
+    .min(8, "La contraseña debe tener al menos 8 caracteres") 
+    .required("La contraseña es obligatoria")
+    .matches(/[a-z]/, "La contraseña debe contener al menos una letra minúscula")
+    .matches(/[A-Z]/, "La contraseña debe contener al menos una letra mayúscula")
+    .matches(/\d/, "La contraseña debe contener al menos un número")
+    .matches(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/, "La contraseña debe contener al menos un carácter especial"),
 });
+
 
 export default function LoginForm() {
     const {saveUserData} = useAuthContext();

@@ -56,13 +56,3 @@ export default function Map({ onLocationSelect = () => {} }: MapProps) {
       </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
