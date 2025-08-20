@@ -2,18 +2,25 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import Stripe from 'stripe';
 import { Repository } from 'typeorm';
 import { Users } from '../Users/entities/user.entity';
+import { SubscriptionPlan } from '../SubscriptionPlan/entities/subscriptionplan.entity';
+import { MailService } from '../nodemailer/mail.service';
 
 @Injectable()
 export class StripeService {
   constructor(
-    @InjectRepository(Users) private userDbService: Repository<Users>,
+    @InjectRepository(Users)
+    private readonly userDbService: Repository<Users>,
+    @InjectRepository(SubscriptionPlan)
+    private readonly subscriptionPlanRepository: Repository<SubscriptionPlan>,
     @Inject('STRIPE_CLIENT') private stripe: Stripe,
+    private readonly mailService: MailService,
   ) {}
 
   async createCheckoutSession(
@@ -54,11 +61,53 @@ export class StripeService {
     }
   }
 
+  async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+    const stripeCustomerId = session.customer as string;
+
+    const checkoutSession = await this.stripe.checkout.sessions.retrieve(
+      session.id,
+      {
+        expand: ['line_items'],
+      },
+    );
+
+    if (!checkoutSession.line_items) {
+      throw new InternalServerErrorException(
+        'Could not retrieve line items from session.',
+      );
+    }
+
+    const stripePriceId = checkoutSession.line_items.data[0].price!.id;
+
+    const user = await this.userDbService.findOneBy({ stripeCustomerId });
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    const plan = await this.subscriptionPlanRepository.findOneBy({
+      stripePriceId,
+    });
+    if (!plan) {
+      throw new NotFoundException('Subscription plan does not exist.');
+    }
+
+    user.suscription_level = plan;
+    await this.userDbService.save(user);
+
+    console.log(
+      `User ${user.email} successfully subscribed to plan ${plan.name}.`,
+    );
+
+    await this.mailService.sendPaymentSuccessEmail(user, plan);
+  }
+
   // Método para la lógica de negocio del webhook
-  handleWebhookEvent(event: Stripe.Event) {
+  async handleWebhookEvent(event: Stripe.Event) {
     switch (event.type) {
       case 'checkout.session.completed': {
         console.log('Checkout session completed:', event.data.object);
+        const session = event.data.object as Stripe.Checkout.Session;
+        await this.handleCheckoutSessionCompleted(session);
         // Añadir la lógica para activar la suscripción del usuario en la base de datos
         break;
       }
