@@ -20,12 +20,19 @@ export class ApplicationPlansSeeder {
     const productRepo = ds.getRepository(Products);
 
     // Buscar entidades relacionadas
-    const user = await userRepo.findOneBy({ email: 'admin@demo.com' }); // ejemplo
-    const plantation = await plantationRepo.findOne({});
-    const disease = await diseaseRepo.findOne({});
-    const product = await productRepo.findOne({});
+    const user = await userRepo.findOneBy({
+      email: 'facundo.ortiz@example.com',
+    });
+    const plantation = await plantationRepo.findOne({
+      where: { id: 'f743533e-7d1f-4686-9c41-e5f8721f3037' },
+    });
+    const disease = await diseaseRepo.findOne({
+      where: { id: '15d43a9c-5ea6-4e24-9b2f-123d7225406a' },
+    });
 
-    if (!user || !plantation || !disease || !product) {
+    const products = await productRepo.find();
+
+    if (!user || !plantation || !disease || !products.length) {
       console.error('⚠️ No existen las entidades relacionadas necesarias');
       await ds.destroy();
       return;
@@ -34,29 +41,32 @@ export class ApplicationPlansSeeder {
     // Crear plan si no existe
     let plan = await planRepo.findOne({
       where: { plantation: { id: plantation.id }, disease: { id: disease.id } },
+      relations: ['items'],
     });
 
     if (!plan) {
       plan = planRepo.create({
         planned_date: new Date(),
         total_water: 500,
-        total_product: 20,
+        total_product: products.length * 10, // ejemplo: total según nº productos
         user,
         plantation,
         disease,
       });
       await planRepo.save(plan);
 
-      // Crear item asociado
-      const item = itemRepo.create({
-        dosage_per_m2: 2,
-        calculated_quantity: 20,
-        applicationPlan: plan,
-        product,
-      });
-      await itemRepo.save(item);
+      // Crear un item para cada producto
+      for (const product of products) {
+        const item = itemRepo.create({
+          dosage_per_m2: 2,
+          calculated_quantity: 10,
+          applicationPlan: plan,
+          product,
+        });
+        await itemRepo.save(item);
+      }
 
-      console.log('✅ Plan de aplicación con item creado');
+      console.log(`✅ Plan de aplicación creado con ${products.length} items`);
     } else {
       console.log('ℹ️ Ya existía un plan para esa plantación y enfermedad');
     }
