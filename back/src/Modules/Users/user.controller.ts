@@ -30,13 +30,13 @@ import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 import { IsActiveGuard } from 'src/Guards/isActive.guard';
 
 @ApiTags('Users')
+@ApiBearerAuth('jwt')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   // --- 1. Rutas que actúan sobre la colección de usuarios ---
   // GET /users
-  @ApiBearerAuth('jwt')
   @Get()
   @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
   @Roles(Role.Admin)
