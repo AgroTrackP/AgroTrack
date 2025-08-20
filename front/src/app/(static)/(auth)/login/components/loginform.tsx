@@ -110,6 +110,10 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     }
 };
 
+    function loginWithRedirect(): void {
+        throw new Error("Function not implemented.");
+    }
+
     return (
         <form
             onSubmit={handleSubmit}
