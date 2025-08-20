@@ -156,6 +156,10 @@ export class StripeService {
     }
   }
 
+  async cancelSubscription(userId: string) {
+    
+  }
+
   // Método para la lógica de negocio del webhook
   async handleWebhookEvent(event: Stripe.Event) {
     switch (event.type) {
