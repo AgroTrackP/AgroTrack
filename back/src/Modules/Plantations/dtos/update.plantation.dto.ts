@@ -24,4 +24,6 @@ export class UpdatePlantationDto {
   @IsOptional()
   @IsString()
   userId?: string;
+  @IsString()
+  season: string;
 }

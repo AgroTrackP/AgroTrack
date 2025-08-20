@@ -43,6 +43,12 @@ export class Plantations {
     type: 'timestamp',
   })
   start_date: Date;
+  @Column({
+    type: 'varchar',
+    nullable: false,
+    default: 'verano',
+  })
+  season: string;
 
   @OneToMany(() => ApplicationPlans, (plan) => plan.plantation)
   applicationPlans: ApplicationPlans[];

@@ -26,4 +26,7 @@ export class CreatePlantationDto {
   @IsOptional()
   @IsString()
   userId?: string;
+
+  @IsString()
+  season: string;
 }
