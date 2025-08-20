@@ -1,8 +1,16 @@
 "use client";
 
-import React from "react";
-import LandForm from "./components/landforms";
+import React, {Suspense} from "react";
 import { LandProvider } from "@/context/landContext";
+import dynamic from "next/dynamic";
+
+const DynamicLandForm = dynamic(
+  () => import("./components/landforms"),
+  { 
+    ssr: false,
+    loading: () => <p>Cargando el formulario...</p>, 
+  }
+);
 
 export default function PageCrops() {
   return (
@@ -21,7 +29,9 @@ export default function PageCrops() {
         >
           <div className="grid grid-cols-1 md:grid-cols-1">
             <div className="bg-white rounded-xl p-4">
-              <LandForm />
+              <Suspense fallback={<div>Cargando...</div>}>
+                <DynamicLandForm />
+              </Suspense>
             </div>
           </div>
         </div>
