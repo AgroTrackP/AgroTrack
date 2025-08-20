@@ -25,7 +25,6 @@ const SuscriptionList = () => {
                     throw new Error ("No se pudieron cargar los planes");
                 }
                 const data = await response.json();
-                console.log("datos de suscription", data);
                 setPlans(data);
             } catch (err: unknown) {
                 if(err instanceof Error){

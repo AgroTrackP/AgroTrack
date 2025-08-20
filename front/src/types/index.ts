@@ -39,9 +39,14 @@ export interface ISuscription{
     maxDevices: number,
     features: string[],
     stripePriceId:string
+    //Estas propiedades son las que se usan para mostrar es estado de la suscripcion 
+    status?: string,
+    planName?: string,
 }
 
-export interface IPlanSucription{
+export interface IUSerSuscription{
     status: string,
-    planName: string,
+    planName: string;
 }
+
+
