@@ -4,7 +4,12 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/context/authContext";
 
-export default function LandForm({ coords }: { coords: string}) {
+
+export default function LandForm({ 
+    coords
+}: { 
+    coords: string
+}) {
     const { user } = useAuthContext();
     const router = useRouter();
 
@@ -72,7 +77,7 @@ export default function LandForm({ coords }: { coords: string}) {
         }
     };
 
-        if (!user) {
+    if (!user) {
         return null; 
     }
     
