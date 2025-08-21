@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useLands } from "@/context/landContext";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/context/authContext";
 

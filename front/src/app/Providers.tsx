@@ -4,7 +4,6 @@
 import { AuthProvider } from "@/context/authContext";
 import { Auth0Provider } from "@auth0/auth0-react";
 import { LandProvider } from "@/context/landContext";
-import RoutesProtection from "@/hooks/routesProtection";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const redirectUri =
@@ -17,15 +16,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
       clientId={process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID!}
       authorizationParams={{
         redirect_uri: redirectUri,
+        audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE,
+            scope: "openid profile email",
+ // 👈 FALTA ESTO
       }}
     >
       <AuthProvider>
-        <LandProvider>
-          <RoutesProtection>
-            {children}
-          </RoutesProtection>
+       <LandProvider>
+        {children}
         </LandProvider>
-      </AuthProvider>
+        </AuthProvider>
     </Auth0Provider>
   );
 }

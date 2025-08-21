@@ -123,7 +123,7 @@ export default function LoginForm() {
             <h2 className="text-2xl font-semibold text-center"> Iniciar Sesion</h2>
 
 
-           <div>
+            <div>
                 <label className="block text-sm font-medium mb-1">Correo electrónico</label>
                 <input
 
@@ -136,7 +136,7 @@ export default function LoginForm() {
                 />
             </div>
 
-             <div>
+            <div>
                 <label className="block text-sm font-medium mb-1">Contraseña</label>
                 <div className="relative">
                     <input
