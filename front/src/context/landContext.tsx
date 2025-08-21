@@ -1,7 +1,6 @@
 "use client";
 
-import React, {createContext, useCallback, useContext, useEffect, useState} from "react";
-import { LandDataDTO } from "@/types"; 
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useAuthContext } from "./authContext";
 import { getTerrainsByUser, postTerrainInformation } from "@/services/auth";
 
@@ -19,7 +18,6 @@ interface LandDataToApi {
 
 interface LandContextType {
   createLand: (data: {
-    // El formulario envía estos campos
     name: string;
     area_m2: string;
     crop_type: string;
@@ -32,6 +30,14 @@ interface LandContextType {
   error: string | null;
   lands: LandDataToApi[];
 }
+
+type ApiError = Error & {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+};
 
 const LandContext = createContext<LandContextType | undefined>(undefined);
 
@@ -62,29 +68,28 @@ export const LandProvider = ({ children }: { children: React.ReactNode }) => {
       const landDataToApi: LandDataToApi = {
         season: data.season,
         name: data.name,
-        area_m2: parseFloat(data.area_m2), //
+        area_m2: parseFloat(data.area_m2),
         crop_type: data.crop_type,
         location: data.location,
         start_date: data.start_date,
-        userId: user.id ?? "", // Usar el ID del usuario logueado o string vacío si es undefined
+        userId: user.id ?? "",
       };
 
       const responseData = await postTerrainInformation(landDataToApi);
       console.log("✅ Respuesta backend:", responseData);
-      //Actualizar el estado del contexto con los datos de la API
-      // await fetchLands();
 
       setLands((prevLands) => [...prevLands, responseData]);
 
       console.log("Cultivo creado exitosamente", responseData);
-    } catch (err: any) {
-      console.error("Error al enviar los datos:", err);
-      setError(err.response?.data?.message || "Error al crear el cultivo.");
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error("Error al enviar los datos:", apiError);
+      setError(apiError.response?.data?.message || "Error al crear el cultivo.");
     } finally {
       setIsLoading(false);
     }
   };
-  // 🔹 Obtener terrenos del backend
+
   const fetchLands = useCallback(async () => {
     if (!user || !token) return;
     setIsLoading(true);
@@ -94,9 +99,10 @@ export const LandProvider = ({ children }: { children: React.ReactNode }) => {
       const data = await getTerrainsByUser(user.id, token);
       console.log("🌱 Terrenos obtenidos - Contenido:", data);
       setLands(data);
-    } catch (err: any) {
-      console.error("Error al obtener terrenos:", err);
-      setError(err.response?.data?.message || "Error al cargar los terrenos.");
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error("Error al obtener terrenos:", apiError);
+      setError(apiError.response?.data?.message || "Error al cargar los terrenos.");
     } finally {
       setIsLoading(false);
     }
@@ -122,5 +128,6 @@ export const useLands = () => {
   }
   return context;
 };
+
 
 

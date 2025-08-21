@@ -2,20 +2,19 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuthContext } from "@/context/authContext";
-import ProfileUploader from "./profileUploader"; // Asumo que este es el componente para subir la imagen
+import ProfileUploader from "./profileUploader";
 
 const UserData = () => {
-  const { user, updateCredentials } = useAuthContext(); // ✅ Obtenemos updateCredentials
+  const { user, updateCredentials } = useAuthContext();
   const [isEditing, setIsEditing] = useState(false);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [loadingUpdate, setLoadingUpdate] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
 
-  // Sincroniza el estado del formulario con los datos del usuario
   useEffect(() => {
     if (user) {
-      setUsername(user.name); // Asegúrate de que 'name' sea la propiedad correcta para el nombre de usuario
+      setUsername(user.name);
       setEmail(user.email);
     }
   }, [user]);
@@ -31,15 +30,18 @@ const UserData = () => {
 
     try {
       const updatedData = {
-        name: username, // ✅ Asegúrate de que los nombres de las propiedades coincidan con tu backend
+        name: username,
         email: email,
-        // Añade aquí cualquier otro campo que el usuario pueda editar
       };
       await updateCredentials(updatedData);
-      setIsEditing(false); // Sale del modo edición al guardar
+      setIsEditing(false);
       alert("Perfil actualizado correctamente.");
-    } catch (err: any) {
-      setUpdateError(err.message || "Error al actualizar el perfil.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setUpdateError(err.message);
+      } else {
+        setUpdateError("Error al actualizar el perfil.");
+      }
       console.error("Error al actualizar perfil:", err);
     } finally {
       setLoadingUpdate(false);
@@ -51,12 +53,9 @@ const UserData = () => {
       <h3 className="text-xl font-semibold text-gray-700 mb-4">
         Información del Usuario
       </h3>
-      <ProfileUploader /> {/* Componente para subir la imagen */}
-      {updateError && (
-        <p className="text-red-500 text-sm mb-4">{updateError}</p>
-      )}
+      <ProfileUploader />
+      {updateError && <p className="text-red-500 text-sm mb-4">{updateError}</p>}
       {!isEditing ? (
-        // Modo de visualización
         <div className="space-y-2">
           <p>
             <span className="font-semibold">Nombre:</span> {user.name}
@@ -67,7 +66,6 @@ const UserData = () => {
           <p>
             <span className="font-semibold">Rol:</span> {user.role}
           </p>
-          {/* Aquí puedes añadir más información del usuario */}
           <button
             onClick={() => setIsEditing(true)}
             className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
@@ -76,19 +74,15 @@ const UserData = () => {
           </button>
         </div>
       ) : (
-        // Modo de edición (formulario)
         <form onSubmit={handleEditSubmit} className="space-y-4">
           <div>
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
               Nombre de Usuario
             </label>
             <input
               type="text"
               id="username"
-              name="username" // Asegúrate de que el 'name' coincida con tu DTO si es necesario
+              name="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
@@ -97,10 +91,7 @@ const UserData = () => {
             />
           </div>
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email
             </label>
             <input
@@ -114,7 +105,6 @@ const UserData = () => {
               required
             />
           </div>
-          {/* Añade aquí más campos si el usuario puede editar otros datos */}
           <div className="flex gap-4">
             <button
               type="submit"
@@ -139,3 +129,4 @@ const UserData = () => {
 };
 
 export default UserData;
+

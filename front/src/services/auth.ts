@@ -1,5 +1,5 @@
 "use server";
-import { LandDataDTO, LoginUserDto, RegisterUserDto } from "@/types";
+import { IUser, LandDataDTO, LoginUserDto, RegisterUserDto } from "@/types";
 import { axiosApiBack } from "./utils";
 import { LoginServiceResponse } from "./utils/types";
 import { LoginResponse } from "./utils/types";
@@ -98,7 +98,7 @@ export const postLogin = async (data:LoginUserDto): Promise<LoginServiceResponse
 
 export const updateUserCredentials = async (
   userId: string,
-  updatedData: any, // Puedes tipar esto con una interfaz más específica si lo necesitas
+  updatedData: Partial<IUser>,// Puedes tipar esto con una interfaz más específica si lo necesitas
   token: string
 ) => {
   try {

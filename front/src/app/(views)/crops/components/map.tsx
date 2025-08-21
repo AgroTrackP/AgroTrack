@@ -5,15 +5,16 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useState } from "react";
 
- import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
- import markerIcon from "leaflet/dist/images/marker-icon.png";
- import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
- L.Icon.Default.mergeOptions({
-    iconRetinaUrl: markerIcon2x.src,
-    iconUrl: markerIcon.src,
-    shadowUrl: markerShadow.src,
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x.src,
+  iconUrl: markerIcon.src,
+  shadowUrl: markerShadow.src,
 });
+
 interface Coords {
   lat: number;
   lng: number;
@@ -29,9 +30,8 @@ function LocationSelector({ onLocationSelect = () => {} }: { onLocationSelect?: 
   useMapEvents({
     click(e) {
       const { lat, lng } = e.latlng;
-      const c = `${lat}, ${lng}`;
       setPosition([lat, lng]);
-      onLocationSelect && onLocationSelect({ lat, lng });
+      onLocationSelect({ lat, lng });
     },
   });
 
@@ -45,7 +45,6 @@ function LocationSelector({ onLocationSelect = () => {} }: { onLocationSelect?: 
 export default function Map({ onLocationSelect = () => {} }: MapProps) {
   return (
     <div style={{ width: "100%", height: "100%", minHeight: 300, position: "relative", zIndex: 0 }}>
-      
       <MapContainer center={[-12.0464, -77.0428]} zoom={13} style={{ width: "100%", height: "100%" }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -53,9 +52,10 @@ export default function Map({ onLocationSelect = () => {} }: MapProps) {
         />
         <LocationSelector onLocationSelect={onLocationSelect} />
       </MapContainer>
-      </div>
+    </div>
   );
 }
+
 
 
 

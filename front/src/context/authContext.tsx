@@ -5,7 +5,6 @@ import { IUser, IUSerSuscription } from "@/types";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { updateUserCredentials } from "@/services/auth";
-import axios from "axios";
 import { axiosApiBack } from "@/services/utils";
 
 type AuthContextType = {

@@ -16,7 +16,7 @@ export interface LoginResponse {
 
 export interface LandServiceResponse{
     message: string;
-    data?: any;
-    errors?: unknown; // puedes ajustar el tipo segun lo que esperes de los errores
+    data?: object;
+    errors?: Record<string, never>; 
 }
 
