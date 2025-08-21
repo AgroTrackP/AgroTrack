@@ -9,6 +9,7 @@ export const axiosApiBack = axios.create({
 },
 });
 
+
 // 👉 Interceptor para añadir el token JWT en cada request
 axiosApiBack.interceptors.request.use(
 (config) => {

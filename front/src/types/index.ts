@@ -44,6 +44,15 @@ export interface ISuscription{
     planName?: string,
 }
 
+export interface LandDataDTO {
+    name: string;
+    area_m2: number;
+    crop_type: string;
+    season: string;
+    location: string;
+    start_date: string;
+    userId?: string;
+}
 export interface IUSerSuscription{
     status: string,
     planName: string;

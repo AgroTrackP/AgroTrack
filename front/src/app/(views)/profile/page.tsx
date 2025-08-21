@@ -1,48 +1,64 @@
+"use client";
+
 import React from "react";
 import UserData from "./components/userData";
+import TerrainInformation from "./components/terrainInformation";
 import UserSuscription from "./components/userSuscription";
 
 const PageProfile = () => {
+  return (
+    <div className="m-24 p-8 border border-gray-200 rounded-lg bg-gray-50">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-4">
+        Perfil de Usuario
+      </h2>
 
-    return (
-        <div style={{
-            margin: "2rem",
-            padding: "2rem",
-            border: "1px solid #ddd",
-            borderRadius: 8
-        }}>
+      <div
+        className="mb-8 rounded-xl p-8 shadow-md bg-cover bg-center text-black"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1568051775670-83722f73f3de?q=80&w=1089&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+        }}
+      >
+        <UserData /> {/* ✅ UserData ahora contiene la lógica de edición */}
+      </div>
 
-            <h2 style={{ fontSize: "1.2rem", fontWeight: "bold", marginBottom: "1rem", color: "#1b1a1aff" }}>Perfil de Usuario</h2>
+      <div className="mb-8">
+        <h3 className="text-xl font-semibold text-gray-700 mb-4">
+          Gestión de Terrenos
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <TerrainInformation />
+          </div>
+        </div>
+      </div>
 
-            <div
-                style={{
-                    color: "1b1a1aff",
-                    marginBottom: "2rem",
-                    backgroundImage: "url('https://images.unsplash.com/photo-1568051775670-83722f73f3de?q=80&w=1089&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    borderRadius: 12,
-                    padding: "2rem",
-                    boxShadow: "0 2px 8px rgba(3, 3, 3, 0.1)",
-                }}
-            >
-                <UserData />
-            </div>
-            <div>
-                <h3>info de terrenos</h3>
-                {/* <Terrain/> */}
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold text-gray-700 mb-4">
+            Información del Plan
+          </h3>
             <div>
                 <h3></h3>
                 <UserSuscription/>
             </div>
-            <div>
-                <h3>Update User</h3>
-
-            </div>
+          <div className="bg-white p-6 rounded-lg shadow-md border">
+            <p className="text-gray-500">
+              Aquí irá la información de tu suscripción.
+            </p>
+          </div>
         </div>
-
-    );
+        {/* <div> */}
+        {/* <h3 className="text-xl font-semibold text-gray-700 mb-4">
+            Actualizar Perfil u otro dato
+          </h3> */}
+        {/* <div className="bg-white p-6 rounded-lg shadow-md border">
+            <p className="text-gray-500">Aquí irá el formulario para actualizar tus datos.</p>
+          </div> */}
+        {/* </div> */}
+      </div>
+    </div>
+  );
 };
 
 export default PageProfile;
