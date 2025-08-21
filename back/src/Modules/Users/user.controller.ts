@@ -29,13 +29,13 @@ import { ExcludePasswordInterceptor } from 'src/interceptor/exclude-pass.interce
 import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 
 @ApiTags('Users')
+@ApiBearerAuth('jwt')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   // --- 1. Rutas que actúan sobre la colección de usuarios ---
   // GET /users
-  @ApiBearerAuth('jwt')
   @Get()
   @UseGuards(RoleGuard)
   @Roles(Role.Admin)

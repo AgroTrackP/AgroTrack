@@ -18,7 +18,7 @@ const Footer = () => {
                             height={56}
                             className="rounded-full"
                         />
-                            <span className="self-center text-2xl font-semibold whitespace-nowrap text-secondary-50">AgroTrack</span>
+                            <span className="self-center text-2xl font-semibold whitespace-nowrap text-secondary-50 p-3">AgroTrack</span>
                         </a>
                     </div>
                 </div>
