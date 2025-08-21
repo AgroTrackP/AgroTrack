@@ -1,0 +1,42 @@
+[
+  {
+    "crop_type": "Tomate",
+    "planting_notes": "Siembra ideal: septiembre-octubre. Temperatura óptima: 20-25°C.",
+    "recommended_water_per_m2": 5,
+    "recommended_fertilizer": "Fertilizante A o B según disponibilidad",
+    "recommended_diseases": ["Oídio", "Mildiu", "Tizón"],
+    "recommended_products": ["Fungicida Alpha", "Fertilizante A"],
+    "recommended_application_type": "Preventiva",
+    "additional_notes": "Evitar encharcamientos, revisar humedad cada 2 días"
+  },
+  {
+    "crop_type": "Lechuga",
+    "planting_notes": "Siembra ideal: todo el año excepto verano extremo. Temperatura óptima: 15-22°C.",
+    "recommended_water_per_m2": 4,
+    "recommended_fertilizer": "Fertilizante C",
+    "recommended_diseases": ["Mildiu", "Marchitez"],
+    "recommended_products": ["Fungicida Beta", "Fertilizante C"],
+    "recommended_application_type": "Preventiva",
+    "additional_notes": "Mantener sombra parcial en verano"
+  },
+  {
+    "crop_type": "Maíz",
+    "planting_notes": "Siembra ideal: septiembre-noviembre. Temperatura óptima: 18-28°C.",
+    "recommended_water_per_m2": 6,
+    "recommended_fertilizer": "Fertilizante D",
+    "recommended_diseases": ["Tizón", "Marchitez"],
+    "recommended_products": ["Fungicida Gamma", "Fertilizante D"],
+    "recommended_application_type": "Curativa",
+    "additional_notes": "Revisar plagas cada semana"
+  },
+  {
+    "crop_type": "Pimiento",
+    "planting_notes": "Siembra ideal: agosto-octubre. Temperatura óptima: 20-30°C.",
+    "recommended_water_per_m2": 5,
+    "recommended_fertilizer": "Fertilizante B",
+    "recommended_diseases": ["Oídio", "Mildiu"],
+    "recommended_products": ["Fungicida Delta", "Fertilizante B"],
+    "recommended_application_type": "Preventiva",
+    "additional_notes": "Evitar exceso de nitrógeno para no retrasar floración"
+  }
+]
