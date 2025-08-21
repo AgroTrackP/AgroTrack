@@ -10,7 +10,7 @@ import {
 @Entity('phenologies')
 export class Phenology {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: string;
 
   @Column({
     type: 'varchar',

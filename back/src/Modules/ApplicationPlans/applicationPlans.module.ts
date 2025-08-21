@@ -11,6 +11,7 @@ import { PlantationsModule } from '../Plantations/plantations.module';
 import { ProductsModule } from '../Products/products.module';
 import { UsersModule } from '../Users/users.module';
 import { ApplicationPlansService } from './applicationplans.service';
+import { Products } from '../Products/entities/products.entity';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ApplicationPlansService } from './applicationplans.service';
       Plantations,
       Diseases,
       ApplicationPlanItem,
+      Products,
     ]),
     UsersModule,
     PlantationsModule,

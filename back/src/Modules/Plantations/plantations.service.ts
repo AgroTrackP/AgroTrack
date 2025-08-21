@@ -71,7 +71,7 @@ export class PlantationsService {
     try {
       const plantation = await this.plantationsRepo.findOne({
         where: { id },
-        relations: ['user', 'applicationPlans'],
+        relations: ['user', 'applicationPlans', 'applicationPlans.items'],
       });
       if (!plantation) {
         throw new NotFoundException(`Plantation with id ${id} not found`);

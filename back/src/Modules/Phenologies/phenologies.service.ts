@@ -54,7 +54,7 @@ export class PhenologiesService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     try {
       const phenology = await this.phenologiesRepo.findOne({
         where: { id },
@@ -69,7 +69,7 @@ export class PhenologiesService {
     }
   }
 
-  async update(id: number, updatephenologydto: UpdatePhenologyDto) {
+  async update(id: string, updatephenologydto: UpdatePhenologyDto) {
     try {
       const phenology = await this.phenologiesRepo.findOne({
         where: { id },
@@ -97,7 +97,7 @@ export class PhenologiesService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     try {
       const phenology = await this.phenologiesRepo.findOne({ where: { id } });
       if (!phenology) {

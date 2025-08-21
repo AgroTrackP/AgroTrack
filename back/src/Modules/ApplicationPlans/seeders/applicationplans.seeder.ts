@@ -35,7 +35,10 @@ export class ApplicationPlansSeeder {
 
     // Leer JSONs
     const plansPath = path.join(__dirname, '../data/applicationplans.json');
-    const itemsPath = path.join(__dirname, '../data/applicationitems.json');
+    const itemsPath = path.join(
+      __dirname,
+      '../data/applicationplansitems.json',
+    );
     const plansData: PlanSeed[] = JSON.parse(
       fs.readFileSync(plansPath, 'utf-8'),
     );
@@ -47,66 +50,67 @@ export class ApplicationPlansSeeder {
     const user = await userRepo.findOneBy({
       email: 'facundo.ortiz@example.com',
     });
-    const plantation = await plantationRepo.findOne({
-      where: { id: 'f743533e-7d1f-4686-9c41-e5f8721f3037' },
-    });
-    const disease = await diseaseRepo.findOne({
-      where: { id: '15d43a9c-5ea6-4e24-9b2f-123d7225406a' },
-    });
+    const plantations = await plantationRepo.find();
+    const diseases = await diseaseRepo.find();
     const products = await productRepo.find();
 
-    if (!user || !plantation || !disease || !products.length) {
+    if (!user || !plantations.length || !diseases.length || !products.length) {
       console.error('⚠️ No existen las entidades relacionadas necesarias');
       await ds.destroy();
       return;
     }
 
-    for (let i = 0; i < plansData.length; i++) {
-      const planSeed = plansData[i];
+    // 🔄 Iterar plantaciones → enfermedades → planes
+    for (const plantation of plantations) {
+      for (const disease of diseases) {
+        for (let i = 0; i < plansData.length; i++) {
+          const planSeed = plansData[i];
 
-      // Verificar si ya existe un plan similar
-      let plan = await planRepo.findOne({
-        where: {
-          plantation: { id: plantation.id },
-          disease: { id: disease.id },
-          planned_date: new Date(planSeed.planned_date),
-        },
-        relations: ['items'],
-      });
-
-      if (!plan) {
-        plan = planRepo.create({
-          planned_date: new Date(planSeed.planned_date),
-          total_water: planSeed.total_water,
-          total_product: planSeed.total_product,
-          status: planSeed.status as any,
-          user,
-          plantation,
-          disease,
-        });
-        await planRepo.save(plan);
-
-        // Crear items de forma flexible: cada producto recibe un item del JSON (circular si menos items que productos)
-        for (let j = 0; j < products.length; j++) {
-          const product = products[j];
-          const itemSeed = itemsData[j % itemsData.length]; // Repetir si hay menos items que productos
-
-          const item = itemRepo.create({
-            dosage_per_m2: itemSeed.dosage_per_m2,
-            calculated_quantity: itemSeed.calculated_quantity,
-            applicationPlan: plan,
-            product,
+          // Verificar si ya existe un plan similar
+          let plan = await planRepo.findOne({
+            where: {
+              plantation: { id: plantation.id },
+              disease: { id: disease.id },
+              planned_date: new Date(planSeed.planned_date),
+            },
+            relations: ['items'],
           });
-          await itemRepo.save(item);
-        }
 
-        console.log(
-          `✅ Plan de aplicación creado para ${planSeed.planned_date} con ${products.length} items`,
-        );
-      } else {
-        console.log(
-          `ℹ️ Ya existía un plan para la plantación y enfermedad en ${planSeed.planned_date}`,
-        );
+          if (!plan) {
+            plan = planRepo.create({
+              planned_date: new Date(planSeed.planned_date),
+              total_water: planSeed.total_water,
+              total_product: planSeed.total_product,
+              status: planSeed.status as any,
+              user,
+              plantation,
+              disease,
+            });
+            await planRepo.save(plan);
+
+            // 🔄 Iterar productos y crear items (circular con itemsData)
+            for (let j = 0; j < products.length; j++) {
+              const product = products[j];
+              const itemSeed = itemsData[j % itemsData.length];
+
+              const item = itemRepo.create({
+                dosage_per_m2: itemSeed.dosage_per_m2,
+                calculated_quantity: itemSeed.calculated_quantity,
+                applicationPlan: plan,
+                product,
+              });
+              await itemRepo.save(item);
+            }
+
+            console.log(
+              `✅ Plan creado: ${planSeed.planned_date} | Plantación: ${plantation.id} | Enfermedad: ${disease.id} con ${products.length} items`,
+            );
+          } else {
+            console.log(
+              `ℹ️ Ya existía un plan para Plantación ${plantation.id} y Enfermedad ${disease.id} en ${planSeed.planned_date}`,
+            );
+          }
+        }
       }
     }
 
