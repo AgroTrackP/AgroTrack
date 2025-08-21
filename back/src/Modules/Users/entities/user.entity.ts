@@ -17,6 +17,7 @@ import { ApplicationPlans } from 'src/Modules/ApplicationPlans/entities/applicat
 import { ApplicationType } from 'src/Modules/ApplicationTypes/entities/applicationtype.entity';
 import { Phenology } from 'src/Modules/Phenologies/entities/phenologies.entity';
 import { SubscriptionPlan } from 'src/Modules/SubscriptionPlan/entities/subscriptionplan.entity';
+import { SubscriptionStatus } from '../subscriptionStatus.enum';
 
 @Entity({
   name: 'USERS',
@@ -61,7 +62,7 @@ export class Users {
 
   @ManyToOne(() => SubscriptionPlan, (suscriptionPlan) => suscriptionPlan.users)
   @JoinColumn({ name: 'subscription_plan_id' })
-  suscription_level: SubscriptionPlan;
+  suscription_level: SubscriptionPlan | null;
 
   @Column({
     type: 'boolean',
@@ -124,4 +125,11 @@ export class Users {
 
   @Column({ unique: true, nullable: true })
   stripeCustomerId: string;
+
+  @Column({
+    type: 'enum',
+    enum: SubscriptionStatus,
+    default: SubscriptionStatus.NONE,
+  })
+  subscriptionStatus: SubscriptionStatus;
 }

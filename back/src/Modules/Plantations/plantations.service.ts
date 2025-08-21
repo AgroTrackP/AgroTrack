@@ -15,6 +15,8 @@ import { Users } from 'src/Modules/Users/entities/user.entity';
 @Injectable()
 export class PlantationsService {
   constructor(
+    @InjectRepository(Users)
+    private readonly usersRepository: Repository<Users>,
     @InjectRepository(Plantations)
     private readonly plantationsRepo: Repository<Plantations>,
 
@@ -130,6 +132,27 @@ export class PlantationsService {
         );
       }
       throw new BadRequestException('Error desconocido al eliminar plantación');
+    }
+  }
+
+  async findByUser(userId: string): Promise<Plantations[]> {
+    try {
+      const user = await this.usersRepository.findOne({
+        where: { id: userId },
+        relations: ['plantations'],
+      });
+      if (!user) {
+        throw new BadRequestException('User does not exist.');
+      }
+      if (!user.plantations) {
+        throw new NotFoundException('User does not have plantatios yet.');
+      }
+
+      return user.plantations;
+    } catch (error) {
+      throw new BadRequestException(
+        `Error fetching user plantations: ${error}`,
+      );
     }
   }
 }

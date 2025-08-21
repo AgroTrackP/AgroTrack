@@ -25,18 +25,20 @@ import { UserResponseDto } from './dtos/user.response.dto';
 import { RoleGuard } from 'src/Guards/role.guard';
 import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from './user.enum';
-import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 import { ExcludePasswordInterceptor } from 'src/interceptor/exclude-pass.interceptor';
+import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
+import { IsActiveGuard } from 'src/Guards/isActive.guard';
 
 @ApiTags('Users')
+@ApiBearerAuth('jwt')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // Retornamos todos los usuarios paginados
-  @ApiBearerAuth('jwt')
+  // --- 1. Rutas que actúan sobre la colección de usuarios ---
+  // GET /users
   @Get()
-  @UseGuards(PassportJwtAuthGuard, RoleGuard) // ✅ Solo usamos RoleGuard
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
   @Roles(Role.Admin)
   @ApiOperation({ summary: 'Get all users (Admin only)' })
   @ApiResponse({ status: 200, description: 'All users found' })
@@ -56,10 +58,35 @@ export class UsersController {
     return await this.usersService.findAll(pageNum, limitNum);
   }
 
-  // Retornamos un usuario por su ID
+  // --- 2. Rutas específicas que deben ir antes de las genéricas ---
+  // GET /users/subscription-plan/:id
+  @Get('subscription-plan/:id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, SelfOnlyGuard)
+  async getSubPlanByUsersId(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.usersService.getSubPlanByUserId(id);
+  }
+
+  // PUT /users/:id/make-admin
+  @Put(':id/make-admin')
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @Roles(Role.Admin)
+  makeAdmin(@Param('id', ParseUUIDPipe) id: string) {
+    return this.usersService.setAdminRole(id, true);
+  }
+
+  // PUT /users/:id/remove-admin
+  @Put(':id/remove-admin')
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @Roles(Role.Admin)
+  removeAdmin(@Param('id', ParseUUIDPipe) id: string) {
+    return this.usersService.setAdminRole(id, false);
+  }
+
+  // --- 3. Rutas genéricas por ID (siempre al final) ---
+  // GET /users/:id
   @ApiBearerAuth('jwt')
   @Get(':id')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, SelfOnlyGuard)
   @UseInterceptors(ExcludePasswordInterceptor)
   @ApiOperation({ summary: 'Get a user by id' })
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
@@ -75,12 +102,12 @@ export class UsersController {
     return await this.usersService.findOne(id);
   }
 
-  // Actualizamos un usuario por su ID
+  // PUT /users/:id
+  @ApiBearerAuth('jwt')
   @Put(':id')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, SelfOnlyGuard)
   @UseInterceptors(ExcludePasswordInterceptor)
   @HttpCode(200)
-  @ApiBearerAuth('jwt')
   @ApiOperation({ summary: 'Update a user by id' })
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
   @ApiResponse({
@@ -90,39 +117,22 @@ export class UsersController {
   })
   @ApiResponse({ status: 404, description: 'User not found' })
   async update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<{ message: string; user: UserResponseDto }> {
     return await this.usersService.update(id, updateUserDto);
   }
 
-  // convierte user en admin
-  @Put(':id/make-admin')
-  @UseGuards(PassportJwtAuthGuard, RoleGuard)
-  @Roles(Role.Admin)
-  makeAdmin(@Param('id') id: string) {
-    return this.usersService.setAdminRole(id, true);
-  }
-
-  // remueve admin a un user
-  @Put(':id/remove-admin')
-  @UseGuards(PassportJwtAuthGuard, RoleGuard)
-  @Roles(Role.Admin)
-  removeAdmin(@Param('id') id: string) {
-    return this.usersService.setAdminRole(id, false);
-  }
-
-  // Eliminamos un usuario por su ID
+  // DELETE /users/:id
   @ApiBearerAuth('jwt')
-  @Delete('delete/:id')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
-  @UseInterceptors(ExcludePasswordInterceptor)
+  @Delete(':id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, SelfOnlyGuard)
   @HttpCode(204)
-  @ApiOperation({ summary: 'Delete a user by id' })
+  @ApiOperation({ summary: 'Delete a user by id (soft delete)' })
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
   @ApiResponse({ status: 204, description: 'User deleted' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async remove(@Param('id') id: string): Promise<{ message: string }> {
-    return await this.usersService.remove(id);
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    await this.usersService.remove(id);
   }
 }

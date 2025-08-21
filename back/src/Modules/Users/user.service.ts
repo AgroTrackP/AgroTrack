@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Users } from './entities/user.entity';
@@ -142,6 +146,32 @@ export class UsersService {
     } catch (error) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       throw new Error(`Error updating user profile image: ${error.message}`);
+    }
+  }
+
+  async getSubPlanByUserId(id: string) {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ['suscription_level'],
+    });
+    if (!user) {
+      throw new NotFoundException('User does not exist.');
+    }
+
+    try {
+      const subscriptionPlan = user.suscription_level;
+      if (!subscriptionPlan) {
+        return { message: 'This user does not have a active subscription' };
+      }
+      return {
+        userId: user.id,
+        plan: subscriptionPlan,
+        status: user.subscriptionStatus,
+      };
+    } catch (error) {
+      throw new BadRequestException(
+        `Error fetching user subscription plan: ${error}`,
+      );
     }
   }
 }

@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { Users } from '../Users/entities/user.entity';
 import { SubscriptionPlan } from '../SubscriptionPlan/entities/subscriptionplan.entity';
 import { MailService } from '../nodemailer/mail.service';
+import { SubscriptionStatus } from '../Users/subscriptionStatus.enum';
 
 @Injectable()
 export class StripeService {
@@ -23,6 +24,7 @@ export class StripeService {
     private readonly mailService: MailService,
   ) {}
 
+  // Crear una sesión de checkout
   async createCheckoutSession(
     priceId: string,
     userId: string,
@@ -39,6 +41,7 @@ export class StripeService {
         customer_email: user.email,
         success_url: String.raw`${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.FRONTEND_URL}/cancel`,
+        client_reference_id: userId,
       });
     } catch (error) {
       console.error('Error creating checkout session:', error);
@@ -61,68 +64,187 @@ export class StripeService {
     }
   }
 
+  // Lógica al confirmar el pago
   async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
     const stripeCustomerId = session.customer as string;
+    const clientReferenceId = session.client_reference_id; // Este es tu userId
 
-    const checkoutSession = await this.stripe.checkout.sessions.retrieve(
+    // --- SOLUCIÓN PARA EL ERROR 2 ---
+    // Verificamos que el client_reference_id (nuestro userId) exista en la sesión.
+    if (!clientReferenceId) {
+      console.error(
+        `Webhook Error: client_reference_id no encontrado en la sesión ${session.id}. No se puede asociar el pago a un usuario.`,
+      );
+      return;
+    }
+    // ---------------------------------
+
+    // Ahora que sabemos que clientReferenceId es un string, podemos usarlo de forma segura.
+    const user = await this.userDbService.findOneBy({ id: clientReferenceId });
+    if (!user) {
+      console.error(
+        `Webhook Error: Usuario con ID ${clientReferenceId} no encontrado.`,
+      );
+      return;
+    }
+
+    // --- SOLUCIÓN PARA EL ERROR 1 ---
+    // Obtenemos el Price ID de forma segura.
+    const lineItems = await this.stripe.checkout.sessions.listLineItems(
       session.id,
-      {
-        expand: ['line_items'],
-      },
+      { limit: 1 },
     );
 
-    if (!checkoutSession.line_items) {
-      throw new InternalServerErrorException(
-        'Could not retrieve line items from session.',
+    if (lineItems.data.length === 0 || !lineItems.data[0].price) {
+      console.error(
+        `Webhook Error: No se encontró un price object en la sesión ${session.id}.`,
       );
+      return;
     }
-
-    const stripePriceId = checkoutSession.line_items.data[0].price!.id;
-
-    const user = await this.userDbService.findOneBy({ stripeCustomerId });
-    if (!user) {
-      throw new NotFoundException('User not found.');
-    }
+    const stripePriceId = lineItems.data[0].price.id;
+    // ---------------------------------
 
     const plan = await this.subscriptionPlanRepository.findOneBy({
       stripePriceId,
     });
     if (!plan) {
-      throw new NotFoundException('Subscription plan does not exist.');
+      console.error(
+        `Webhook Error: Plan con Stripe Price ID ${stripePriceId} no encontrado.`,
+      );
+      return;
     }
 
+    // Actualizamos el usuario
+    user.stripeCustomerId = stripeCustomerId;
     user.suscription_level = plan;
+    user.subscriptionStatus = SubscriptionStatus.ACTIVE;
     await this.userDbService.save(user);
 
     console.log(
-      `User ${user.email} successfully subscribed to plan ${plan.name}.`,
+      `Usuario ${user.email} suscrito exitosamente al plan ${plan.name}.`,
     );
 
+    // Enviamos el correo
     await this.mailService.sendPaymentSuccessEmail(user, plan);
+  }
+
+  async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
+    const stripeCustomerId = invoice.customer as string;
+    const user = await this.userDbService.findOneBy({ stripeCustomerId });
+
+    if (user) {
+      console.log(
+        `Renovación exitosa registrada para el usuario: ${user.email}`,
+      );
+      user.subscriptionStatus = SubscriptionStatus.ACTIVE;
+      await this.userDbService.save(user);
+      await this.mailService.sendRenewalSuccessEmail(user);
+    } else {
+      console.warn(
+        `Usuario con Stripe Customer ID ${stripeCustomerId} no encontrado para 'invoice.payment_succeeded'.`,
+      );
+    }
+  }
+
+  async handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
+    const stripeCustomerId = invoice.customer as string;
+    const user = await this.userDbService.findOneBy({ stripeCustomerId });
+
+    if (user) {
+      user.subscriptionStatus = SubscriptionStatus.PAST_DUE;
+      await this.userDbService.save(user);
+      console.log(`Pago fallido notificado al usuario: ${user.email}`);
+      await this.mailService.sendPaymentFailedEmail(user);
+    } else {
+      console.warn(
+        `Usuario con Stripe Customer ID ${stripeCustomerId} no encontrado para 'invoice.payment_failed'.`,
+      );
+    }
+  }
+
+  async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+    const stripeCustomerId = subscription.customer as string;
+    const user = await this.userDbService.findOneBy({ stripeCustomerId });
+
+    if (user) {
+      user.suscription_level = null;
+      user.subscriptionStatus = SubscriptionStatus.CANCELED;
+      await this.userDbService.save(user);
+      console.log(`Suscripción cancelada para el usuario: ${user.email}`);
+      await this.mailService.sendSubscriptionCanceledEmail(user);
+    } else {
+      console.warn(
+        `Usuario con Stripe Customer ID ${stripeCustomerId} no encontrado para 'customer.subscription.deleted'.`,
+      );
+    }
+  }
+
+  async cancelSubscription(userId: string) {
+    const user = await this.userDbService.findOneBy({ id: userId });
+    if (!user || !user.stripeCustomerId) {
+      throw new NotFoundException(
+        'Usuario o ID de cliente de Stripe no encontrado.',
+      );
+    }
+
+    try {
+      const subscriptions = await this.stripe.subscriptions.list({
+        customer: user.stripeCustomerId,
+        status: 'active',
+        limit: 1,
+      });
+
+      if (subscriptions.data.length === 0) {
+        throw new NotFoundException(
+          'No se encontró una suscripción activa para este usuario.',
+        );
+      }
+
+      const subscriptionId = subscriptions.data[0].id;
+
+      await this.stripe.subscriptions.cancel(subscriptionId);
+
+      return { message: 'Tu suscripción ha sido cancelada exitosamente.' };
+    } catch (error) {
+      console.error('Error al cancelar la suscripción en Stripe:', error);
+      throw new InternalServerErrorException(
+        'No se pudo cancelar la suscripción.',
+      );
+    }
   }
 
   // Método para la lógica de negocio del webhook
   async handleWebhookEvent(event: Stripe.Event) {
     switch (event.type) {
       case 'checkout.session.completed': {
+        // Lógica para activar la suscripción del usuario en la base de datos
         console.log('Checkout session completed:', event.data.object);
         const session = event.data.object as Stripe.Checkout.Session;
         await this.handleCheckoutSessionCompleted(session);
-        // Añadir la lógica para activar la suscripción del usuario en la base de datos
         break;
       }
-      case 'invoice.payment_succeeded':
-        console.log('Renovación completada:', event.data.object);
+      case 'invoice.payment_succeeded': {
         // Lógica para registrar un pago exitoso
+        const invoice = event.data.object as Stripe.Invoice;
+        console.log('Renovación completada:', event.data.object);
+        await this.handleInvoicePaymentSucceeded(invoice);
         break;
-      case 'invoice.payment_failed':
-        console.log('Pago fallido:', event.data.object);
+      }
+      case 'invoice.payment_failed': {
         // Lógica para manejar un pago fallido, como notificar al usuario
+        const invoice = event.data.object as Stripe.Invoice;
+        console.log('Pago fallido:', event.data.object);
+        await this.handleInvoicePaymentFailed(invoice);
         break;
-      case 'customer.subscription.deleted':
-        console.log('Suscripción cancelada:', event.data.object);
+      }
+      case 'customer.subscription.deleted': {
         // Lógica para desactivar la suscripción del usuario
+        const subscription = event.data.object as Stripe.Subscription;
+        console.log('Suscripción cancelada:', event.data.object);
+        await this.handleSubscriptionDeleted(subscription);
         break;
+      }
+
       default:
         console.warn(`Unhandled event type ${event.type}`);
     }

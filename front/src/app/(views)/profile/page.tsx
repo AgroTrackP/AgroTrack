@@ -3,6 +3,7 @@
 import React from "react";
 import UserData from "./components/userData";
 import TerrainInformation from "./components/terrainInformation";
+import UserSuscription from "./components/userSuscription";
 
 const PageProfile = () => {
   return (
@@ -37,6 +38,10 @@ const PageProfile = () => {
           <h3 className="text-xl font-semibold text-gray-700 mb-4">
             Información del Plan
           </h3>
+            <div>
+                <h3></h3>
+                <UserSuscription/>
+            </div>
           <div className="bg-white p-6 rounded-lg shadow-md border">
             <p className="text-gray-500">
               Aquí irá la información de tu suscripción.

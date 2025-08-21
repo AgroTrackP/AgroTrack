@@ -85,4 +85,104 @@ export class MailService {
       console.log(`Failed to send email to ${user.email}`, error);
     }
   }
+
+  async sendRenewalSuccessEmail(user: Users) {
+    if (!user.suscription_level) {
+      console.error(
+        `Intento de enviar correo de renovación sin datos del plan para el usuario ${user.email}`,
+      );
+      return;
+    }
+
+    const plan = user.suscription_level;
+    const nextBillingDate = new Date();
+    nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+
+    const mailOptions = {
+      from: '"AgroTrack" <no-reply@agrotrack.com>',
+      to: user.email,
+      subject: '✅ Tu suscripción a AgroTrack ha sido renovada',
+      html: `
+        <h1>¡Hola, ${user.name}!</h1>
+        <p>Te confirmamos que tu suscripción al plan <strong>${plan.name}</strong> ha sido renovada exitosamente.</p>
+        <p>Hemos procesado el pago de <strong>$${plan.price} ARS</strong> y tu acceso a todas las funcionalidades premium continúa sin interrupciones.</p>
+        <p>Tu próxima fecha de facturación será aproximadamente el ${nextBillingDate.toLocaleDateString('es-AR')}.</p>
+        <p>Gracias por seguir confiando en AgroTrack para potenciar tus cultivos.</p>
+        <br>
+        <p>El equipo de AgroTrack</p>
+      `,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`Correo de renovación exitosa enviado a ${user.email}`);
+    } catch (error) {
+      console.error(
+        `Falló el envío de correo de renovación a ${user.email}`,
+        error,
+      );
+    }
+  }
+
+  async sendPaymentFailedEmail(user: Users) {
+    // URL a la página de configuración de facturación de tu aplicación
+    // o directamente al portal de cliente de Stripe.
+    const billingUrl = `${process.env.FRONTEND_URL}/account/billing`;
+
+    const mailOptions = {
+      from: '"AgroTrack" <no-reply@agrotrack.com>',
+      to: user.email,
+      subject: '⚠️ Problema con tu pago de AgroTrack',
+      html: `
+        <h1>¡Hola, ${user.name}!</h1>
+        <p>Te informamos que no pudimos procesar el pago de renovación de tu suscripción a AgroTrack. Esto puede deberse a una tarjeta vencida o fondos insuficientes.</p>
+        <p>Tu cuenta ha entrado en un período de gracia para que puedas seguir accediendo a tus beneficios mientras solucionas el problema.</p>
+        <p><strong>Por favor, actualiza tu método de pago para mantener tu suscripción activa:</strong></p>
+        <a href="${billingUrl}" style="background-color: #f0ad4e; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Actualizar Información de Pago</a>
+        <p>Una vez actualizado, intentaremos realizar el cobro nuevamente en los próximos días. Si tienes alguna pregunta, no dudes en contactar a nuestro soporte.</p>
+        <br>
+        <p>El equipo de AgroTrack</p>
+      `,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`Correo de pago fallido enviado a ${user.email}`);
+    } catch (error) {
+      console.error(
+        `Falló el envío de correo de pago fallido a ${user.email}`,
+        error,
+      );
+    }
+  }
+
+  async sendSubscriptionCanceledEmail(user: Users) {
+    const mailOptions = {
+      from: '"AgroTrack" <no-reply@agrotrack.com>',
+      to: user.email,
+      subject: 'Tu suscripción a AgroTrack ha sido cancelada',
+      html: `
+        <h1>¡Hola, ${user.name}!</h1>
+        <p>Te confirmamos que tu suscripción a AgroTrack ha sido cancelada exitosamente.</p>
+        <p>Lamentamos verte partir. Aún tendrás acceso a todas las funcionalidades de tu plan hasta el final de tu ciclo de facturación actual.</p>
+        <p>Si cambias de opinión en el futuro, siempre serás bienvenido de vuelta. ¡Nos encantaría saber por qué te vas para poder mejorar!</p>
+        <p>Si tienes un momento, te agradeceríamos que compartieras tu opinión con nosotros.</p>
+        <br>
+        <p>Gracias por haber sido parte de la comunidad de AgroTrack.</p>
+        <p>El equipo de AgroTrack</p>
+      `,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(
+        `Correo de cancelación de suscripción enviado a ${user.email}`,
+      );
+    } catch (error) {
+      console.error(
+        `Falló el envío del correo de cancelación a ${user.email}`,
+        error,
+      );
+    }
+  }
 }
