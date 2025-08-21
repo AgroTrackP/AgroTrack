@@ -19,6 +19,7 @@ import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 import { SelfOnlyCheckGuard } from 'src/Guards/selfOnlyCheck.guard';
 import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
 import { AuthRequest } from 'src/types/express';
+import { IsActiveGuard } from 'src/Guards/isActive.guard';
 
 @ApiTags('Stripe')
 @ApiBearerAuth('jwt')
@@ -28,7 +29,7 @@ export class StripeController {
 
   // Endpoint para crear una sesión de checkout
   @Post('create-checkout-session')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyCheckGuard)
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, SelfOnlyCheckGuard)
   @HttpCode(201)
   @ApiOperation({ summary: 'Crear sesión de checkout' })
   @ApiBody({ type: CreateCheckoutSessionDto })
@@ -52,7 +53,7 @@ export class StripeController {
   }
 
   @Post('cancel')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, SelfOnlyGuard)
   @ApiOperation({ summary: 'Cancela la suscripción activa del usuario' })
   @ApiResponse({
     status: 200,
