@@ -2,8 +2,9 @@
 
 import { LoginResponse } from "@/services/utils/types";
 import { IUser } from "@/types";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import { updateUserCredentials } from "@/services/auth";
 
 type AuthContextType = {
     isAuth: boolean | null;
@@ -14,6 +15,8 @@ type AuthContextType = {
     logoutUser: () => void;
     resetUserData: () => void;
     setUser: React.Dispatch<React.SetStateAction<IUser | null>>;
+    updateCredentials: (updatedData: Partial<IUser>) => Promise<void>;
+    
 };
 
 const AUTH_KEY = "authData";
@@ -143,7 +146,54 @@ const logoutUser = () => {
             localStorage.removeItem(AUTH0_FLAG);
         }
     };
-        // Cada vez que `user` cambie, actualizar también el localStorage
+    // ✅ Nueva función para actualizar credenciales
+    // ✅ Lógica mejorada para `updateCredentials`
+    const updateCredentials = useCallback(async (updatedData: Partial<IUser>) => {
+        if (!user) {
+            console.error("No se puede actualizar, no hay usuario.");
+            return;
+        }
+        console.log("Token a enviar:", token); // ✅ VERIFICA AQUÍ EL TOKEN
+        console.log("ID de usuario a actualizar:", user.id); // ✅ VERIFICA EL ID
+        
+        let tokenToSend = token; // Por defecto, usa el token del estado
+
+        const isAuth0Session = localStorage.getItem(AUTH0_FLAG) === "true";
+        if (isAuth0Session) {
+            try {
+                // Si es Auth0, obtenemos un token fresco
+                tokenToSend = await getAccessTokenSilently({
+                    authorizationParams: {
+                        audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE,
+                    },
+                });
+            } catch (error) {
+                console.error("Error al obtener un token fresco de Auth0:", error);
+                throw new Error("No se pudo obtener un token de autenticación válido.");
+            }
+        }
+        
+        if (!tokenToSend) {
+            console.error("No hay un token válido para la solicitud.");
+            throw new Error("No se pudo obtener un token de autenticación válido.");
+        }
+
+        try {       
+            const responseData = await updateUserCredentials(user.id!, updatedData, tokenToSend);
+            
+            console.log("Credenciales actualizadas:", responseData);
+            
+            // Actualiza el estado del usuario en el contexto y localStorage
+            setUser(responseData); 
+            
+        } catch (error) {
+            console.error("Error al actualizar las credenciales:", error);
+            throw error;
+        }
+    }, [user, token, getAccessTokenSilently]);
+
+
+    // Cada vez que `user` cambie, actualizar también el localStorage
     useEffect(() => {
         if (user && token !== null && login !== null) {
             const currentData: LoginResponse = {
@@ -166,6 +216,7 @@ const logoutUser = () => {
                 logoutUser,
                 resetUserData,
                 setUser,
+                updateCredentials, 
             }}
         >
             {children}

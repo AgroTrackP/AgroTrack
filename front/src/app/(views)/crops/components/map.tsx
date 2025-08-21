@@ -10,10 +10,10 @@ import { useState } from "react";
  import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
  L.Icon.Default.mergeOptions({
-   iconRetinaUrl: markerIcon2x.src,
-   iconUrl: markerIcon.src,
-   shadowUrl: markerShadow.src,
- });
+    iconRetinaUrl: markerIcon2x.src,
+    iconUrl: markerIcon.src,
+    shadowUrl: markerShadow.src,
+});
 interface Coords {
   lat: number;
   lng: number;

@@ -31,3 +31,13 @@ export interface ISuscription{
     price: number,
     benefits: string[]
 }
+
+export interface LandDataDTO {
+    name: string;
+    area_m2: number;
+    crop_type: string;
+    season: string;
+    location: string;
+    start_date: string;
+    userId?: string;
+}

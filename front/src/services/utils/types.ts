@@ -14,17 +14,9 @@ export interface LoginResponse {
     provider?: "local" | "auth0";
 }
 
+export interface LandServiceResponse{
+    message: string;
+    data?: any;
+    errors?: unknown; // puedes ajustar el tipo segun lo que esperes de los errores
+}
 
-
-// interface User {
-//     id: number;
-//     name: string;
-//     email: string;
-//     role: "user" | "admin" | string;
-//     credential: Credential;
-// }
-
-// interface Credential {
-//     id: number;
-//     password: string;
-// }
