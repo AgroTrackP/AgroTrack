@@ -14,17 +14,9 @@ export interface LoginResponse {
     provider?: "local" | "auth0";
 }
 
+export interface LandServiceResponse{
+    message: string;
+    data?: object;
+    errors?: Record<string, never>; 
+}
 
-
-// interface User {
-//     id: number;
-//     name: string;
-//     email: string;
-//     role: "user" | "admin" | string;
-//     credential: Credential;
-// }
-
-// interface Credential {
-//     id: number;
-//     password: string;
-// }
