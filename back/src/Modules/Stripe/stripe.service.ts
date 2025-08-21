@@ -41,6 +41,7 @@ export class StripeService {
         customer_email: user.email,
         success_url: String.raw`${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.FRONTEND_URL}/cancel`,
+        client_reference_id: userId,
       });
     } catch (error) {
       console.error('Error creating checkout session:', error);
@@ -66,42 +67,64 @@ export class StripeService {
   // Lógica al confirmar el pago
   async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
     const stripeCustomerId = session.customer as string;
+    const clientReferenceId = session.client_reference_id; // Este es tu userId
 
-    const checkoutSession = await this.stripe.checkout.sessions.retrieve(
+    // --- SOLUCIÓN PARA EL ERROR 2 ---
+    // Verificamos que el client_reference_id (nuestro userId) exista en la sesión.
+    if (!clientReferenceId) {
+      console.error(
+        `Webhook Error: client_reference_id no encontrado en la sesión ${session.id}. No se puede asociar el pago a un usuario.`,
+      );
+      return;
+    }
+    // ---------------------------------
+
+    // Ahora que sabemos que clientReferenceId es un string, podemos usarlo de forma segura.
+    const user = await this.userDbService.findOneBy({ id: clientReferenceId });
+    if (!user) {
+      console.error(
+        `Webhook Error: Usuario con ID ${clientReferenceId} no encontrado.`,
+      );
+      return;
+    }
+
+    // --- SOLUCIÓN PARA EL ERROR 1 ---
+    // Obtenemos el Price ID de forma segura.
+    const lineItems = await this.stripe.checkout.sessions.listLineItems(
       session.id,
-      {
-        expand: ['line_items'],
-      },
+      { limit: 1 },
     );
 
-    if (!checkoutSession.line_items) {
-      throw new InternalServerErrorException(
-        'Could not retrieve line items from session.',
+    if (lineItems.data.length === 0 || !lineItems.data[0].price) {
+      console.error(
+        `Webhook Error: No se encontró un price object en la sesión ${session.id}.`,
       );
+      return;
     }
-
-    const stripePriceId = checkoutSession.line_items.data[0].price!.id;
-
-    const user = await this.userDbService.findOneBy({ stripeCustomerId });
-    if (!user) {
-      throw new NotFoundException('User not found.');
-    }
+    const stripePriceId = lineItems.data[0].price.id;
+    // ---------------------------------
 
     const plan = await this.subscriptionPlanRepository.findOneBy({
       stripePriceId,
     });
     if (!plan) {
-      throw new NotFoundException('Subscription plan does not exist.');
+      console.error(
+        `Webhook Error: Plan con Stripe Price ID ${stripePriceId} no encontrado.`,
+      );
+      return;
     }
 
+    // Actualizamos el usuario
+    user.stripeCustomerId = stripeCustomerId;
     user.suscription_level = plan;
     user.subscriptionStatus = SubscriptionStatus.ACTIVE;
     await this.userDbService.save(user);
 
     console.log(
-      `User ${user.email} successfully subscribed to plan ${plan.name}.`,
+      `Usuario ${user.email} suscrito exitosamente al plan ${plan.name}.`,
     );
 
+    // Enviamos el correo
     await this.mailService.sendPaymentSuccessEmail(user, plan);
   }
 
@@ -157,7 +180,37 @@ export class StripeService {
   }
 
   async cancelSubscription(userId: string) {
-    
+    const user = await this.userDbService.findOneBy({ id: userId });
+    if (!user || !user.stripeCustomerId) {
+      throw new NotFoundException(
+        'Usuario o ID de cliente de Stripe no encontrado.',
+      );
+    }
+
+    try {
+      const subscriptions = await this.stripe.subscriptions.list({
+        customer: user.stripeCustomerId,
+        status: 'active',
+        limit: 1,
+      });
+
+      if (subscriptions.data.length === 0) {
+        throw new NotFoundException(
+          'No se encontró una suscripción activa para este usuario.',
+        );
+      }
+
+      const subscriptionId = subscriptions.data[0].id;
+
+      await this.stripe.subscriptions.cancel(subscriptionId);
+
+      return { message: 'Tu suscripción ha sido cancelada exitosamente.' };
+    } catch (error) {
+      console.error('Error al cancelar la suscripción en Stripe:', error);
+      throw new InternalServerErrorException(
+        'No se pudo cancelar la suscripción.',
+      );
+    }
   }
 
   // Método para la lógica de negocio del webhook
