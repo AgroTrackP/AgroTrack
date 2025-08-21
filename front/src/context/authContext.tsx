@@ -1,7 +1,7 @@
 "use client";
 
 import { LoginResponse } from "@/services/utils/types";
-import { IUser, IUSerSuscription } from "@/types";
+import { IUser, IUserSubscription } from "@/types";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { updateUserCredentials } from "@/services/auth";
@@ -11,7 +11,7 @@ type AuthContextType = {
     user: IUser | null;
     token: string | null;
     login: boolean;
-    subscription: IUSerSuscription  | null;
+    subscription: IUserSubscription  | null;
     loadingSubscription: boolean;
     saveUserData: (data: LoginResponse) => void;
     logoutUser: () => void;
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<IUser | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [login, setLogin] = useState(false);
-    const [subscription, setSubscription] = useState<IUSerSuscription | null>(null);
+    const [subscription, setSubscription] = useState<IUserSubscription | null>(null);
     const [loadingSubscription, setLoadingSubscription] = useState(true);
 
     const { user: auth0User, isAuthenticated, getAccessTokenSilently, logout } = useAuth0();
