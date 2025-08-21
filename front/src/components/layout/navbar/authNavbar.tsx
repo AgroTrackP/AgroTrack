@@ -63,6 +63,11 @@ if (isAuth === null) {
 //lo que se muestra si el usuario si esta autentificado
     return (
         <div className="flex items-center space-x-9 rtl:space-x-reverse">
+        <Link href={routes.dashboard} className='flex items-center space-x-2 rtl:space-x-reverse'>
+            <SiTerraform  className="h-5 w-5 text-gray-500" />
+        <span className='cursor-pointer font-medium'>Admin dashboard</span>
+        </Link>
+
         <Link href={routes.profile} className='flex items-center space-x-2 rtl:space-x-reverse'>
             <FaRegUser  className="h-5 w-5 text-gray-500" />
         <span className='cursor-pointer font-medium'> {user.name}</span>
