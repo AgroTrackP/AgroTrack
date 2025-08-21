@@ -116,6 +116,9 @@ export class AuthService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...userWithoutPassword } = user;
     console.log(appToken);
+    console.log('--- AuthService ---');
+    console.log('SECRET USADO PARA FIRMAR:', process.env.JWT_SECRET);
+    console.log('-------------------');
     return {
       message: `User logged in successfully.`,
       token: appToken,
