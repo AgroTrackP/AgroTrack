@@ -19,6 +19,16 @@ export class SuscriptionPlanService {
     private readonly userRepository: Repository<Users>,
   ) {}
 
+  async getAllSusPlans() {
+    try {
+      return await this.suscriptionPlanRepository.find();
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error fetching subscription plans: ${error.message}`,
+      );
+    }
+  }
+
   // Esta función para nada se hizo con Gemini -F
   async getAllSusPlansWithNum() {
     try {

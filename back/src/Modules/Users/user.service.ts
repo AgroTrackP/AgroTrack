@@ -40,7 +40,6 @@ export class UsersService {
       const [data, total] = await this.usersRepository.findAndCount({
         skip: (pageNum - 1) * limitNum,
         take: limitNum,
-        select: ['id', 'name', 'email', 'created_at'],
         relations: [
           'plantations',
           'diseases',
@@ -48,6 +47,7 @@ export class UsersService {
           'products',
           'applicationTypes',
           'phenologies',
+          'suscription_level',
         ],
       });
 

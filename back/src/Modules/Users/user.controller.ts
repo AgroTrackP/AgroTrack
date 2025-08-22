@@ -40,6 +40,7 @@ export class UsersController {
   @Get()
   @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
   @Roles(Role.Admin)
+  @UseInterceptors(ExcludePasswordInterceptor)
   @ApiOperation({ summary: 'Get all users (Admin only)' })
   @ApiResponse({ status: 200, description: 'All users found' })
   @ApiResponse({ status: 403, description: 'Forbidden' })

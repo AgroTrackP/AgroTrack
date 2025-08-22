@@ -5,11 +5,13 @@ import { Users } from 'src/Modules/Users/entities/user.entity';
 import { PlantationsController } from './plantations.controller';
 import { PlantationsService } from './plantations.service';
 import { RecommendationsModule } from '../Recomendations/recomendations.module';
+import { ActivityLogsModule } from '../ActivityLogs/activity-logs.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Plantations, Users]),
     RecommendationsModule,
+    ActivityLogsModule,
   ],
   controllers: [PlantationsController],
   providers: [PlantationsService],

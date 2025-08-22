@@ -12,6 +12,8 @@ import { Users } from '../Users/entities/user.entity';
 import { SubscriptionPlan } from '../SubscriptionPlan/entities/subscriptionplan.entity';
 import { MailService } from '../nodemailer/mail.service';
 import { SubscriptionStatus } from '../Users/subscriptionStatus.enum';
+import { ActivityService } from '../ActivityLogs/activity-logs.service';
+import { ActivityType } from '../ActivityLogs/entities/activity-logs.entity';
 
 @Injectable()
 export class StripeService {
@@ -22,6 +24,7 @@ export class StripeService {
     private readonly subscriptionPlanRepository: Repository<SubscriptionPlan>,
     @Inject('STRIPE_CLIENT') private stripe: Stripe,
     private readonly mailService: MailService,
+    private readonly activityService: ActivityService,
   ) {}
 
   async getMonthlyRevenue() {
@@ -167,6 +170,12 @@ export class StripeService {
       `Usuario ${user.email} suscrito exitosamente al plan ${plan.name}.`,
     );
 
+    await this.activityService.logActivity(
+      user,
+      ActivityType.SUBSCRIPTION_STARTED,
+      `El usuario se suscribió al plan '${plan.name}'.`,
+    );
+
     // Enviamos el correo
     await this.mailService.sendPaymentSuccessEmail(user, plan);
   }
@@ -213,7 +222,15 @@ export class StripeService {
       user.suscription_level = null;
       user.subscriptionStatus = SubscriptionStatus.CANCELED;
       await this.userDbService.save(user);
+
       console.log(`Suscripción cancelada para el usuario: ${user.email}`);
+
+      await this.activityService.logActivity(
+        user,
+        ActivityType.SUBSCRIPTION_CANCELED,
+        'El usuario ha cancelado su suscripción.',
+      );
+
       await this.mailService.sendSubscriptionCanceledEmail(user);
     } else {
       console.warn(

@@ -11,6 +11,8 @@ import { JwtPayload } from 'src/types/jwt-payload.interface';
 import { MailService } from '../nodemailer/mail.service';
 import { confirmationTemplate } from '../nodemailer/templates/confirmacion.html';
 import { Role } from '../Users/user.enum'; // ✅ Correct import
+import { ActivityService } from '../ActivityLogs/activity-logs.service';
+import { ActivityType } from '../ActivityLogs/entities/activity-logs.entity';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +20,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @InjectRepository(Users) private readonly usersDbRepo: Repository<Users>,
     private readonly mailService: MailService,
+    private readonly activityService: ActivityService,
   ) {}
 
   generateAppToken(user: Users) {
@@ -82,6 +85,12 @@ export class AuthService {
         setDefaultImgPublicId: newUser.setDefaultImgPublicId.bind(newUser),
       };
 
+      await this.activityService.logActivity(
+        newUser,
+        ActivityType.USER_LOGIN,
+        `El usuario '${newUser.name}' con email '${newUser.email}' se ha registrado.`,
+      );
+
       return {
         message: 'User registered successfully',
         user: userWithMethods,
@@ -115,10 +124,13 @@ export class AuthService {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...userWithoutPassword } = user;
-    console.log(appToken);
-    console.log('--- AuthService ---');
-    console.log('SECRET USADO PARA FIRMAR:', process.env.JWT_SECRET);
-    console.log('-------------------');
+
+    await this.activityService.logActivity(
+      user,
+      ActivityType.USER_LOGIN,
+      `El usuario '${user.name}' ha iniciado sesión.`,
+    );
+
     return {
       message: `User logged in successfully.`,
       token: appToken,
@@ -127,6 +139,7 @@ export class AuthService {
       user: userWithoutPassword as Omit<Users, 'password'>,
     };
   }
+
   async validateUserAndGetToken(auth0User: any): Promise<{ token: string }> {
     const { email, name, picture } = auth0User;
 

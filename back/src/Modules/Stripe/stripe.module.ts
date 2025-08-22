@@ -7,9 +7,13 @@ import { StripeWebhookController } from './stripeWebhook.controller';
 import Stripe from 'stripe';
 import { SubscriptionPlan } from '../SubscriptionPlan/entities/subscriptionplan.entity';
 import { MailService } from '../nodemailer/mail.service';
+import { ActivityLogsModule } from '../ActivityLogs/activity-logs.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Users, SubscriptionPlan])],
+  imports: [
+    TypeOrmModule.forFeature([Users, SubscriptionPlan]),
+    ActivityLogsModule,
+  ],
   controllers: [StripeWebhookController, StripeController],
   providers: [
     StripeService,
