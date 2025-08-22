@@ -8,6 +8,7 @@ import React from "react";
 import * as yup from "yup";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { postRegister } from "@/services/auth";
+import { useRouter } from "next/navigation";
 
 // Validaciones
 const RegisterSchema = yup.object().shape({
@@ -15,7 +16,12 @@ const RegisterSchema = yup.object().shape({
   password: yup
     .string()
     .min(6, "La contraseña debe tener al menos 6 caracteres")
-    .required("Campo requerido"),
+    .required("Campo requerido")
+    .matches(/[a-z]/, "Debe contener al menos una letra minúscula")
+    .matches(/[A-Z]/, "Debe contener al menos una letra mayúscula")
+    .matches(/\d/, "Debe contener al menos un número")
+    .matches(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
+      "Debe contener al menos un carácter especial"),
   confirmPassword: yup
     .string()
     .oneOf([yup.ref("password")], "Las contraseñas no coinciden")
@@ -24,6 +30,7 @@ const RegisterSchema = yup.object().shape({
 });
 
 const RegisterForm = () => {
+  const router = useRouter();
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
@@ -50,6 +57,7 @@ const RegisterForm = () => {
       const { confirmPassword, ...userData } = values;
       await postRegister(userData);
       alert("Usuario registrado correctamente");
+      router.push("/login");
     } catch {
       alert("Error al registrar el usuario");
     } finally {
