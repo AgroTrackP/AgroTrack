@@ -16,6 +16,7 @@ import { PhenologiesModule } from './Modules/Phenologies/phenologies.module';
 import { ContactModule } from './Modules/Contacto/contacto.module';
 import { SubscriptionPlanModule } from './Modules/SubscriptionPlan/subscriptionPlan.module';
 import { ChatModule } from './Modules/chatbot/chatbox.module';
+import { RecommendationsModule } from './Modules/Recomendations/recomendations.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { ChatModule } from './Modules/chatbot/chatbox.module';
     StripeModule,
     ContactModule,
     SubscriptionPlanModule,
+    RecommendationsModule,
   ],
   controllers: [],
   providers: [],

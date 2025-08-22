@@ -11,6 +11,7 @@ import { Plantations } from './entities/plantations.entity';
 import { UpdatePlantationDto } from './dtos/update.plantation.dto';
 import { CreatePlantationDto } from './dtos/create.plantation.dto';
 import { Users } from 'src/Modules/Users/entities/user.entity';
+import { RecommendationsService } from '../Recomendations/recomendations.service';
 
 @Injectable()
 export class PlantationsService {
@@ -19,7 +20,7 @@ export class PlantationsService {
     private readonly usersRepository: Repository<Users>,
     @InjectRepository(Plantations)
     private readonly plantationsRepo: Repository<Plantations>,
-
+    private readonly recommendationsService: RecommendationsService,
     @InjectRepository(Users)
     private readonly usersRepo: Repository<Users>,
   ) {}
@@ -69,14 +70,39 @@ export class PlantationsService {
 
   async findOne(id: string) {
     try {
+      // 1. Consulta para obtener la plantación y sus planes de aplicación anidados
       const plantation = await this.plantationsRepo.findOne({
         where: { id },
-        relations: ['user', 'applicationPlans'],
+        relations: [
+          'user',
+          'applicationPlans',
+          'applicationPlans.disease',
+          'applicationPlans.items',
+          'applicationPlans.items.product',
+          'applicationPlans.items.product.category',
+        ],
+        order: {
+          applicationPlans: {
+            planned_date: 'ASC', // Ordena los planes por fecha
+          },
+        },
       });
+
       if (!plantation) {
         throw new NotFoundException(`Plantation with id ${id} not found`);
       }
-      return plantation;
+
+      // 2. Consulta para obtener las recomendaciones basadas en el tipo de cultivo de la plantación
+      const recommendations = await this.recommendationsService.findByCropType(
+        plantation.crop_type,
+      );
+
+      const result = {
+        ...plantation,
+        recommendations: recommendations || null, // Agrega la recomendación al objeto
+      };
+
+      return result;
     } catch (error: unknown) {
       if (error instanceof Error) {
         throw new BadRequestException(

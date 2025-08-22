@@ -8,7 +8,6 @@ import {
   Body,
   HttpCode,
   HttpStatus,
-  ParseIntPipe,
 } from '@nestjs/common';
 import { PhenologiesService } from './phenologies.service';
 import { CreatePhenologyDto } from './dtos/create.phenology.dto';
@@ -46,16 +45,24 @@ export class PhenologiesController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener una fenología por ID' })
-  @ApiParam({ name: 'id', description: 'ID de la fenología', type: Number })
+  @ApiParam({
+    name: 'id',
+    description: 'ID de la fenología (UUID)',
+    type: String,
+  })
   @ApiResponse({ status: 200, description: 'Fenología encontrada' })
   @ApiResponse({ status: 404, description: 'Fenología no encontrada' })
-  async findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Param('id') id: string) {
     return this.phenologiesService.findOne(id);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Actualizar una fenología por ID' })
-  @ApiParam({ name: 'id', description: 'ID de la fenología', type: Number })
+  @ApiParam({
+    name: 'id',
+    description: 'ID de la fenología (UUID)',
+    type: String,
+  })
   @ApiBody({ type: UpdatePhenologyDto })
   @ApiResponse({
     status: 200,
@@ -63,7 +70,7 @@ export class PhenologiesController {
   })
   @ApiResponse({ status: 404, description: 'Fenología no encontrada' })
   async update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
     @Body() updatephenologydto: UpdatePhenologyDto,
   ) {
     return this.phenologiesService.update(id, updatephenologydto);
@@ -72,13 +79,17 @@ export class PhenologiesController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Eliminar una fenología por ID' })
-  @ApiParam({ name: 'id', description: 'ID de la fenología', type: Number })
+  @ApiParam({
+    name: 'id',
+    description: 'ID de la fenología (UUID)',
+    type: String,
+  })
   @ApiResponse({
     status: 204,
     description: 'Fenología eliminada correctamente',
   })
   @ApiResponse({ status: 404, description: 'Fenología no encontrada' })
-  async remove(@Param('id', ParseIntPipe) id: number) {
+  async remove(@Param('id') id: string) {
     await this.phenologiesService.remove(id);
   }
 }

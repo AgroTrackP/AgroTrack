@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApplicationPlans } from './entities/applicationplan.entity';
 import { ApplicationPlanItem } from './entities/applicationplan.item.entity';
@@ -11,6 +11,7 @@ import { PlantationsModule } from '../Plantations/plantations.module';
 import { ProductsModule } from '../Products/products.module';
 import { UsersModule } from '../Users/users.module';
 import { ApplicationPlansService } from './applicationplans.service';
+import { Products } from '../Products/entities/products.entity';
 
 @Module({
   imports: [
@@ -20,9 +21,10 @@ import { ApplicationPlansService } from './applicationplans.service';
       Plantations,
       Diseases,
       ApplicationPlanItem,
+      Products,
     ]),
     UsersModule,
-    PlantationsModule,
+    forwardRef(() => PlantationsModule),
     DiseasesModule,
     ProductsModule,
   ],

@@ -7,6 +7,7 @@ import { PhenologiesSeeder } from './Phenologies/seeders/phenologies.seeder';
 import { DiseasesSeeder } from './Diseases/seeders/diseases.seeder';
 import { ApplicationTypesSeeder } from './ApplicationTypes/seeders/applicationtypes.seeder';
 import { ApplicationPlansSeeder } from './ApplicationPlans/seeders/applicationplans.seeder';
+import { RecommendationsSeeder } from './Recomendations/seeders/recomendations.seeder';
 
 export async function runSeeders() {
   await connectionSource.initialize();
@@ -18,6 +19,7 @@ export async function runSeeders() {
   await DiseasesSeeder.run();
   await ApplicationTypesSeeder.run();
   await ApplicationPlansSeeder.run();
+  await RecommendationsSeeder.run();
 
   console.log('🎉 All seeders completed');
 }
