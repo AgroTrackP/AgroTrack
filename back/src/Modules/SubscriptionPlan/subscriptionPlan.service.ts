@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,14 +19,28 @@ export class SuscriptionPlanService {
     private readonly userRepository: Repository<Users>,
   ) {}
 
-  async getAllSusPlans() {
+  // Esta función para nada se hizo con Gemini -F
+  async getAllSusPlansWithNum() {
     try {
-      return this.suscriptionPlanRepository.find({
-        relations: ['users'],
-      });
+      const plansWithUserCount = await this.suscriptionPlanRepository
+        .createQueryBuilder('plan') // 1. Empezamos a construir la consulta desde la entidad SubscriptionPlan (alias 'plan')
+        .leftJoin('plan.users', 'user') // 2. Unimos con la tabla de usuarios (alias 'user')
+        .select('plan.name', 'name') // 3. Seleccionamos el nombre del plan y le damos un alias 'name'
+        .addSelect('COUNT(user.id)', 'userCount') // 4. Contamos los IDs de los usuarios unidos y le damos el alias 'userCount'
+        .groupBy('plan.name') // 5. Agrupamos los resultados por el nombre del plan para que el conteo sea correcto
+        .getRawMany(); // 6. Obtenemos los resultados en formato crudo (raw)
+
+      // El resultado será un array de objetos como: [{ name: 'Básico', userCount: '5' }]
+      // Convertimos el conteo a número
+      const formattedResult = plansWithUserCount.map((plan) => ({
+        planName: plan.name,
+        numberOfUsers: parseInt(plan.userCount, 10),
+      }));
+
+      return formattedResult;
     } catch (error) {
-      throw new BadRequestException(
-        `Error fetching suscriptions. Error: ${error}`,
+      throw new InternalServerErrorException(
+        `Error fetching subscription plans with user count: ${error.message}`,
       );
     }
   }
