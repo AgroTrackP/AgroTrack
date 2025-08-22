@@ -69,7 +69,7 @@ if (isAuth === null) {
         </Link>
         <Link href={routes.page} className='flex items-center space-x-2 rtl:space-x-reverse'>
             <SiTerraform  className="h-5 w-5 text-gray-500" />
-        <span className='cursor-pointer font-medium'>Mis Cultivos</span>
+        <span className='cursor-pointer font-medium'>Agregar cultivos</span>
         </Link>
         <div onClick={logout} className="cursor-pointer">
             <MdLogout className="h-5 w-5 text-gray-500" />

@@ -10,6 +10,8 @@ const ProfileImageUploader = () => {
     const [loading, setLoading] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+    if (!user) return null;
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
@@ -44,6 +46,7 @@ const handleUpload = async () => {
     }
 );
         console.log("✅ Respuesta Cloudinary:", cloudinaryRes.data);
+        // 🔹 URL devuelta por backend / cloudinary
         const imageUrl =
             cloudinaryRes.data.url ||
             cloudinaryRes.data.secure_url ||
@@ -55,21 +58,10 @@ const handleUpload = async () => {
 
     console.log("Token:", token);
 
-      // Actualizar usuario en la base de datos
-    // const updateRes = await axios.put(
-    //     `https://agrotrack-develop.onrender.com/cloudinary/usuarios/${user.id}`,
-    //     { imgUrl: imageUrl },
-    //     {
-    //         headers: { Authorization: `Bearer ${token}` },
-    //     }
-    // );
-
-    //     console.log("✅ Usuario actualizado con imagen:", updateRes.data);
 
     setUser((prev) =>
-        prev ? { ...prev, imgUrl: imageUrl } : prev
-    );
-
+        (prev ? { ...prev, imgUrl: imageUrl } : prev
+        ));
         alert("Imagen actualizada correctamente ✅");
     } catch (error) {
         if (axios.isAxiosError(error)) {

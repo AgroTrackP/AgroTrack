@@ -1,22 +1,19 @@
-// src/components/LandForm.js
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLands } from "@/context/landContext";
+import { useRouter } from "next/navigation";
+import { useAuthContext } from "@/context/authContext";
 import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { useLands } from "@/context/landContext";
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
-
- // @ts-expect-error The Leaflet icon prototype has a typing bug in Next.js
- delete L.Icon.Default.prototype._getIconUrl;
- L.Icon.Default.mergeOptions({
-   iconRetinaUrl: markerIcon2x.src,
-   iconUrl: markerIcon.src,
-   shadowUrl: markerShadow.src,
+// @ts-expect-error The Leaflet icon prototype has a typing bug in Next.js
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png',
 });
 
 interface LatLng {
@@ -24,250 +21,200 @@ interface LatLng {
   lng: number;
 }
 
+// ✅ Componente para manejar el marcador en el mapa
 function LocationMarker({ onPositionChange }: { onPositionChange: (pos: LatLng) => void }) {
   const [position, setPosition] = useState<LatLng | null>(null);
-
   useMapEvents({
     click(e) {
-      setPosition(e.latlng);
-      onPositionChange(e.latlng);
-    },
-  });
-
+    setPosition(e.latlng);
+    onPositionChange(e.latlng);
+},
+});
   return position === null ? null : (
     <Marker position={position}>
-      <Popup>📍 Ubicación seleccionada</Popup>
+    <Popup>📍 Ubicación seleccionada</Popup>
     </Marker>
-  );
+);
 }
 
-const LandForm = () => {
-  const [areaUnit, setAreaUnit] = useState<string>('ha');
-  const { createLand, isLoading, error, lands } = useLands();
-  const [formData, setFormData] = useState({
-    nombreCultivo: '',
-    tipoPlantacion: '',
-    temporada: '',
-    areaTerreno: '',
-    fechaPlantacion: '',
-    latitud: null as number | null,
-    longitud: null as number | null,
-  });
+export default function LandForm() {
+  const { user } = useAuthContext();
+  const { createLand, isLoading, error: landError } = useLands();
+  const router = useRouter();
 
-   const [showForm, setShowForm] = useState(false);
+  useEffect(() => {
+    if (!user) {
+      router.push("/login");
+    }
+  }, [user, router]);
+
+  const [form, setForm] = useState({
+    name: "",
+    area_m2: "",
+    crop_type: "",
+    season: "",
+    start_date: "",
+    location: "",
+  });
+  
+  const [areaUnit, setAreaUnit] = useState<string>('m2');
+  const [selectedCoords, setSelectedCoords] = useState<LatLng | null>(null);
+  const [success, setSuccess] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
-
-    const handleAreaUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  
+  const handleAreaUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setAreaUnit(e.target.value);
   };
-
+  
   const handleMapClick = (latlng: LatLng) => {
-    setFormData((prev) => ({
-      ...prev,
-      latitud: latlng.lat,
-      longitud: latlng.lng,
-    }));
+    setSelectedCoords(latlng);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSuccess("");
 
-    let areaHectareas = parseFloat(formData.areaTerreno);
-    if (areaUnit === 'm2') {
-      areaHectareas = areaHectareas / 10000;
+    if (!user) return;
+    
+    if (!selectedCoords) {
+      alert("Por favor, selecciona una ubicación en el mapa.");
+      return;
+    }
+    
+    // ✅ Conversión de la unidad de área antes de enviar
+    let area_m2_number = parseFloat(form.area_m2);
+    if (areaUnit === 'ha') {
+        area_m2_number = area_m2_number * 10000;
     }
 
-    const landData = {
-      ...formData,
-      areaTerreno: areaHectareas.toString(),
-    };
+    try {
+      const dataToSubmit = {
+        ...form,
+        area_m2: area_m2_number.toString(),
+        // ✅ Creamos el string de ubicación desde las coordenadas
+        location: `${selectedCoords.lat},${selectedCoords.lng}`,
+      };
+      
+      await createLand(dataToSubmit);
+      setSuccess("Terreno registrado correctamente ✅");
+      
 
-    await createLand(landData);
-
-    setFormData({
-      nombreCultivo: '',
-      tipoPlantacion: '',
-      temporada: '',
-      areaTerreno: '',
-      fechaPlantacion: '',
-      latitud: null,
-      longitud: null,
-    });
-    setAreaUnit('ha');
-     setShowForm(false);
+      setForm({
+        name: "",
+        area_m2: "",
+        crop_type: "",
+        season: "",
+        start_date: "",
+        location: "",
+      });
+      setAreaUnit('m2');
+      setSelectedCoords(null);
+      
+    } catch (err) {
+      console.error("Error al registrar terreno:", err);
+    }
   };
 
-   return (
+  if (!user) return null;
+
+  return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">
-          {showForm ? "Formulario de Registro de Cultivo" : "Cultivos Registrados"}
-        </h2>
-        {!showForm && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition"
-          >
-            + Nuevo Cultivo
-          </button>
-        )}
+        <h2 className="text-2xl font-bold">Registro de Cultivo</h2>
       </div>
 
-      {showForm ? (
-       
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-4 bg-white p-6 rounded-2xl shadow"
-          >
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Nombre del Cultivo:
-              </label>
-              <input
-                type="text"
-                name="nombreCultivo"
-                value={formData.nombreCultivo}
-                onChange={handleChange}
-                required
-                className="w-full border rounded-lg p-2"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Tipo de Plantación:</label>
-              <select
-                name="tipoPlantacion"
-                value={formData.tipoPlantacion}
-                onChange={handleChange}
-                required
-                className="w-full border rounded-lg p-2"
-              >
-                <option value="">Selecciona...</option>
-                <option value="frutas">Frutas</option>
-                <option value="vegetales">Vegetales</option>
-                <option value="hortalizas">Hortalizas</option>
-                <option value="cereales">Cereales</option>
-                <option value="ornamentales">Ornamentales</option>
-                <option value="pastos">Pastos</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Temporada:</label>
-              <select
-                name="temporada"
-                value={formData.temporada}
-                onChange={handleChange}
-                required
-                className="w-full border rounded-lg p-2"
-              >
-                <option value="">Selecciona...</option>
-                <option value="verano">Verano</option>
-                <option value="invierno">Invierno</option>
-                <option value="primavera">Primavera</option>
-                <option value="otono">Otoño</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Área:
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="number"
-                  id="area"
-                  name="areaTerreno"
-                  min="0"
-                  step="0.01"
-                  value={formData.areaTerreno}
-                  onChange={handleChange}
-                  required
-                  className="w-full border rounded-lg p-2"
-                />
-                <select
-                  value={areaUnit}
-                  onChange={handleAreaUnitChange}
-                  className="border rounded-lg p-2"
-                >
-                  <option value="ha">Hectáreas (ha)</option>
-                  <option value="m2">Metros Cuadrados (m²)</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Fecha de Plantación:
-              </label>
-              <input
-                type="date"
-                name="fechaPlantacion"
-                value={formData.fechaPlantacion}
-                onChange={handleChange}
-                required
-                className="w-full border rounded-lg p-2"
-              />
-            </div>
-            {formData.latitud && formData.longitud && (
-              <p className="text-sm text-gray-600">
-                📍 Coordenadas: Lat {formData.latitud.toFixed(4)}, Lng{" "}
-                {formData.longitud.toFixed(4)}
-              </p>
-            )}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition"
-            >
-              {isLoading ? "Guardando..." : "Guardar Cultivo"}
-            </button>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-           </form>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 bg-white p-6 rounded-2xl shadow"
+        >
+          {landError && <p className="text-red-600 text-sm">{landError}</p>}
+          {success && <p className="text-green-600 text-sm">{success}</p>}
+  
+          {/* ✅ Todos los inputs y selectores */}
           <div>
-            <h3 className="text-lg font-semibold mb-2">Haz clic en el mapa para marcar las coordenadas:</h3>
-            <div className="rounded-2xl overflow-hidden shadow">
-              <MapContainer className="z-0" 
-                center={[-12.0464, -77.0428]}
-                zoom={13}
-                style={{ height: "400px", width: "100%" }}
-              >
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                <LocationMarker onPositionChange={handleMapClick} />
-              </MapContainer>
+            <label htmlFor="name" className="block text-sm font-medium mb-1">Nombre del cultivo</label>
+            <input type="text" id="name" name="name" value={form.name} onChange={handleChange} className="w-full border px-3 py-2 rounded" required />
+          </div>
+  
+          <div>
+            <label htmlFor="area_m2" className="block text-sm font-medium mb-1">Área del terreno</label>
+            <div className="flex items-center space-x-2">
+              <input type="number" id="area_m2" name="area_m2" step="0.01" value={form.area_m2} onChange={handleChange} className="w-full border px-3 py-2 rounded" required />
+              <select value={areaUnit} onChange={handleAreaUnitChange} className="border rounded-lg p-2">
+                <option value="m2">Metros Cuadrados (m²)</option>
+                <option value="ha">Hectáreas (ha)</option>
+              </select>
             </div>
           </div>
-        </div>
-      ) : (
-     
-        <div className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {lands.length > 0 ? (
-              lands.map((land, index) => (
-                <div key={index} className="bg-white p-6 rounded-2xl shadow border-l-4 border-green-500">
-                  <p className="text-lg font-semibold">{land.nombreCultivo}</p>
-                  <p className="text-gray-600 text-sm">
-                    **Tipo:** {land.tipoPlantacion} | **Temporada:** {land.temporada}
-                  </p>
-                  <p className="text-gray-600 text-sm">
-                    **Área:** {parseFloat(land.areaTerreno).toFixed(2)} ha | **Fecha:** {land.fechaPlantacion}
-                  </p>
-                  {land.latitud && land.longitud && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      **Coordenadas:** Lat {land.latitud.toFixed(4)}, Lng {land.longitud.toFixed(4)}
-                    </p>
-                  )}
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-500">Aún no hay cultivos registrados.</p>
-            )}
+  
+          <div>
+            <label htmlFor="crop_type" className="block text-sm font-medium mb-1">Tipo de plantación</label>
+            <select id="crop_type" name="crop_type" value={form.crop_type} onChange={handleChange} required className="w-full border rounded-lg p-2">
+              <option value="">Selecciona...</option>
+              <option value="frutas">Frutas</option>
+              <option value="vegetales">Vegetales</option>
+              <option value="hortalizas">Hortalizas</option>
+              <option value="cereales">Cereales</option>
+              <option value="ornamentales">Ornamentales</option>
+              <option value="pastos">Pastos</option>
+            </select>
+          </div>
+  
+          <div>
+            <label htmlFor="temporada" className="block text-sm font-medium mb-1">Temporada</label>
+            <select id="season" name="season" value={form.season} onChange={handleChange} required className="w-full border rounded-lg p-2">
+              <option value="">Selecciona...</option>
+              <option value="verano">Verano</option>
+              <option value="invierno">Invierno</option>
+              <option value="primavera">Primavera</option>
+              <option value="otono">Otoño</option>
+            </select>
+          </div>
+          
+          <div>
+            <label htmlFor="start_date" className="block text-sm font-medium mb-1">Fecha de inicio</label>
+            <input type="date" id="start_date" name="start_date" value={form.start_date} onChange={handleChange} className="w-full border px-3 py-2 rounded" required />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition disabled:opacity-50"
+          >
+            {isLoading ? "Guardando..." : "Guardar Terreno"}
+          </button>
+        </form>
+
+        {/* ✅ Lógica del mapa */}
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Haz clic en el mapa para marcar las coordenadas:</h3>
+          <div className="rounded-2xl overflow-hidden shadow">
+            <MapContainer className="z-0" center={[-12.0464, -77.0428]} zoom={13} style={{ height: "400px", width: "100%" }}>
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <LocationMarker onPositionChange={handleMapClick} />
+            </MapContainer>
+          </div>
+          {/* ✅ Muestra las coordenadas seleccionadas en un input */}
+          <div className="mt-2">
+            <label className="block text-sm font-medium mb-1">Coordenadas seleccionadas</label>
+            <input
+              type="text"
+              readOnly
+              className="w-full border px-3 py-2 rounded bg-gray-100"
+              value={
+          selectedCoords
+            ? `${selectedCoords.lat.toFixed(6)}, ${selectedCoords.lng.toFixed(6)}`
+            : ""
+              }
+              placeholder="Selecciona una ubicación en el mapa"
+            />
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
-};
-
-export default LandForm;
+}

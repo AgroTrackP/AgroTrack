@@ -20,7 +20,9 @@ export class SuscriptionPlanService {
 
   async getAllSusPlans() {
     try {
-      return this.suscriptionPlanRepository.find();
+      return this.suscriptionPlanRepository.find({
+        relations: ['users'],
+      });
     } catch (error) {
       throw new BadRequestException(
         `Error fetching suscriptions. Error: ${error}`,
