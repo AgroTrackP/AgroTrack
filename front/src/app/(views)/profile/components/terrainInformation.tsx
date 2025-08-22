@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLands } from "@/context/landContext";
+import DetalleTerreno from "./detalleTerreno";
+import Button from "@/components/ui/button";
 
 const TerrainInformation = () => {
-  const { lands, fetchLands, isLoading, error } = useLands();
+    const { lands, fetchLands, isLoading, error } = useLands();
+    const [selectTerrenoId, setSelectTerrenoId] = useState<string | null>(null);
 
   // ✅ Traer terrenos apenas cargue el componente
     useEffect(() => {
@@ -22,27 +25,37 @@ const TerrainInformation = () => {
     if (lands.length === 0) {
     return <p className="text-gray-500">No tienes terrenos registrados aún.</p>;
 }
-
 return (
-    <div className="p-4 bg-white shadow-md rounded-lg">
-        <h2 className="text-lg font-bold mb-4">🌱 Mis Terrenos</h2>
-<ul className="space-y-3">
-        {lands.map((land) => (
-        <li
-            key={land._id} // 👈 ¡Cambia esto!
-            className="p-3 border rounded-lg shadow-sm hover:shadow-md transition"
-        >
-            <p><strong>Nombre:</strong> {land.name}</p>
-            <p><strong>Área:</strong> {land.area_m2} m²</p>
-            <p><strong>Tipo de cultivo:</strong> {land.crop_type}</p>
-            <p><strong>Ubicación:</strong> {land.location}</p>
-            <p><strong>Temporada:</strong> {land.season}</p>
-            <p><strong>Fecha de inicio:</strong> {land.start_date}</p> 
-        </li>
-        ))}
-      </ul>
-    </div>
-  );
+        <div className="p-4 bg-white shadow-md rounded-lg">
+            <h2 className="text-lg font-bold mb-4">🌱 Mis Terrenos</h2>
+            <ul className="space-y-3">
+                {lands.map((land) => (
+                    <li
+                        key={land.id!} // 👈 ¡Cambia esto!
+                        className="p-3 border rounded-lg shadow-sm hover:shadow-md transition"
+                    >
+                        <p><strong>Nombre:</strong> {land.name}</p>
+                        <p><strong>Área:</strong> {land.area_m2} m²</p>
+                        <p><strong>Tipo de cultivo:</strong> {land.crop_type}</p>
+                        <p><strong>Ubicación:</strong> {land.location}</p>
+                        {/* <p><strong>Temporada:</strong> {land.season}</p>
+                        <p><strong>Fecha de inicio:</strong> {land.start_date}</p>  */}
+                        <Button 
+                        label="Detalle" 
+                        onClick={() => setSelectTerrenoId(land.id!)} 
+                        className="gap-4 m-3"
+                    />
+                    </li>
+                ))}
+            </ul>
+
+            <DetalleTerreno
+                isOpen={!!selectTerrenoId}
+                terrenoId={selectTerrenoId}
+                onClose={() => setSelectTerrenoId(null)}
+            />
+        </div>
+    );
 };
 
 export default TerrainInformation;
