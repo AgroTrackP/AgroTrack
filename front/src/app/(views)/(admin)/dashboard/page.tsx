@@ -22,9 +22,7 @@ export default async function DashboardPage() {
         <ManagedHectaresCard />
         <NewSubscriptionsCard />
       </div>
-      
-      {/* El resto de la página sigue igual... */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <SalesChart />
         <SubscriptionBreakdown />
       </div>
