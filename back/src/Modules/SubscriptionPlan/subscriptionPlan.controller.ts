@@ -26,9 +26,14 @@ export class SuscriptionPlanController {
   ) {}
 
   @Get()
+  async getAllSusPlans() {
+    return await this.suscriptionPlanService.getAllSusPlans();
+  }
+
+  @Get('subs-with-count')
   @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
   @Roles(Role.Admin)
-  async getAllSusPlans() {
+  async getAllSusPlansWithCount() {
     return await this.suscriptionPlanService.getAllSusPlansWithNum();
   }
 

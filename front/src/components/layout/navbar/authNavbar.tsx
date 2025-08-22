@@ -30,7 +30,7 @@ export const AuthNavbar = () => {
 
     };
 
-    const logout = () => {
+     const logout = () => {
         logoutUser();
         router.push(routes.home);
 
@@ -39,12 +39,12 @@ export const AuthNavbar = () => {
         // return <Loader/>;
     }
 
-
+ 
     //lo que se muestra si el usuario no esta autentificado
     // para que no sea mas harcodeado cambiar a (!isAuth) y eliminar const isAuthenticated = true;
     if (!isAuth) {
         return (
-            <div>
+             <div>
                 <Link href={routes.login}>
                     <Button
 

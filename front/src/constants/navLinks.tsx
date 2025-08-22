@@ -16,5 +16,9 @@ export const NavLinks = [
     {
         href: routes.mis_cultivos,
         label: "Ms cultivos"
+    },
+     {
+        href: routes.dashboard,
+        label: "dashboard"
     }
 ]
