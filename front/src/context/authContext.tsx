@@ -1,18 +1,18 @@
 "use client";
 
 import { LoginResponse } from "@/services/utils/types";
-import { IUser, IUSerSuscription } from "@/types";
+import { IUser, IUserSubscription } from "@/types";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { updateUserCredentials } from "@/services/auth";
-import { axiosApiBack } from "@/services/utils";
 
 type AuthContextType = {
     isAuth: boolean | null;
     user: IUser | null;
     token: string | null;
     login: boolean;
-    subscription: IUSerSuscription | null;
+    subscription: IUserSubscription  | null;
+    loadingSubscription: boolean;
     saveUserData: (data: LoginResponse) => void;
     logoutUser: () => void;
     resetUserData: () => void;
@@ -30,7 +30,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<IUser | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [login, setLogin] = useState(false);
-    const [subscription, setSubscription] = useState<IUSerSuscription | null>(null);
+    const [subscription, setSubscription] = useState<IUserSubscription | null>(null);
+    const [loadingSubscription, setLoadingSubscription] = useState(true);
 
     const { user: auth0User, isAuthenticated, getAccessTokenSilently, logout } = useAuth0();
 
@@ -54,7 +55,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     }, []);
 
-    // 2. Lógica para manejar el inicio de sesión con Auth0
+    // 2. Lógica para manejar el inicio de sesión con Auth0 
+
+
+    console.log({ auth0User, isAuthenticated });
+
+    // ✅ login automático con Auth0 solo si NO hay sesión local
     useEffect(() => {
         if (!isAuthenticated || !auth0User) return;
         const stored = localStorage.getItem(AUTH_KEY);
@@ -111,26 +117,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [isAuthenticated, auth0User, getAccessTokenSilently]);
 
     // 3. Lógica para cargar la suscripción del usuario
+    // bloque de suscripcion
     useEffect(() => {
         if (isAuth && user && token) {
             const fetchSubscription = async () => {
                 try {
-                    // ✅ La URL de tu endpoint de suscripciones
-                    const response = await axiosApiBack.get(`/subscriptions/${user.id}`, {
+                    const apiUrl = `/api/users/subscription-plan/${user.id}`;
+                    const response = await fetch(apiUrl, {
                         headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
+                            'Authorization': `Bearer ${token}`
+                        }
                     });
-                    if (response.data && response.data.subscription) {
-                        setSubscription(response.data.subscription);
-                    } else {
-                        setSubscription(null);
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            console.log("El usuario no tiene una suscripción activa.");
+                            setSubscription(null);
+                            return;
+                        }
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'No se pudo cargar la información del plan.');
                     }
+                    const data = await response.json();
+                    console.log("Suscripción cargada con éxito:", data);
+                    setSubscription(data);
+    
                 } catch (error) {
                     console.error("Error al cargar la suscripción:", error);
                     setSubscription(null);
                 }
             };
+    
             fetchSubscription();
         }
     }, [isAuth, user, token]);
@@ -224,6 +240,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 token,
                 login,
                 subscription,
+                loadingSubscription,
                 saveUserData,
                 logoutUser,
                 resetUserData,
@@ -243,30 +260,3 @@ export const useAuthContext = () => {
     }
     return context;
 };
-
-    // Bloque de código para cuando esté el endpoint
-    // const [subscription, setSubscription] = useState<IUSerSuscription | null>(null);
-
-    // useEffect(() => {
-    //     if (isAuth && user && token) {
-    //         const fetchSubscription = async () => {
-    //             try {
-    //                 const response = await axiosApiBack.get(`/subscriptions/${user.id}`, {
-    //                     headers: {
-    //                         Authorization: `Bearer ${token}`,
-    //                     },
-    //                 });
-
-    //                 if (response.data && response.data.subscription) {
-    //                     setSubscription(response.data.subscription);
-    //                 } else {
-    //                     setSubscription(null);
-    //                 }
-    //             } catch (error) {
-    //                 console.error("Error al cargar la suscripción:", error);
-    //                 setSubscription(null);
-    //             }
-    //         };
-    //         fetchSubscription();
-    //     }
-    // }, [isAuth, user, token]);
