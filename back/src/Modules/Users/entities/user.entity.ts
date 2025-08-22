@@ -18,6 +18,7 @@ import { ApplicationType } from 'src/Modules/ApplicationTypes/entities/applicati
 import { Phenology } from 'src/Modules/Phenologies/entities/phenologies.entity';
 import { SubscriptionPlan } from 'src/Modules/SubscriptionPlan/entities/subscriptionplan.entity';
 import { SubscriptionStatus } from '../subscriptionStatus.enum';
+import { ActivityLog } from 'src/Modules/ActivityLogs/entity/activity-logs.entity';
 
 @Entity({
   name: 'USERS',
@@ -132,4 +133,7 @@ export class Users {
     default: SubscriptionStatus.NONE,
   })
   subscriptionStatus: SubscriptionStatus;
+
+  @OneToMany(() => ActivityLog, (activityLog) => activityLog.user)
+  activityLogs: ActivityLog[];
 }

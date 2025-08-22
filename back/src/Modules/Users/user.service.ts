@@ -48,6 +48,7 @@ export class UsersService {
           'products',
           'applicationTypes',
           'phenologies',
+          'suscription_level',
         ],
       });
 
