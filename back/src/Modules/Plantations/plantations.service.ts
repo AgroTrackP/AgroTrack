@@ -12,12 +12,9 @@ import { UpdatePlantationDto } from './dtos/update.plantation.dto';
 import { CreatePlantationDto } from './dtos/create.plantation.dto';
 import { Users } from 'src/Modules/Users/entities/user.entity';
 import { RecommendationsService } from '../Recomendations/recomendations.service';
-<<<<<<< Updated upstream
 import { ActivityService } from '../ActivityLogs/activity-logs.service';
 import { ActivityType } from '../ActivityLogs/entities/activity-logs.entity';
-=======
 import { PaginationDto } from './dtos/pagination.dto';
->>>>>>> Stashed changes
 
 @Injectable()
 export class PlantationsService {
