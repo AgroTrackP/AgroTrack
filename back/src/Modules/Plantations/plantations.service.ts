@@ -139,9 +139,13 @@ export class PlantationsService {
     try {
       const user = await this.usersRepository.findOne({
         where: { id: userId },
+        relations: ['plantations'],
       });
       if (!user) {
         throw new BadRequestException('User does not exist.');
+      }
+      if (!user.plantations) {
+        throw new NotFoundException('User does not have plantatios yet.');
       }
 
       return user.plantations;

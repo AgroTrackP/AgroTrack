@@ -1,26 +1,27 @@
 "use client";
 
 import { LoginResponse } from "@/services/utils/types";
-import { IUser, IUSerSuscription } from "@/types";
-import { createContext, useContext, useEffect, useState } from "react";
+import { IUser, IUserSubscription } from "@/types";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import axios from "axios";
-import { axiosApiBack } from "@/services/utils";
+import { updateUserCredentials } from "@/services/auth";
 
 type AuthContextType = {
     isAuth: boolean | null;
     user: IUser | null;
     token: string | null;
     login: boolean;
-    subscription: IUSerSuscription | null;
+    subscription: IUserSubscription  | null;
+    loadingSubscription: boolean;
     saveUserData: (data: LoginResponse) => void;
     logoutUser: () => void;
     resetUserData: () => void;
     setUser: React.Dispatch<React.SetStateAction<IUser | null>>;
+    updateCredentials: (updatedData: Partial<IUser>) => Promise<void>;
 };
 
 const AUTH_KEY = "authData";
-const AUTH0_FLAG = "auth0Login"; // evita auto-login después de logout
+const AUTH0_FLAG = "auth0Login";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -29,10 +30,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<IUser | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [login, setLogin] = useState(false);
+    const [subscription, setSubscription] = useState<IUserSubscription | null>(null);
+    const [loadingSubscription, setLoadingSubscription] = useState(true);
 
     const { user: auth0User, isAuthenticated, getAccessTokenSilently, logout } = useAuth0();
 
-    //  Recuperar sesión del localStorage
+    // 1. Recuperar la sesión del localStorage
     useEffect(() => {
         if (typeof window === "undefined") return;
         const stored = localStorage.getItem(AUTH_KEY);
@@ -52,74 +55,47 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     }, []);
 
-    //simulacion de suscripcion borrar este bloque de codigo cuando este el enpoint
-    const [subscription, setSubscription] = useState<IUSerSuscription | null>({
-        status: 'active',
-        planName: 'Plan Premium',
-    });
+    // 2. Lógica para manejar el inicio de sesión con Auth0 
 
-    //bloque de codigo para cuando este el enpoint
-    // const [subscription, setSubscription] = useState<IUSerSuscription | null>();
-    // useEffect(() => {
-    //     if(isAuth){
-    //         const fetchSuscription = async () => {
-    //             try{
-    //                 const response = await axiosApiBack.get('/');
-
-    //                 if(response.data && response.data.suscripcion){
-    //                     setSubscription(response.data.suscripcion);
-    //                 }else {
-    //                     setSubscription(null);
-    //                 }
-    //             }catch(error){
-    //                 console.error("Error al cargar la suscripcion", error)
-    //                 setSubscription(null);
-    //             }
-    //         };
-    //         fetchSuscription();
-    //     }
-    // }, [isAuth]);
 
     console.log({ auth0User, isAuthenticated });
 
     // ✅ login automático con Auth0 solo si NO hay sesión local
     useEffect(() => {
         if (!isAuthenticated || !auth0User) return;
-
         const stored = localStorage.getItem(AUTH_KEY);
-        if (stored) return; // ya hay sesión local, no hacer nada
+        if (stored) return; // Ya hay una sesión local, no hacer nada
 
         const loginWithAuth0 = async () => {
             try {
-                // 1️⃣ pedir access token de Auth0
+                // Obtener el access token de Auth0
                 const accessToken = await getAccessTokenSilently({
                     authorizationParams: {
                         audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE,
                     },
                 });
 
-                // 2️⃣ intercambiar en tu backend por un JWT propio
+                // Intercambiar en tu backend por un JWT propio
                 const res = await fetch(`https://agrotrack-develop.onrender.com/auth/auth0/login`, {
-                    method: "POST", // 👈 ¡Cambia GET a POST!
+                    method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        Authorization: `Bearer ${accessToken}`,
+                        "Authorization": `Bearer ${accessToken}`, // ✅ Sintaxis corregida
                     },
-                    // 👈 Aquí enviamos los datos del usuario en el cuerpo de la solicitud
                     body: JSON.stringify({
                         name: auth0User.name,
                         email: auth0User.email,
                         picture: auth0User.picture,
-                        auth0Id: auth0User.sub, // 'sub' es el ID único del usuario en Auth0
+                        auth0Id: auth0User.sub,
                     }),
                 });
 
-                console.log(accessToken)
-                const data = await res.json()
-                console.log(data)
-                // 3️⃣ guardar datos en localStorage/context
-                localStorage.setItem(AUTH0_FLAG, "true");
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.message || "Error al autenticar con el backend");
+                }
 
+                localStorage.setItem(AUTH0_FLAG, "true");
                 saveUserData({
                     login: true,
                     user: {
@@ -129,16 +105,51 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                         email: data.user.email || "",
                         picture: data.user.imgUrl || auth0User.picture,
                     },
-                    // token: accessToken,
-                    token: data.token, // 👈 este es el JWT de tu backend
+                    token: data.token, // ✅ Usar el token del backend, no el de Auth0
                 });
+
             } catch (error) {
-                console.error("Error obteniendo token de Auth0:", error);
+                console.error("Error obteniendo token de Auth0 o autenticando con backend:", error);
             }
         };
 
         loginWithAuth0();
     }, [isAuthenticated, auth0User, getAccessTokenSilently]);
+
+    // 3. Lógica para cargar la suscripción del usuario
+    // bloque de suscripcion
+    useEffect(() => {
+        if (isAuth && user && token) {
+            const fetchSubscription = async () => {
+                try {
+                    const apiUrl = `/api/users/subscription-plan/${user.id}`;
+                    const response = await fetch(apiUrl, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            console.log("El usuario no tiene una suscripción activa.");
+                            setSubscription(null);
+                            return;
+                        }
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'No se pudo cargar la información del plan.');
+                    }
+                    const data = await response.json();
+                    console.log("Suscripción cargada con éxito:", data);
+                    setSubscription(data);
+    
+                } catch (error) {
+                    console.error("Error al cargar la suscripción:", error);
+                    setSubscription(null);
+                }
+            };
+    
+            fetchSubscription();
+        }
+    }, [isAuth, user, token]);
 
     const saveUserData = (data: LoginResponse) => {
         setUser(data.user);
@@ -152,17 +163,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const logoutUser = () => {
         const isAuth0Session = localStorage.getItem(AUTH0_FLAG) === "true";
-
         resetUserData();
-        console.log({ isAuth0Session });
-
-        // si la sesión es de Auth0, cerrar también en Auth0
         if (isAuth0Session) {
             logout({
                 logoutParams: { returnTo: window.location.origin },
             });
-
-            return;
         }
     };
 
@@ -171,11 +176,61 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setToken(null);
         setLogin(false);
         setIsAuth(false);
+        setSubscription(null);
         if (typeof window !== "undefined") {
             localStorage.removeItem(AUTH_KEY);
             localStorage.removeItem(AUTH0_FLAG);
         }
     };
+
+    // 4. Función para actualizar credenciales, manejando Auth0 y login normal
+    const updateCredentials = useCallback(async (updatedData: Partial<IUser>) => {
+        if (!user) {
+            console.error("No se puede actualizar, no hay usuario.");
+            return;
+        }
+        
+        let tokenToSend = token; 
+
+        const isAuth0Session = localStorage.getItem(AUTH0_FLAG) === "true";
+        if (isAuth0Session) {
+            try {
+                tokenToSend = await getAccessTokenSilently({
+                    authorizationParams: {
+                        audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE,
+                    },
+                });
+            } catch (error) {
+                console.error("Error al obtener un token fresco de Auth0:", error);
+                throw new Error("No se pudo obtener un token de autenticación válido.");
+            }
+        }
+        
+        if (!tokenToSend) {
+            console.error("No hay un token válido para la solicitud.");
+            throw new Error("No se pudo obtener un token de autenticación válido.");
+        }
+
+        try {       
+            const responseData = await updateUserCredentials(user.id!, updatedData, tokenToSend);
+            setUser(responseData); 
+        } catch (error) {
+            console.error("Error al actualizar las credenciales:", error);
+            throw error;
+        }
+    }, [user, token, getAccessTokenSilently]);
+
+    // 5. Sincronizar el localStorage con los cambios de estado
+    useEffect(() => {
+        if (user && token !== null && login !== null) {
+            const currentData: LoginResponse = {
+                user,
+                token,
+                login,
+            };
+            localStorage.setItem(AUTH_KEY, JSON.stringify(currentData));
+        }
+    }, [user, token, login]);
 
     return (
         <AuthContext.Provider
@@ -185,10 +240,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 token,
                 login,
                 subscription,
+                loadingSubscription,
                 saveUserData,
                 logoutUser,
                 resetUserData,
                 setUser,
+                updateCredentials, 
             }}
         >
             {children}

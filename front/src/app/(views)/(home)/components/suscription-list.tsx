@@ -6,40 +6,46 @@ import { loadStripe } from '@stripe/stripe-js'
 import SuscriptionCard from '@/components/ui/suscription-card/suscription-card'
 import { useAuthContext } from '@/context/authContext'
 import { ISuscription } from '@/types'
+import { toast } from 'react-toastify'
 
 const stripeKey = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 const SuscriptionList = () => {
     const router = useRouter();
-    const { user, isAuth, token } = useAuthContext();
+    const { user, isAuth, token, subscription } = useAuthContext();
+
     const [plans, setPlans] = useState<ISuscription[]>([]);
     const [loadingPlans, setLoadingPlans] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchPlans = async () => {
-            try {
-                const response = await fetch('/api/suscriptionPlan');
-                if(!response.ok){
-                    throw new Error ("No se pudieron cargar los planes");
+        if (!subscription) {
+            const fetchPlans = async () => {
+                try {
+                    const response = await fetch('/api/suscriptionPlan');
+                    if (!response.ok) {
+                        throw new Error("No se pudieron cargar los planes");
+                    }
+                    const data = await response.json();
+                    setPlans(data);
+                } catch (err: unknown) {
+                    if (err instanceof Error) {
+                        setError(err.message);
+                    }
+                } finally {
+                    setLoadingPlans(false);
                 }
-                const data = await response.json();
-                setPlans(data);
-            } catch (err: unknown) {
-                if(err instanceof Error){
-                    setError(err.message);
-                }
-            } finally {
-                setLoadingPlans(false);
-            }
-        };
-        fetchPlans();
-    },[])
+            };
+            fetchPlans();
+        } else {
+            setLoadingPlans(false);
+        }
+    }, [subscription]);
 
     const handleSubscribeClick = async (plan: ISuscription) => {
         if (!isAuth || !user) {
-            alert("Debes iniciar sesión para suscribirte.");
+            toast.error("Debes iniciar sesión para suscribirte.");
             router.push('/login');
             return;
         }
@@ -73,7 +79,7 @@ const SuscriptionList = () => {
                     userId: user.id,
                     priceId: plan.stripePriceId,
                 }),
-                
+
             });
             const session = await response.json();
             console.log("Respuesta recibida del back", session);
@@ -102,12 +108,16 @@ const SuscriptionList = () => {
             setLoadingPlan(null);
         }
     };
-    
-    if(loadingPlans){
+
+    if (isAuth && subscription?.status === "active") {
+        return null;
+    }
+
+    if (loadingPlans) {
         return <div className="text-center py-20">Cargando planes...</div>
     }
 
-    if(error){
+    if (error) {
         return <div className="text-center py-20">Error: {error}</div>
     }
     return (

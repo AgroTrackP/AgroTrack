@@ -27,17 +27,18 @@ import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from './user.enum';
 import { ExcludePasswordInterceptor } from 'src/interceptor/exclude-pass.interceptor';
 import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
+import { IsActiveGuard } from 'src/Guards/isActive.guard';
 
 @ApiTags('Users')
+@ApiBearerAuth('jwt')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   // --- 1. Rutas que actúan sobre la colección de usuarios ---
   // GET /users
-  @ApiBearerAuth('jwt')
   @Get()
-  @UseGuards(RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
   @Roles(Role.Admin)
   @ApiOperation({ summary: 'Get all users (Admin only)' })
   @ApiResponse({ status: 200, description: 'All users found' })
@@ -60,7 +61,7 @@ export class UsersController {
   // --- 2. Rutas específicas que deben ir antes de las genéricas ---
   // GET /users/subscription-plan/:id
   @Get('subscription-plan/:id')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, SelfOnlyGuard)
   async getSubPlanByUsersId(@Param('id', ParseUUIDPipe) id: string) {
     return await this.usersService.getSubPlanByUserId(id);
   }
@@ -85,7 +86,7 @@ export class UsersController {
   // GET /users/:id
   @ApiBearerAuth('jwt')
   @Get(':id')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, SelfOnlyGuard)
   @UseInterceptors(ExcludePasswordInterceptor)
   @ApiOperation({ summary: 'Get a user by id' })
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
@@ -104,7 +105,7 @@ export class UsersController {
   // PUT /users/:id
   @ApiBearerAuth('jwt')
   @Put(':id')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, SelfOnlyGuard)
   @UseInterceptors(ExcludePasswordInterceptor)
   @HttpCode(200)
   @ApiOperation({ summary: 'Update a user by id' })
@@ -125,7 +126,7 @@ export class UsersController {
   // DELETE /users/:id
   @ApiBearerAuth('jwt')
   @Delete(':id')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, SelfOnlyGuard)
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete a user by id (soft delete)' })
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })

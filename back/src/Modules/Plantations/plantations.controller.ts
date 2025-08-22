@@ -27,8 +27,8 @@ export class PlantationsController {
     return this.plantationsService.findAll();
   }
 
-  @Get('user/:userId')
-  async findByUser(@Param('userId') userId: string) {
+  @Get('user/:id')
+  async findByUser(@Param('id') userId: string) {
     return this.plantationsService.findByUser(userId);
   }
 

@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import LandForm from "./components/landforms";
+
 import { LandProvider } from "@/context/landContext";
+import LandForm from "./components/landforms";
 
 export default function PageCrops() {
   return (
@@ -21,7 +22,7 @@ export default function PageCrops() {
         >
           <div className="grid grid-cols-1 md:grid-cols-1">
             <div className="bg-white rounded-xl p-4">
-              <LandForm />
+              <LandForm/>
             </div>
           </div>
         </div>
