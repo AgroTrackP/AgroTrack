@@ -2,10 +2,11 @@ import { DataSource } from 'typeorm';
 import { connectionSource } from 'src/Config/TypeORM.config';
 import { ApplicationPlans } from '../entities/applicationplan.entity';
 import { ApplicationPlanItem } from '../entities/applicationplan.item.entity';
-import { Users } from 'src/Modules/Users/entities/user.entity';
 import { Plantations } from 'src/Modules/Plantations/entities/plantations.entity';
 import { Diseases } from 'src/Modules/Diseases/entities/diseases.entity';
 import { Products } from 'src/Modules/Products/entities/products.entity';
+import { Users } from 'src/Modules/Users/entities/user.entity';
+import { Status } from '../status.enum';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -23,17 +24,17 @@ interface PlanItemSeed {
 
 export class ApplicationPlansSeeder {
   static async run() {
-    const ds: DataSource = connectionSource;
-    if (!ds.isInitialized) await ds.initialize();
+    const dataSource: DataSource = connectionSource;
+    if (!dataSource.isInitialized) await dataSource.initialize();
 
-    const planRepo = ds.getRepository(ApplicationPlans);
-    const itemRepo = ds.getRepository(ApplicationPlanItem);
-    const userRepo = ds.getRepository(Users);
-    const plantationRepo = ds.getRepository(Plantations);
-    const diseaseRepo = ds.getRepository(Diseases);
-    const productRepo = ds.getRepository(Products);
+    const plansRepo = dataSource.getRepository(ApplicationPlans);
+    const itemsRepo = dataSource.getRepository(ApplicationPlanItem);
+    const plantationsRepo = dataSource.getRepository(Plantations);
+    const diseasesRepo = dataSource.getRepository(Diseases);
+    const productsRepo = dataSource.getRepository(Products);
+    const usersRepo = dataSource.getRepository(Users);
 
-    // Leer JSONs
+    // Lee los archivos JSON
     const plansPath = path.join(__dirname, '../data/applicationplans.json');
     const itemsPath = path.join(
       __dirname,
@@ -46,79 +47,85 @@ export class ApplicationPlansSeeder {
       fs.readFileSync(itemsPath, 'utf-8'),
     );
 
-    // Buscar entidades relacionadas
-    const user = await userRepo.findOneBy({
+    // Busca las entidades relacionadas
+    const plantations = await plantationsRepo.find();
+    const diseases = await diseasesRepo.find();
+    const products = await productsRepo.find();
+    const user = await usersRepo.findOneBy({
       email: 'facundo.ortiz@example.com',
     });
-    const plantations = await plantationRepo.find();
-    const diseases = await diseaseRepo.find();
-    const products = await productRepo.find();
 
-    if (!user || !plantations.length || !diseases.length || !products.length) {
-      console.error('⚠️ No existen las entidades relacionadas necesarias');
-      await ds.destroy();
+    if (
+      !user ||
+      !plantations.length ||
+      !diseases.length ||
+      !products.length ||
+      !plansData.length ||
+      !itemsData.length
+    ) {
+      console.error(
+        '⚠️ No se encontraron las entidades o datos JSON necesarios.',
+      );
+      await dataSource.destroy();
       return;
     }
 
-    // 🔄 Iterar plantaciones → enfermedades → planes
+    // Lógica para crear un plan por plantación si no existe
     for (const plantation of plantations) {
-      for (const disease of diseases) {
-        for (let i = 0; i < plansData.length; i++) {
-          const planSeed = plansData[i];
+      // 1. Busca un plan existente para esta plantación
+      const existingPlan = await plansRepo.findOne({
+        where: { plantation: { id: plantation.id } },
+      });
 
-          // Verificar si ya existe un plan similar
-          let plan = await planRepo.findOne({
-            where: {
-              plantation: { id: plantation.id },
-              disease: { id: disease.id },
-              planned_date: new Date(planSeed.planned_date),
-            },
-            relations: ['items'],
-          });
+      // 2. Si el plan ya existe, simplemente salta al siguiente
+      if (existingPlan) {
+        console.log(
+          `✅ Plan de aplicación para Plantación ID ${plantation.id} ya existe. Saltando.`,
+        );
+        continue;
+      }
 
-          if (!plan) {
-            plan = planRepo.create({
-              planned_date: new Date(planSeed.planned_date),
-              total_water: planSeed.total_water,
-              total_product: planSeed.total_product,
-              status: planSeed.status as any,
-              user,
-              plantation,
-              disease,
-            });
-            await planRepo.save(plan);
+      // Si el plan no existe, lo crea
+      const planSeedData = plansData[0];
+      const disease = diseases[0];
 
-            // 🔄 Iterar productos y crear items (circular con itemsData)
-            for (let j = 0; j < products.length; j++) {
-              const product = products[j];
-              const itemSeed = itemsData[j % itemsData.length];
+      const newPlan = plansRepo.create({
+        planned_date: new Date(planSeedData.planned_date),
+        total_water: planSeedData.total_water,
+        total_product: planSeedData.total_product,
+        status: planSeedData.status as Status,
+        user,
+        plantation,
+        disease,
+      });
 
-              const item = itemRepo.create({
-                dosage_per_m2: itemSeed.dosage_per_m2,
-                calculated_quantity: itemSeed.calculated_quantity,
-                applicationPlan: plan,
-                product,
-              });
-              await itemRepo.save(item);
-            }
+      const savedPlan = await plansRepo.save(newPlan);
+      console.log(
+        `✅ Plan creado para Plantación: ${plantation.id} con ID: ${savedPlan.id}`,
+      );
 
-            console.log(
-              `✅ Plan creado: ${planSeed.planned_date} | Plantación: ${plantation.id} | Enfermedad: ${disease.id} con ${products.length} items`,
-            );
-          } else {
-            console.log(
-              `ℹ️ Ya existía un plan para Plantación ${plantation.id} y Enfermedad ${disease.id} en ${planSeed.planned_date}`,
-            );
-          }
-        }
+      // Crea los ítems del plan
+      for (let i = 0; i < products.length && i < itemsData.length; i++) {
+        const itemSeedData = itemsData[i];
+        const product = products[i];
+
+        const newItem = itemsRepo.create({
+          applicationPlan: savedPlan,
+          product,
+          dosage_per_m2: itemSeedData.dosage_per_m2,
+          calculated_quantity: itemSeedData.calculated_quantity,
+        });
+        await itemsRepo.save(newItem);
+        // eslint-disable-next-line no-irregular-whitespace
+        console.log(`    ✅ Ítem creado para producto: ${product.name}`);
       }
     }
 
-    await ds.destroy();
+    console.log('✅ Proceso de siembra de ApplicationPlans completado.');
+    await dataSource.destroy();
   }
 }
 
-// Ejecutar directamente con ts-node
 if (require.main === module) {
   ApplicationPlansSeeder.run().catch((err) => console.error(err));
 }

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApplicationPlans } from './entities/applicationplan.entity';
 import { ApplicationPlanItem } from './entities/applicationplan.item.entity';
@@ -24,7 +24,7 @@ import { Products } from '../Products/entities/products.entity';
       Products,
     ]),
     UsersModule,
-    PlantationsModule,
+    forwardRef(() => PlantationsModule),
     DiseasesModule,
     ProductsModule,
   ],

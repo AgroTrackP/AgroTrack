@@ -35,7 +35,8 @@
   
     "run:category:seed": "ts-node -r tsconfig-paths/register src/Modules/Categories/seeders/categories.seeder.ts",
     "run:product:seed": "ts-node -r tsconfig-paths/register src/Modules/Products/seeders/products.seeder.ts ",
-    "run:recommendation:seed": "ts-node -r tsconfig-paths/register src/Modules/Recomendations/seeders/recomendations.seeder.ts"
+    "run:recommendation:seed": "ts-node -r tsconfig-paths/register src/Modules/Recomendations/seeders/recomendations.seeder.ts",
+    "seed:all": "ts-node -r tsconfig-paths/register src/Modules/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.5",
