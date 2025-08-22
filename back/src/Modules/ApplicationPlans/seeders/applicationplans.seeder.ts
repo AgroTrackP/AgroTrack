@@ -52,7 +52,7 @@ export class ApplicationPlansSeeder {
     const diseases = await diseasesRepo.find();
     const products = await productsRepo.find();
     const user = await usersRepo.findOneBy({
-      email: 'facundo.ortiz@example.com',
+      email: 'agrotrackproject@gmail.com',
     });
 
     if (

@@ -8,10 +8,12 @@ import {
   Body,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { PlantationsService } from './plantations.service';
 import { CreatePlantationDto } from './dtos/create.plantation.dto';
 import { UpdatePlantationDto } from './dtos/update.plantation.dto';
+import { PaginationDto } from './dtos/pagination.dto';
 
 @Controller('plantations')
 export class PlantationsController {
@@ -25,6 +27,11 @@ export class PlantationsController {
   @Get()
   async findAll() {
     return this.plantationsService.findAll();
+  }
+
+  @Get('paginated')
+  async findAllPaginated(@Query() paginationDto: PaginationDto) {
+    return this.plantationsService.findAllPaginated(paginationDto);
   }
 
   @Get('user/:id')
