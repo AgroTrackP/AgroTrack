@@ -24,6 +24,49 @@ export class StripeService {
     private readonly mailService: MailService,
   ) {}
 
+  async getMonthlyRevenue() {
+    try {
+      // Calcular el rango de fechas para el mes actual
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      // Convertir a timestamp de Unix (en segundos)
+      const startTimestamp = Math.floor(startOfMonth.getTime() / 1000);
+      const endTimestamp = Math.floor(now.getTime() / 1000);
+
+      // Obtener todas las transacciones de cobro en ese rango
+      let totalRevenue = 0;
+      const transactions = this.stripe.balanceTransactions.list({
+        created: {
+          gte: startTimestamp,
+          lte: endTimestamp,
+        },
+        type: 'charge', // Solo nos interesan los cobros exitosos
+        limit: 100, // Máximo por página
+      });
+
+      // Iterar sobre los resultados (Stripe pagina automáticamente)
+      for await (const transaction of transactions) {
+        totalRevenue += transaction.amount;
+      }
+
+      // Formatear y devolver el resultado
+      const revenueInDollars = totalRevenue / 100;
+
+      return {
+        startDate: startOfMonth.toISOString(),
+        endDate: now.toISOString(),
+        grossRevenue: revenueInDollars,
+        currency: 'usd',
+      };
+    } catch (error) {
+      console.error('Error fetching monthly revenue from Stripe:', error);
+      throw new InternalServerErrorException(
+        'Could not fetch monthly revenue.',
+      );
+    }
+  }
+
   // Crear una sesión de checkout
   async createCheckoutSession(
     priceId: string,
