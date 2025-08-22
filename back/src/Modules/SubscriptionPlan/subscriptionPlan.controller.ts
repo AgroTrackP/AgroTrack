@@ -10,8 +10,12 @@ import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from '../Users/user.enum';
 import { CreateSuscriptionDto } from './dtos/createSubscriptionPlan.dto';
 import { CreateMultipleSubscriptionsDto } from './dtos/createMultipleSubscription.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { IsActiveGuard } from 'src/Guards/isActive.guard';
 
-@Controller('suscriptionPlan')
+@ApiTags('Subscription Plans')
+@ApiBearerAuth('jwt')
+@Controller('subscription-plan')
 export class SuscriptionPlanController {
   constructor(
     @InjectRepository(SubscriptionPlan)
@@ -22,8 +26,10 @@ export class SuscriptionPlanController {
   ) {}
 
   @Get()
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
   async getAllSusPlans() {
-    return await this.suscriptionPlanService.getAllSusPlans();
+    return await this.suscriptionPlanService.getAllSusPlansWithNum();
   }
 
   @Get(':id')

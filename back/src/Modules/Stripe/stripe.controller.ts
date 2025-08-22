@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Post,
   Req,
@@ -20,6 +21,9 @@ import { SelfOnlyCheckGuard } from 'src/Guards/selfOnlyCheck.guard';
 import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
 import { AuthRequest } from 'src/types/express';
 import { IsActiveGuard } from 'src/Guards/isActive.guard';
+import { RoleGuard } from 'src/Guards/role.guard';
+import { Roles } from '../Auth/decorators/roles.decorator';
+import { Role } from '../Users/user.enum';
 
 @ApiTags('Stripe')
 @ApiBearerAuth('jwt')
@@ -63,5 +67,12 @@ export class StripeController {
   async cancelSubscription(@Req() req: AuthRequest) {
     const userId = req.user.id;
     return await this.stripeService.cancelSubscription(userId);
+  }
+
+  @Get('monthly-revenue')
+  @UseGuards(PassportJwtAuthGuard, RoleGuard, IsActiveGuard)
+  @Roles(Role.Admin)
+  async getMonthlyRevenue() {
+    return await this.stripeService.getMonthlyRevenue();
   }
 }
