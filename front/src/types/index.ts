@@ -25,12 +25,6 @@ export interface LoginUserDto {  // post
     password: string
 }
 
-// export interface ISuscription{
-//     priceId: string,
-//     name: string,
-//     price: number,
-//     benefits: string[]
-// }
 export interface ISuscription{
     id: string,
     name: string,
@@ -39,9 +33,6 @@ export interface ISuscription{
     maxDevices: number,
     features: string[],
     stripePriceId:string
-    //Estas propiedades son las que se usan para mostrar es estado de la suscripcion 
-    status?: string,
-    planName?: string,
 }
 
 export interface LandDataDTO {
@@ -53,9 +44,20 @@ export interface LandDataDTO {
     start_date: string;
     userId?: string;
 }
-export interface IUSerSuscription{
-    status: string,
-    planName: string;
+export interface IPlanDetails {
+    id: string;
+    name: string;
+    price: string;
+    maxUsers: number;
+    maxDevices: number;
+    features: string[];
+    stripePriceId: string;
+}
+
+export interface IUserSubscription {
+    userId: string;
+    plan: IPlanDetails;
+    status: 'active' | 'canceled' | 'past_due'; // Usando tipos literales para seguridad
 }
 
 

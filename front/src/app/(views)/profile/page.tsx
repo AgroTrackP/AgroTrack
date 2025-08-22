@@ -39,13 +39,11 @@ const PageProfile = () => {
             Información del Plan
           </h3>
             <div>
-                <h3></h3>
-                <UserSuscription/>
+
+                
             </div>
           <div className="bg-white p-6 rounded-lg shadow-md border">
-            <p className="text-gray-500">
-              Aquí irá la información de tu suscripción.
-            </p>
+            <UserSuscription/>
           </div>
         </div>
         {/* <div> */}
