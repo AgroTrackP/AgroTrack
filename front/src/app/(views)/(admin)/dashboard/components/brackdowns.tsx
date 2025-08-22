@@ -1,85 +1,77 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuthContext } from '@/context/authContext'; // Ajusta la ruta a tu contexto
+import { useAuthContext } from '@/context/authContext';
 
-// --- Estructura de la respuesta de tu API (según tu controller) ---
-interface PlanDataFromApi {
-  planName: 'Básico' | 'Pro' | 'Premium';
-  numberOfUsers: number;
+// 1. ACTUALIZAMOS LA INTERFAZ para que coincida con los datos reales
+interface UserFromApi {
+  suscription_level: { // El nombre de la propiedad es 'suscription_level'
+    id: string;      // Y es un objeto con una propiedad 'id'
+  } | null;            // Puede ser nulo si no hay suscripción
 }
 
-// --- Estructura que necesita el componente para renderizar ---
+// ... (El resto de las interfaces y constantes no cambian)
 interface ChartData {
   name: string;
   value: number;
   color: string;
 }
-
-// --- Mapeo de nombres de planes a colores ---
 const planColors = {
-  Básico: '#6ee7b7', // Verde claro
-  Pro: '#3b82f6',    // Azul
-  Premium: '#a855f7', // Morado
+  Básico: '#6ee7b7',
+  Pro: '#3b82f6',
+  Premium: '#a855f7',
 };
 
-// --- Componente para el estado de carga (Skeleton) ---
-function PieChartSkeleton() {
-  return (
-    <div className="bg-white p-6 rounded-lg shadow-sm animate-pulse">
-      <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
-      <div className="w-64 h-64 mx-auto bg-gray-200 rounded-full"></div>
-      <div className="mt-6 space-y-3">
-        <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto"></div>
-        <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto"></div>
-        <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto"></div>
-      </div>
-    </div>
-  )
-}
-
 export function SubscriptionBreakdown() {
-  // 1. Estados para manejar datos, carga y errores
   const [data, setData] = useState<ChartData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // 2. Obtener el token de tu contexto
   const { token, isAuth } = useAuthContext();
 
   useEffect(() => {
-    if (isAuth === null) return;
-
-    if (!token || !isAuth) {
-      setError("No estás autenticado.");
+    if (isAuth === null || !isAuth || !token) {
       setIsLoading(false);
       return;
     }
 
-    const fetchSubscriptionData = async () => {
+    const fetchAndProcessUserData = async () => {
       setIsLoading(true);
       try {
-        // 3. Llamada al endpoint del backend (ajusta la ruta si es necesario)
-        const response = await fetch('https://agrotrack-develop.onrender.com/subscription-plan', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
+        const response = await fetch('https://agrotrack-develop.onrender.com/users?page=1&limit=1000', {
+          headers: { 'Authorization': `Bearer ${token}` },
         });
 
-        if (!response.ok) {
-          throw new Error('Error al obtener el desglose de suscripciones.');
-        }
+        if (!response.ok) throw new Error('Error al obtener la lista de usuarios.');
 
-        const plans: PlanDataFromApi[] = await response.json();
+        const userData = await response.json();
+        const users: UserFromApi[] = userData.data;
+
+        const planCounts = { 'Básico': 0, 'Pro': 0, 'Premium': 0 };
+
+        users.forEach(user => {
+          // 2. CORREGIMOS CÓMO LEEMOS EL ID DEL PLAN
+          // Usamos 'user.suscription_level?.id' para acceder al ID de forma segura
+          switch (user.suscription_level?.id) {
+            case "d85e4028-3086-46d1-becb-3f16a4915094":
+              planCounts['Básico']++;
+              break;
+            case "4620a437-e3fd-41d6-93a7-582fdb75107e":
+              planCounts['Pro']++;
+              break;
+            case "16fa5a9b-37f7-4f27-856b-6a95fe251cdb":
+              planCounts['Premium']++;
+              break;
+            default:
+              break;
+          }
+        });
         
-        // 4. Transformar los datos de la API al formato que necesita el gráfico
-        const formattedData = plans.map(plan => ({
-          name: plan.planName,
-          value: plan.numberOfUsers,
-          color: planColors[plan.planName] || '#cccccc' // Usa un color por defecto si el nombre no coincide
-        }));
+        const formattedData = [
+          { name: 'Básico', value: planCounts['Básico'], color: planColors.Básico },
+          { name: 'Pro', value: planCounts['Pro'], color: planColors.Pro },
+          { name: 'Premium', value: planCounts['Premium'], color: planColors.Premium }
+        ];
+
         setData(formattedData);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,17 +82,12 @@ export function SubscriptionBreakdown() {
       }
     };
 
-    fetchSubscriptionData();
+    fetchAndProcessUserData();
   }, [token, isAuth]);
 
-  // 5. Renderizado condicional
-  if (isLoading) {
-    return <PieChartSkeleton />;
-  }
-
-  if (error) {
-    return <div className="bg-white p-6 rounded-lg shadow-sm text-red-500">{error}</div>;
-  }
+  // ... (El resto del componente, incluyendo el JSX, no cambia)
+  if (isLoading) { return <PieChartSkeleton />; }
+  if (error) { return <div className="bg-white p-6 rounded-lg shadow-sm text-red-500">{error}</div>; }
 
   const totalSubscriptions = data.reduce((sum, item) => sum + item.value, 0);
 
@@ -156,10 +143,7 @@ export function SubscriptionBreakdown() {
 
 // --- Funciones auxiliares para dibujar el SVG ---
 function describeArc(x: number, y: number, radius: number, startAngle: number, endAngle: number): string {
-  // Evita arcos completos para que SVG los dibuje correctamente
-  if (endAngle - startAngle >= 360) {
-    endAngle = startAngle + 359.99;
-  }
+  if (endAngle - startAngle >= 360) endAngle = startAngle + 359.99;
   const start = polarToCartesian(x, y, radius, endAngle);
   const end = polarToCartesian(x, y, radius, startAngle);
   const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
@@ -173,4 +157,18 @@ function polarToCartesian(centerX: number, centerY: number, radius: number, angl
     x: centerX + (radius * Math.cos(angleInRadians)),
     y: centerY + (radius * Math.sin(angleInRadians)),
   };
+}
+function PieChartSkeleton() {
+  // Asegúrate de que esta palabra 'return' exista
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-sm animate-pulse">
+      <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
+      <div className="w-64 h-64 mx-auto bg-gray-200 rounded-full"></div>
+      <div className="mt-6 space-y-3">
+        <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto"></div>
+        <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto"></div>
+        <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto"></div>
+      </div>
+    </div>
+  );
 }

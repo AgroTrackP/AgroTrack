@@ -22,11 +22,19 @@ export class ActivityService {
   }
 
   async findAll(page = 1, limit = 10) {
-    return this.activityLogsRepository.find({
-      relations: ['users'],
+    // Usamos findAndCount para obtener también el total para la paginación
+    const [data, total] = await this.activityLogsRepository.findAndCount({
+      // 1. CORRECCIÓN: La relación es 'user' (singular)
+      relations: ['user'],
+
+      // 2. CORRECCIÓN: Ordenar por la columna de fecha correcta (usualmente 'createdAt')
       order: { timestamp: 'DESC' },
+
       take: limit,
       skip: (page - 1) * limit,
     });
+
+    // Devolvemos un objeto compatible con la paginación del frontend
+    return { data, total, page, limit };
   }
 }
