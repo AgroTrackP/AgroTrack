@@ -12,6 +12,8 @@ import { UpdatePlantationDto } from './dtos/update.plantation.dto';
 import { CreatePlantationDto } from './dtos/create.plantation.dto';
 import { Users } from 'src/Modules/Users/entities/user.entity';
 import { RecommendationsService } from '../Recomendations/recomendations.service';
+import { ActivityService } from '../ActivityLogs/activity-logs.service';
+import { ActivityType } from '../ActivityLogs/entities/activity-logs.entity';
 
 @Injectable()
 export class PlantationsService {
@@ -23,6 +25,7 @@ export class PlantationsService {
     private readonly recommendationsService: RecommendationsService,
     @InjectRepository(Users)
     private readonly usersRepo: Repository<Users>,
+    private readonly activityService: ActivityService,
   ) {}
 
   async create(payload: CreatePlantationDto) {
@@ -39,6 +42,12 @@ export class PlantationsService {
           );
         plantation.user = user;
       }
+
+      await this.activityService.logActivity(
+        plantation.user,
+        ActivityType.PLANTATION_CREATED,
+        `El usuario creó la plantación '${plantation.name}'.`,
+      );
 
       return await this.plantationsRepo.save(plantation);
     } catch (error: unknown) {
@@ -131,6 +140,13 @@ export class PlantationsService {
       }
 
       Object.assign(plantation, payload);
+
+      await this.activityService.logActivity(
+        plantation.user,
+        ActivityType.PLANTATION_UPDATED,
+        'El usuario ha actualizado los datos de su plantación.',
+      );
+
       return await this.plantationsRepo.save(plantation);
     } catch (error: unknown) {
       if (error instanceof Error) {
