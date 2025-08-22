@@ -12,8 +12,12 @@ import { UpdatePlantationDto } from './dtos/update.plantation.dto';
 import { CreatePlantationDto } from './dtos/create.plantation.dto';
 import { Users } from 'src/Modules/Users/entities/user.entity';
 import { RecommendationsService } from '../Recomendations/recomendations.service';
+<<<<<<< Updated upstream
 import { ActivityService } from '../ActivityLogs/activity-logs.service';
 import { ActivityType } from '../ActivityLogs/entities/activity-logs.entity';
+=======
+import { PaginationDto } from './dtos/pagination.dto';
+>>>>>>> Stashed changes
 
 @Injectable()
 export class PlantationsService {
@@ -119,6 +123,50 @@ export class PlantationsService {
         );
       }
       throw new BadRequestException('Error desconocido al buscar plantación');
+    }
+  }
+
+  async findAllPaginated(paginationDto: PaginationDto) {
+    const { page = 1, limit = 5 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    try {
+      // 1. Crear el query builder desde la entidad Plantations
+      const queryBuilder =
+        this.plantationsRepo.createQueryBuilder('plantation');
+
+      // 2. Unir las relaciones necesarias
+      queryBuilder
+        .leftJoinAndSelect('plantation.user', 'user')
+        .leftJoinAndSelect('plantation.applicationPlans', 'applicationPlans');
+
+      // 3. Obtener el conteo total de registros
+      const total = await queryBuilder.getCount();
+
+      // 4. Aplicar la paginación con skip y take
+      const plantations = await queryBuilder
+        .skip(skip)
+        .take(limit)
+        .orderBy('plantation.name', 'ASC') // Opcional: ordenar los resultados
+        .getMany();
+
+      return {
+        data: plantations,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error: unknown) {
+      // Manejo de errores
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Error fetching paginated plantations: ${error.message}`,
+        );
+      }
+      throw new BadRequestException(
+        'Unknown error fetching paginated plantations',
+      );
     }
   }
 

@@ -13,7 +13,7 @@ export class ApplicationTypesSeeder {
     const userRepo = ds.getRepository(Users);
 
     const user = await userRepo.findOneBy({
-      email: 'facundo.ortiz@example.com',
+      email: 'agrotrackproject@gmail.com',
     }); // ejemplo
     if (!user) {
       console.error('⚠️ No se encontró usuario admin para asociar');
