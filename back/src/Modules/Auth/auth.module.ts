@@ -8,6 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Auth0JwtStrategy } from './strategies/auth0.strategy';
 import { UsersModule } from '../Users/users.module';
+import { ActivityLogsModule } from '../ActivityLogs/activity-logs.module';
 
 @Global()
 @Module({
@@ -23,6 +24,7 @@ import { UsersModule } from '../Users/users.module';
       }),
       inject: [ConfigService],
     }),
+    ActivityLogsModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, Auth0JwtStrategy],

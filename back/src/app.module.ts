@@ -17,6 +17,7 @@ import { ContactModule } from './Modules/Contacto/contacto.module';
 import { SubscriptionPlanModule } from './Modules/SubscriptionPlan/subscriptionPlan.module';
 import { ChatModule } from './Modules/chatbot/chatbox.module';
 import { RecommendationsModule } from './Modules/Recomendations/recomendations.module';
+import { ActivityLogsModule } from './Modules/ActivityLogs/activity-logs.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { RecommendationsModule } from './Modules/Recomendations/recomendations.m
     ContactModule,
     SubscriptionPlanModule,
     RecommendationsModule,
+    ActivityLogsModule,
   ],
   controllers: [],
   providers: [],
