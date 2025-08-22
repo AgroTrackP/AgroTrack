@@ -16,28 +16,39 @@ const RegisterSchema = yup.object().shape({
     .string()
     .min(6, "La contraseña debe tener al menos 6 caracteres")
     .required("Campo requerido"),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref("password")], "Las contraseñas no coinciden")
+    .required("Confirma tu contraseña"),
   name: yup.string().required("Campo requerido"),
 });
 
 const RegisterForm = () => {
   const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword((prev) => !prev);
+  }
 
-  const initialValues: RegisterUserDto = {
+  const initialValues: RegisterUserDto & { confirmPassword: string } = {
     email: "",
     password: "",
     name: "",
+    confirmPassword: "",
   };
 
   const handleOnSubmit = async (
-    values: RegisterUserDto,
+    values: typeof initialValues,
     { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
   ) => {
     try {
-      await postRegister(values);
+
+      const { confirmPassword, ...userData } = values;
+      await postRegister(userData);
       alert("Usuario registrado correctamente");
     } catch {
       alert("Error al registrar el usuario");
@@ -106,6 +117,28 @@ const RegisterForm = () => {
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </div>
               </Input>
+
+              <Input
+                className="mb-4"
+                label="Confirmar Contraseña"
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                onChange={handleChange}
+                onBlur={handleBlur}
+                value={values.confirmPassword}
+                error={
+                  errors.confirmPassword && touched.confirmPassword ? errors.confirmPassword : ""
+                }
+              >
+                <div
+                  onClick={toggleConfirmPasswordVisibility}
+                  className="cursor-pointer"
+                >
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+
+                </div>
+              </Input>
             </div>
 
             <Button
@@ -122,10 +155,3 @@ const RegisterForm = () => {
 };
 
 export default RegisterForm;
-
-
-
-
-
-
-
