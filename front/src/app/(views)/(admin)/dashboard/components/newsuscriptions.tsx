@@ -7,8 +7,7 @@ import { Target } from 'lucide-react';
 // 1. AÑADIMOS la propiedad 'subscriptionStatus' a la interfaz
 interface User {
   created_at: string;
-  subscriptionStatus: string; // Puede ser 'active', 'inactive', etc.
-  // ... otras propiedades del usuario
+  subscriptionStatus: string; 
 }
 
 export function NewSubscriptionsCard() {
