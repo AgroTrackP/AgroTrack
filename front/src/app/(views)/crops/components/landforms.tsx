@@ -7,6 +7,7 @@ import { useAuthContext } from "@/context/authContext";
 import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { toast } from "react-toastify";
 
 // @ts-expect-error The Leaflet icon prototype has a typing bug in Next.js
 delete L.Icon.Default.prototype._getIconUrl;
@@ -41,6 +42,9 @@ export default function LandForm() {
   const { user } = useAuthContext();
   const { createLand, isLoading, error: landError } = useLands();
   const router = useRouter();
+  const {subscription} = useAuthContext();
+
+  const isSubscriptionActive = subscription?.status === 'active';
 
   useEffect(() => {
     if (!user) {
@@ -81,6 +85,11 @@ export default function LandForm() {
     
     if (!selectedCoords) {
       alert("Por favor, selecciona una ubicación en el mapa.");
+      return;
+    }
+
+    if(!isSubscriptionActive){
+      toast.success("Necesitas una suscripción activa para realizar la acción")
       return;
     }
     
@@ -155,12 +164,12 @@ export default function LandForm() {
             <label htmlFor="crop_type" className="block text-sm font-medium mb-1">Tipo de plantación</label>
             <select id="crop_type" name="crop_type" value={form.crop_type} onChange={handleChange} required className="w-full border rounded-lg p-2">
               <option value="">Selecciona...</option>
-              <option value="frutas">Frutas</option>
-              <option value="vegetales">Vegetales</option>
-              <option value="hortalizas">Hortalizas</option>
-              <option value="cereales">Cereales</option>
-              <option value="ornamentales">Ornamentales</option>
-              <option value="pastos">Pastos</option>
+              <option value="Frutas">Frutas</option>
+              <option value="Vegetales">Vegetales</option>
+              <option value="Hortalizas">Hortalizas</option>
+              <option value="Cereales">Cereales</option>
+              <option value="Ornamentales">Ornamentales</option>
+              <option value="Pastos">Pastos</option>
             </select>
           </div>
   
@@ -187,6 +196,11 @@ export default function LandForm() {
           >
             {isLoading ? "Guardando..." : "Guardar Terreno"}
           </button>
+          {!isSubscriptionActive && (
+            <p className="text-center text-sm text-red-600 mt-2">
+              Necesitas una suscripción activa para poder usar este formulario
+            </p>
+          )}
         </form>
 
         {/* ✅ Lógica del mapa */}

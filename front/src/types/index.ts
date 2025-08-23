@@ -61,3 +61,47 @@ export interface IUserSubscription {
 	plan: IPlanDetails;
 	status: "active" | "canceled" | "past_due"; // Usando tipos literales para seguridad
 }
+
+export interface IDetalleTerreno {
+    name: string;
+    email: string;
+    memberSince: string;
+}
+
+export interface IApplicationPlan {
+    id: string,
+    planned_date: string,
+    total_water: string;
+    total_product: string;
+    status: 'pending' | 'completed' | 'skipped';
+}
+
+export interface IRecommendedDisease{
+    id: string;
+    name: string;
+    description: string
+}
+
+export interface IRecommendedApplicationType{
+    id: string;
+    name: string;
+    description: string
+}
+
+export interface IRecommendedProducts{
+    id: string;
+    name: string;
+    description: string
+}
+
+export interface IRecommendations {
+    id: string;
+    crop_type: string;
+    planting_notes: string;
+    recommended_water_per_m2: string;
+    recommended_fertilizer: string;
+    additional_notes: string;
+    recommended_diseases: IRecommendedDisease[];
+    recommended_products: IRecommendedProducts;
+    recommended_application_type: IRecommendedApplicationType;
+}
