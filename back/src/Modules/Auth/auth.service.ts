@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from './dtos/CreateUser.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -112,18 +112,33 @@ export class AuthService {
   }
 
   async login({ email, password }: LoginUserDto) {
-    const user = await this.usersDbRepo.findOne({ where: { email: email } });
+    const user = await this.usersDbRepo.findOne({
+      where: { email: email },
+      relations: [
+        'plantations',
+        'products',
+        'diseases',
+        'applicationPlans',
+        'applicationTypes',
+        'phenologies',
+        'suscription_level',
+      ],
+    });
+
     if (!user) {
       throw new BadRequestException('Invalid email or password');
+    }
+
+    if (!user.isActive) {
+      throw new ForbiddenException(
+        'Your account is inactive. Please contact support.',
+      );
     }
 
     await validatePassword(password, user.password);
 
     const appToken = this.generateAppToken(user);
     const { exp, iat } = this.jwtService.decode(appToken);
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...userWithoutPassword } = user;
 
     await this.activityService.logActivity(
       user,
@@ -136,7 +151,7 @@ export class AuthService {
       token: appToken,
       issuedAt: new Date((iat || 0) * 1000).toISOString(),
       expiresAt: new Date((exp || 0) * 1000).toISOString(),
-      user: userWithoutPassword as Omit<Users, 'password'>,
+      user: user,
     };
   }
 

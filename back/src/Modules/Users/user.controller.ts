@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   BadRequestException,
   NotFoundException,
+  Patch,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { UpdateUserDto } from './dtos/update.user.dto';
@@ -172,9 +173,17 @@ export class UsersController {
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
   @ApiResponse({ status: 204, description: 'User deleted' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async remove(
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<{ message: string }> {
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return await this.usersService.remove(id);
+  }
+
+  @Patch(':id/reactivate')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
+  @ApiOperation({ summary: 'Reactivates a user account (Admin only)' })
+  @ApiResponse({ status: 200, description: 'User reactivated successfully' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async reactivateUser(@Param('id', ParseUUIDPipe) id: string) {
+    return this.usersService.reactivateUser(id);
   }
 }

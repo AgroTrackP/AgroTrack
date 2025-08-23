@@ -120,20 +120,18 @@ export class UsersService {
     }
   }
 
-  async remove(id: string): Promise<{ message: string }> {
+  async remove(id: string): Promise<void> {
     try {
       const user = await this.usersRepository.findOne({ where: { id } });
       if (!user) {
         throw new NotFoundException(`User not found`);
       }
       await this.usersRepository.update({ id }, { isActive: false });
-      return {
-        message: 'User deleted successfully',
-      };
     } catch (error) {
       throw new Error(`Error deleting user: ${error}`);
     }
   }
+
   async updateUserProfileImage(
     userId: string,
     { url, public_id }: { url: string; public_id: string },
@@ -239,7 +237,7 @@ export class UsersService {
 
     if (planName === 'not subscription') {
       try {
-        await this.stripeService.cancelSubscription(activeSubscription.id);
+        await this.stripeService.cancelSubscription(userId);
         return {
           message:
             'Solicitud de cancelación enviada a Stripe. El plan se actualizará vía webhook.',
@@ -271,7 +269,25 @@ export class UsersService {
     } catch (error) {
       throw new InternalServerErrorException(
         'Error al cambiar el plan de suscripción en Stripe.',
+        error,
       );
     }
+  }
+
+  async reactivateUser(id: string): Promise<{ message: string }> {
+    const user = await this.usersRepository.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException(`User not found`);
+    }
+
+    if (user.isActive) {
+      throw new BadRequestException('User is already active.');
+    }
+
+    await this.usersRepository.update(id, { isActive: true });
+
+    return {
+      message: 'User reactivated successfully',
+    };
   }
 }
