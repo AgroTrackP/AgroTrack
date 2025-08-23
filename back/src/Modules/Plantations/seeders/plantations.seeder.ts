@@ -1,27 +1,26 @@
 import { DataSource } from 'typeorm';
-import { connectionSource } from 'src/Config/TypeORM.config';
 import { Plantations } from '../entities/plantations.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 
+interface PlantationSeed {
+  name: string;
+  area_m2: number;
+  crop_type: string;
+  location: string;
+  start_date: string;
+}
+
 export class PlantationsSeeder {
-  static async run() {
-    const dataSource: DataSource = connectionSource;
+  constructor(private dataSource: DataSource) {}
 
-    // Inicializar la conexión si no está inicializada
-    if (!dataSource.isInitialized) await dataSource.initialize();
+  public async run(): Promise<void> {
+    const repo = this.dataSource.getRepository(Plantations);
 
-    const repo = dataSource.getRepository(Plantations);
-
-    // Leer datos del JSON
     const filePath = path.join(__dirname, '../data/plantations.json');
-    const plantationsData: {
-      name: string;
-      area_m2: number;
-      crop_type: string;
-      location: string;
-      start_date: string;
-    }[] = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    const plantationsData: PlantationSeed[] = JSON.parse(
+      fs.readFileSync(filePath, 'utf-8'),
+    );
 
     for (const p of plantationsData) {
       const exists = await repo.findOne({ where: { name: p.name } });
@@ -36,14 +35,6 @@ export class PlantationsSeeder {
         await repo.save(plantation);
       }
     }
-
     console.log('✅ Plantations seeded (new items only)');
-
-    await dataSource.destroy();
   }
-}
-
-// Ejecutar directamente si se corre con ts-node
-if (require.main === module) {
-  PlantationsSeeder.run().catch((err) => console.error(err));
 }

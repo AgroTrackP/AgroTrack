@@ -1,4 +1,5 @@
 import { ApplicationPlans } from 'src/Modules/ApplicationPlans/entities/applicationplan.entity';
+// import { Recommendation } from 'src/Modules/Recomendations/entities/recomendations.entity';
 import { Users } from 'src/Modules/Users/entities/user.entity';
 import {
   Column,
@@ -56,4 +57,8 @@ export class Plantations {
   @ManyToOne(() => Users, (user) => user.plantations)
   @JoinColumn({ name: 'user_id' })
   user: Users;
+
+  // @ManyToOne(() => Recommendation)
+  // @JoinColumn({ name: 'recommendation_id' })
+  // recommendation: Recommendation;
 }

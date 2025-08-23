@@ -1,19 +1,21 @@
 import { DataSource } from 'typeorm';
-import { connectionSource } from 'src/Config/TypeORM.config';
 import { Phenology } from '../entities/phenologies.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 
+interface PhenologySeed {
+  name: string;
+  description: string;
+}
+
 export class PhenologiesSeeder {
-  static async run() {
-    const dataSource: DataSource = connectionSource;
+  constructor(private dataSource: DataSource) {}
 
-    if (!dataSource.isInitialized) await dataSource.initialize();
-
-    const repo = dataSource.getRepository(Phenology);
+  public async run(): Promise<void> {
+    const repo = this.dataSource.getRepository(Phenology);
 
     const filePath = path.join(__dirname, '../data/phenologies.json');
-    const phenologiesData: { name: string; description: string }[] = JSON.parse(
+    const phenologiesData: PhenologySeed[] = JSON.parse(
       fs.readFileSync(filePath, 'utf-8'),
     );
 
@@ -27,13 +29,6 @@ export class PhenologiesSeeder {
         await repo.save(phenology);
       }
     }
-
     console.log('✅ Phenologies seeded (new items only)');
-
-    await dataSource.destroy();
   }
-}
-
-if (require.main === module) {
-  PhenologiesSeeder.run().catch((err) => console.error(err));
 }

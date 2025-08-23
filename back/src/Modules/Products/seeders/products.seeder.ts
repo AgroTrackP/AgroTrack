@@ -1,11 +1,10 @@
 import { DataSource } from 'typeorm';
-import { connectionSource } from 'src/Config/TypeORM.config';
 import { Products } from '../entities/products.entity';
 import { Categories } from '../../Categories/entities/categories.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 
-type ProductSeed = {
+interface ProductSeed {
   name: string;
   concentration: number;
   water_per_liter: number;
@@ -13,17 +12,14 @@ type ProductSeed = {
   alert_threshold: number;
   isActive: boolean;
   categoryName: string;
-};
+}
 
 export class ProductsSeeder {
-  static async run() {
-    const dataSource: DataSource = connectionSource;
+  constructor(private dataSource: DataSource) {}
 
-    // Inicializar la conexión si no está inicializada
-    if (!dataSource.isInitialized) await dataSource.initialize();
-
-    const repo = dataSource.getRepository(Products);
-    const categoryRepo = dataSource.getRepository(Categories);
+  public async run(): Promise<void> {
+    const repo = this.dataSource.getRepository(Products);
+    const categoryRepo = this.dataSource.getRepository(Categories);
 
     const filePath = path.join(__dirname, '../data/products.json');
     const productsData: ProductSeed[] = JSON.parse(
@@ -33,7 +29,6 @@ export class ProductsSeeder {
     for (const prod of productsData) {
       const exists = await repo.findOne({ where: { name: prod.name } });
       if (!exists) {
-        // Buscar la categoría correspondiente
         const category = await categoryRepo.findOne({
           where: { name: prod.categoryName },
         });
@@ -48,18 +43,9 @@ export class ProductsSeeder {
           isActive: prod.isActive,
           category: category,
         });
-
         await repo.save(product);
       }
     }
-
     console.log('✅ Products seeded (new items only)');
-
-    await dataSource.destroy();
   }
-}
-
-// Ejecutar directamente si se corre con ts-node
-if (require.main === module) {
-  ProductsSeeder.run().catch((err) => console.error(err));
 }

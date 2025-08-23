@@ -1,5 +1,5 @@
+// src/database/seeders/applicationplans.seeder.ts
 import { DataSource } from 'typeorm';
-import { connectionSource } from 'src/Config/TypeORM.config';
 import { ApplicationPlans } from '../entities/applicationplan.entity';
 import { ApplicationPlanItem } from '../entities/applicationplan.item.entity';
 import { Plantations } from 'src/Modules/Plantations/entities/plantations.entity';
@@ -23,10 +23,10 @@ interface PlanItemSeed {
 }
 
 export class ApplicationPlansSeeder {
-  static async run() {
-    const dataSource: DataSource = connectionSource;
-    if (!dataSource.isInitialized) await dataSource.initialize();
+  constructor(private dataSource: DataSource) {}
 
+  public async run(): Promise<void> {
+    const dataSource = this.dataSource;
     const plansRepo = dataSource.getRepository(ApplicationPlans);
     const itemsRepo = dataSource.getRepository(ApplicationPlanItem);
     const plantationsRepo = dataSource.getRepository(Plantations);
@@ -34,7 +34,6 @@ export class ApplicationPlansSeeder {
     const productsRepo = dataSource.getRepository(Products);
     const usersRepo = dataSource.getRepository(Users);
 
-    // Lee los archivos JSON
     const plansPath = path.join(__dirname, '../data/applicationplans.json');
     const itemsPath = path.join(
       __dirname,
@@ -47,7 +46,6 @@ export class ApplicationPlansSeeder {
       fs.readFileSync(itemsPath, 'utf-8'),
     );
 
-    // Busca las entidades relacionadas
     const plantations = await plantationsRepo.find();
     const diseases = await diseasesRepo.find();
     const products = await productsRepo.find();
@@ -66,18 +64,14 @@ export class ApplicationPlansSeeder {
       console.error(
         '⚠️ No se encontraron las entidades o datos JSON necesarios.',
       );
-      await dataSource.destroy();
       return;
     }
 
-    // Lógica para crear un plan por plantación si no existe
     for (const plantation of plantations) {
-      // 1. Busca un plan existente para esta plantación
       const existingPlan = await plansRepo.findOne({
         where: { plantation: { id: plantation.id } },
       });
 
-      // 2. Si el plan ya existe, simplemente salta al siguiente
       if (existingPlan) {
         console.log(
           `✅ Plan de aplicación para Plantación ID ${plantation.id} ya existe. Saltando.`,
@@ -85,7 +79,6 @@ export class ApplicationPlansSeeder {
         continue;
       }
 
-      // Si el plan no existe, lo crea
       const planSeedData = plansData[0];
       const disease = diseases[0];
 
@@ -104,7 +97,6 @@ export class ApplicationPlansSeeder {
         `✅ Plan creado para Plantación: ${plantation.id} con ID: ${savedPlan.id}`,
       );
 
-      // Crea los ítems del plan
       for (let i = 0; i < products.length && i < itemsData.length; i++) {
         const itemSeedData = itemsData[i];
         const product = products[i];
@@ -116,16 +108,9 @@ export class ApplicationPlansSeeder {
           calculated_quantity: itemSeedData.calculated_quantity,
         });
         await itemsRepo.save(newItem);
-        // eslint-disable-next-line no-irregular-whitespace
-        console.log(`    ✅ Ítem creado para producto: ${product.name}`);
+        console.log(`     ✅ Ítem creado para producto: ${product.name}`);
       }
     }
-
     console.log('✅ Proceso de siembra de ApplicationPlans completado.');
-    await dataSource.destroy();
   }
-}
-
-if (require.main === module) {
-  ApplicationPlansSeeder.run().catch((err) => console.error(err));
 }
