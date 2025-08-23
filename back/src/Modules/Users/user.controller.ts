@@ -10,6 +10,8 @@ import {
   Delete,
   ParseUUIDPipe,
   UseInterceptors,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { UpdateUserDto } from './dtos/update.user.dto';
@@ -28,6 +30,7 @@ import { Role } from './user.enum';
 import { ExcludePasswordInterceptor } from 'src/interceptor/exclude-pass.interceptor';
 import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 import { IsActiveGuard } from 'src/Guards/isActive.guard';
+import { UpdateSubscriptionDto } from './dtos/update-subscription.dto';
 
 @ApiTags('Users')
 @ApiBearerAuth('jwt')
@@ -83,8 +86,22 @@ export class UsersController {
     return this.usersService.setAdminRole(id, false);
   }
 
-  // --- 3. Rutas genéricas por ID (siempre al final) ---
-  // GET /users/:id
+  @Get('search') // La ruta será, por ejemplo, /users/search?query=juanperez@mail.com
+  @UseGuards(RoleGuard) // Asumiendo que quieres que solo los admins busquen
+  @Roles(Role.Admin)
+  async searchUser(@Query('query') searchTerm: string) {
+    if (!searchTerm) {
+      throw new BadRequestException('Search term cannot be empty.');
+    }
+    const user = await this.usersService.findByEmailOrName(searchTerm);
+    if (!user) {
+      throw new NotFoundException(
+        `User with name or email like "${searchTerm}" not found.`,
+      );
+    }
+    return user;
+  }
+
   @ApiBearerAuth('jwt')
   @Get(':id')
   @UseGuards(PassportJwtAuthGuard, IsActiveGuard, SelfOnlyGuard)
@@ -101,6 +118,19 @@ export class UsersController {
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<UserResponseDto> {
     return await this.usersService.findOne(id);
+  }
+
+  @Put('subscription/:id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
+  async updateSubscription(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateSubscriptionDto: UpdateSubscriptionDto,
+  ) {
+    return await this.usersService.updateSubscription(
+      id,
+      updateSubscriptionDto.planName,
+    );
   }
 
   // PUT /users/:id
@@ -124,8 +154,17 @@ export class UsersController {
     return await this.usersService.update(id, updateUserDto);
   }
 
-  // DELETE /users/:id
-  @ApiBearerAuth('jwt')
+  @Delete('admin/:id')
+  @UseGuards(PassportJwtAuthGuard, RoleGuard, IsActiveGuard)
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Delete a user by id (Admin only)' })
+  @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
+  @ApiResponse({ status: 204, description: 'User deleted successfully' })
+  @Roles(Role.Admin)
+  async deleteUser(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.usersService.deleteUser(id);
+  }
+
   @Delete(':id')
   @UseGuards(PassportJwtAuthGuard, IsActiveGuard, SelfOnlyGuard)
   @HttpCode(204)
@@ -133,7 +172,9 @@ export class UsersController {
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
   @ApiResponse({ status: 204, description: 'User deleted' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    await this.usersService.remove(id);
+  async remove(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<{ message: string }> {
+    return await this.usersService.remove(id);
   }
 }
