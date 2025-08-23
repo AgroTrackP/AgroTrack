@@ -7,6 +7,7 @@ import { useAuthContext } from "@/context/authContext";
 import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { toast } from "react-toastify";
 
 // @ts-expect-error The Leaflet icon prototype has a typing bug in Next.js
 delete L.Icon.Default.prototype._getIconUrl;
@@ -99,7 +100,7 @@ export default function LandForm() {
       };
       
       await createLand(dataToSubmit);
-      setSuccess("Terreno registrado correctamente ✅");
+      toast.success("Terreno registrado correctamente ✅");
       
 
       setForm({

@@ -9,6 +9,7 @@ import * as yup from "yup";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { postRegister } from "@/services/auth";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 // Validaciones
 const RegisterSchema = yup.object().shape({
@@ -56,10 +57,10 @@ const RegisterForm = () => {
 
       const { confirmPassword, ...userData } = values;
       await postRegister(userData);
-      alert("Usuario registrado correctamente");
+      toast.success("Usuario registrado correctamente");
       router.push("/login");
     } catch {
-      alert("Error al registrar el usuario");
+      toast.error("Error al registrar el usuario");
     } finally {
       setSubmitting(false);
     }
