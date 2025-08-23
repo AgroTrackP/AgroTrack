@@ -123,12 +123,20 @@ export class UsersController {
 
   @Put('subscription/:id')
   @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Update user subscription plan (Admin only)' })
+  @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Subscription plan updated',
+    type: UserResponseDto,
+  })
   @Roles(Role.Admin)
   async updateSubscription(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateSubscriptionDto: UpdateSubscriptionDto,
   ) {
-    return await this.usersService.updateSubscription(
+    return await this.usersService.updateUserSubscription(
       id,
       updateSubscriptionDto.planName,
     );
