@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,12 +10,17 @@ import { Users } from './entities/user.entity';
 import { UpdateUserDto } from './dtos/update.user.dto';
 import { UserResponseDto } from './dtos/user.response.dto';
 import { Role } from './user.enum';
+import { SubscriptionPlan } from '../SubscriptionPlan/entities/subscriptionplan.entity';
+import { StripeService } from '../Stripe/stripe.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(Users)
     private readonly usersRepository: Repository<Users>,
+    @InjectRepository(SubscriptionPlan)
+    private readonly subscriptionRepository: Repository<SubscriptionPlan>,
+    private readonly stripeService: StripeService,
   ) {}
 
   /*async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
@@ -144,7 +150,6 @@ export class UsersService {
         imgPublicId: public_id,
       });
     } catch (error) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       throw new Error(`Error updating user profile image: ${error.message}`);
     }
   }
@@ -171,6 +176,101 @@ export class UsersService {
     } catch (error) {
       throw new BadRequestException(
         `Error fetching user subscription plan: ${error}`,
+      );
+    }
+  }
+
+  async deleteUser(id: string) {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    try {
+      await this.usersRepository.delete(user.id);
+      return { message: 'User deleted successfully' };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error deleting user',
+        error.message,
+      );
+    }
+  }
+
+  async findByEmailOrName(query: string): Promise<Users> {
+    try {
+      const user = await this.usersRepository
+        .createQueryBuilder('user')
+        .where('user.name ILIKE :query OR user.email ILIKE :query', {
+          query: `%${query}%`,
+        })
+        .getOne();
+
+      if (!user) {
+        throw new NotFoundException(
+          `User with name or email like "${query}" not found.`,
+        );
+      }
+
+      return user;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error searching user by name or email: ${error.message}`,
+      );
+    }
+  }
+
+  async updateSubscription(userId: string, planName: string) {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user || !user.stripeCustomerId) {
+      throw new NotFoundException(
+        'Usuario no encontrado o sin ID de cliente de Stripe.',
+      );
+    }
+
+    const activeSubscription = await this.stripeService.findActiveSubscription(
+      user.stripeCustomerId,
+    );
+
+    if (!activeSubscription) {
+      throw new NotFoundException(
+        'No se encontró una suscripción activa para este usuario.',
+      );
+    }
+
+    if (planName === 'not subscription') {
+      try {
+        await this.stripeService.cancelSubscription(activeSubscription.id);
+        return {
+          message:
+            'Solicitud de cancelación enviada a Stripe. El plan se actualizará vía webhook.',
+        };
+      } catch (error) {
+        throw new InternalServerErrorException(
+          'Error al cancelar la suscripción en Stripe.',
+          error.message,
+        );
+      }
+    }
+
+    const newPlan = await this.subscriptionRepository.findOneBy({
+      name: planName,
+    });
+    if (!newPlan || !newPlan.stripePriceId) {
+      throw new NotFoundException(`El plan '${planName}' no fue encontrado.`);
+    }
+
+    try {
+      await this.stripeService.changeSubscriptionPlan(
+        activeSubscription.id,
+        newPlan.stripePriceId,
+      );
+
+      return {
+        message: `Solicitud de cambio al plan '${planName}' enviada a Stripe. El plan se actualizará vía webhook.`,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error al cambiar el plan de suscripción en Stripe.',
       );
     }
   }

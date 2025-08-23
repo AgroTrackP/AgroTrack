@@ -23,7 +23,7 @@ const SuscriptionList = () => {
         if (!subscription) {
             const fetchPlans = async () => {
                 try {
-                    const response = await fetch('/api/suscriptionPlan');
+                    const response = await fetch('/api/subscription-plan');
                     if (!response.ok) {
                         throw new Error("No se pudieron cargar los planes");
                     }

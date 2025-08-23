@@ -6,7 +6,7 @@ import { getTerrainsByUser, postTerrainInformation } from "@/services/auth";
 
 // Interfaz para el DTO que la API espera
 interface LandDataToApi {
-  _id?: string;
+  id?: string;
   name: string;
   area_m2: number;
   crop_type: string;

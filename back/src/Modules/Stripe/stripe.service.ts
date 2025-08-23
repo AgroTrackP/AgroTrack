@@ -113,17 +113,15 @@ export class StripeService {
   // Lógica al confirmar el pago
   async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
     const stripeCustomerId = session.customer as string;
-    const clientReferenceId = session.client_reference_id; // Este es tu userId
+    const clientReferenceId = session.client_reference_id;
 
-    // --- SOLUCIÓN PARA EL ERROR 2 ---
-    // Verificamos que el client_reference_id (nuestro userId) exista en la sesión.
+    // Verificamos que el client_reference_id (userId) exista en la sesión.
     if (!clientReferenceId) {
       console.error(
         `Webhook Error: client_reference_id no encontrado en la sesión ${session.id}. No se puede asociar el pago a un usuario.`,
       );
       return;
     }
-    // ---------------------------------
 
     // Ahora que sabemos que clientReferenceId es un string, podemos usarlo de forma segura.
     const user = await this.userDbService.findOneBy({ id: clientReferenceId });
@@ -134,7 +132,6 @@ export class StripeService {
       return;
     }
 
-    // --- SOLUCIÓN PARA EL ERROR 1 ---
     // Obtenemos el Price ID de forma segura.
     const lineItems = await this.stripe.checkout.sessions.listLineItems(
       session.id,
@@ -148,7 +145,6 @@ export class StripeService {
       return;
     }
     const stripePriceId = lineItems.data[0].price.id;
-    // ---------------------------------
 
     const plan = await this.subscriptionPlanRepository.findOneBy({
       stripePriceId,
@@ -173,10 +169,9 @@ export class StripeService {
     await this.activityService.logActivity(
       user,
       ActivityType.SUBSCRIPTION_STARTED,
-      `El usuario se suscribió al plan '${plan.name}'.`,
+      `El usuario '${user.name}' se suscribió al plan '${plan.name}'.`,
     );
 
-    // Enviamos el correo
     await this.mailService.sendPaymentSuccessEmail(user, plan);
   }
 
@@ -198,6 +193,7 @@ export class StripeService {
     }
   }
 
+  // Manejar la respuesta de Stripe cuando un pago falla
   async handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
     const stripeCustomerId = invoice.customer as string;
     const user = await this.userDbService.findOneBy({ stripeCustomerId });
@@ -214,6 +210,7 @@ export class StripeService {
     }
   }
 
+  // Manjear la respuesta de Stripe cuando se cancela una suscripción
   async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     const stripeCustomerId = subscription.customer as string;
     const user = await this.userDbService.findOneBy({ stripeCustomerId });
@@ -228,7 +225,7 @@ export class StripeService {
       await this.activityService.logActivity(
         user,
         ActivityType.SUBSCRIPTION_CANCELED,
-        'El usuario ha cancelado su suscripción.',
+        `El usuario '${user.name}' ha cancelado su suscripción.`,
       );
 
       await this.mailService.sendSubscriptionCanceledEmail(user);
@@ -239,6 +236,7 @@ export class StripeService {
     }
   }
 
+  // Método para cancelar la suscripción del usuario
   async cancelSubscription(userId: string) {
     const user = await this.userDbService.findOneBy({ id: userId });
     if (!user || !user.stripeCustomerId) {
@@ -271,6 +269,31 @@ export class StripeService {
         'No se pudo cancelar la suscripción.',
       );
     }
+  }
+
+  async findActiveSubscription(stripeCustomerId: string) {
+    const subscriptions = await this.stripe.subscriptions.list({
+      customer: stripeCustomerId,
+      status: 'active',
+      limit: 1,
+    });
+    return subscriptions.data[0];
+  }
+
+  async changeSubscriptionPlan(subscriptionId: string, newPriceId: string) {
+    const subscription =
+      await this.stripe.subscriptions.retrieve(subscriptionId);
+    const currentItemId = subscription.items.data[0].id;
+
+    return this.stripe.subscriptions.update(subscriptionId, {
+      items: [
+        {
+          id: currentItemId,
+          price: newPriceId,
+        },
+      ],
+      proration_behavior: 'create_prorations',
+    });
   }
 
   // Método para la lógica de negocio del webhook
