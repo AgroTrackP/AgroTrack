@@ -11,6 +11,7 @@ import {
   ParseUUIDPipe,
   UseInterceptors,
   BadRequestException,
+
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { UpdateUserDto } from './dtos/update.user.dto';
@@ -116,12 +117,20 @@ export class UsersController {
 
   @Put('subscription/:id')
   @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Update user subscription plan (Admin only)' })
+  @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Subscription plan updated',
+    type: UserResponseDto,
+  })
   @Roles(Role.Admin)
   async updateSubscription(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateSubscriptionDto: UpdateSubscriptionDto,
   ) {
-    return await this.usersService.updateSubscription(
+    return await this.usersService.updateUserSubscription(
       id,
       updateSubscriptionDto.planName,
     );
@@ -166,9 +175,17 @@ export class UsersController {
   @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
   @ApiResponse({ status: 204, description: 'User deleted' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async remove(
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<{ message: string }> {
+  async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     return await this.usersService.remove(id);
+  }
+
+  @Patch(':id/reactivate')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
+  @ApiOperation({ summary: 'Reactivates a user account (Admin only)' })
+  @ApiResponse({ status: 200, description: 'User reactivated successfully' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async reactivateUser(@Param('id', ParseUUIDPipe) id: string) {
+    return this.usersService.reactivateUser(id);
   }
 }
