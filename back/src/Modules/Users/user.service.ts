@@ -196,22 +196,18 @@ export class UsersService {
     }
   }
 
-  async findByEmailOrName(query: string): Promise<Users> {
+  async findByEmailOrName(query: string): Promise<Users[]> {
     try {
-      const user = await this.usersRepository
+      const users = await this.usersRepository
         .createQueryBuilder('user')
         .where('user.name ILIKE :query OR user.email ILIKE :query', {
           query: `%${query}%`,
         })
-        .getOne();
+        .getMany(); // <-- 2. Cambia getOne() por getMany()
 
-      if (!user) {
-        throw new NotFoundException(
-          `User with name or email like "${query}" not found.`,
-        );
-      }
-
-      return user;
+      // 3. Ya no necesitamos la comprobación de "no encontrado",
+      //    getMany() simplemente devolverá un array vacío si no hay resultados.
+      return users;
     } catch (error) {
       throw new InternalServerErrorException(
         `Error searching user by name or email: ${error.message}`,

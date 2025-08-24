@@ -9,7 +9,7 @@ interface ActivityFromApi {
   id: string;
   description: string;
   type: string; // Ej: 'NEW_USER', 'NEW_PLANTATION', etc.
-  createdAt: string;
+  timestamp: string;
 }
 
 // --- Componente de Carga (Skeleton) ---
@@ -114,7 +114,7 @@ export function RecentActivity() {
               </div>
               <div className="flex-1">
                 <p className="text-sm">{activity.description}</p>
-                <p className="text-xs text-gray-400">{formatTimeAgo(activity.createdAt)}</p>
+                <p className="text-xs text-gray-400">{formatTimeAgo(activity.timestamp)}</p>
               </div>
             </li>
           );

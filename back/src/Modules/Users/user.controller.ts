@@ -11,7 +11,6 @@ import {
   ParseUUIDPipe,
   UseInterceptors,
   BadRequestException,
-  NotFoundException,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { UpdateUserDto } from './dtos/update.user.dto';
@@ -93,13 +92,8 @@ export class UsersController {
     if (!searchTerm) {
       throw new BadRequestException('Search term cannot be empty.');
     }
-    const user = await this.usersService.findByEmailOrName(searchTerm);
-    if (!user) {
-      throw new NotFoundException(
-        `User with name or email like "${searchTerm}" not found.`,
-      );
-    }
-    return user;
+    // Simplemente devuelve el resultado del servicio, que ahora es un array.
+    return await this.usersService.findByEmailOrName(searchTerm);
   }
 
   @ApiBearerAuth('jwt')

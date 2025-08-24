@@ -27,8 +27,14 @@ const planColors = {
   'not subscription': 'bg-gray-100 text-gray-800', // <-- Añade el estilo para el nuevo valor
 };
 
-export function UserTable({ users, onEdit, onRoleChange }: { users: User[], onEdit: (user: User) => void, onRoleChange: (userId: string, newRole: 'Admin' | 'User') => void }) {
+export function UserTable({ users, onEdit, onRoleChange, onDelete }: { 
+  users: User[], 
+  onEdit: (user: User) => void, 
+  onRoleChange: (userId: string, newRole: 'Admin' | 'User') => void,
+  onDelete: (user: User) => void 
+}) {
   return (
+
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
@@ -82,8 +88,10 @@ export function UserTable({ users, onEdit, onRoleChange }: { users: User[], onEd
                   <button onClick={() => onEdit(user)} className="text-indigo-600 hover:text-indigo-900">
                     <Pencil size={18} />
                   </button>
-                  <button className="text-red-600 hover:text-red-900"><Trash2 size={18} /></button>
-                </div>
+                    <button onClick={() => onDelete(user)} className="text-red-600 hover:text-red-900">
+                    <Trash2 size={18} />
+                  </button>              
+                    </div>
               </td>
                 </div>
               </td>

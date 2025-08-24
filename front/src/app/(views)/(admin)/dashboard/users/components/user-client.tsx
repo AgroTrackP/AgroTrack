@@ -1,61 +1,55 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuthContext } from '@/context/authContext';
 import { UserTable, type User } from './user-table';
 import { Pagination } from './pagination';
 import { EditUserModal } from './edit-user-modal';
+import { ConfirmationModal } from './confirmation-modal';
+import { CreateUserModal } from './create-user-modal';
+import { PlusCircle } from 'lucide-react';
+import { toast } from 'react-toastify';
+import { useDebounce } from '@/hooks/use-debounce';
 
-// 1. AÑADIMOS subscription_plan_id a la interfaz
+// --- INTERFACES Y FUNCIONES DE MAPEO ---
+
 interface UserFromApi {
   id: string;
   name: string;
   email: string;
   imgUrl: string;
-  subscriptionStatus: 'active' | 'none';
   isActive: boolean;
   created_at: string;
   role: 'Admin' | 'User';
-  subscription_plan_id: string; // <-- Campo clave
+  suscription_level: { id: string; } | null;
 }
 
-// 2. NUEVA FUNCIÓN para traducir el ID del plan a un nombre
 const getPlanNameById = (planId: string | null): 'Básico' | 'Pro' | 'Premium' | 'not subscription' => {
-  // Si planId es null, undefined o un string vacío, devuelve 'not subscription' inmediatamente.
-  if (!planId) {
-    return 'not subscription';
-  }
-
+  if (!planId) return 'not subscription';
   switch (planId) {
-    case "d85e4028-3086-46d1-becb-3f16a4915094":
-      return 'Básico';
-    case "4620a437-e3fd-41d6-93a7-582fdb75107e":
-      return 'Pro';
-    case "16fa5a9b-37f7-4f27-856b-6a95fe251cdb":
-      return 'Premium';
-    default:
-      return 'not subscription';
+    case "d85e4028-3086-46d1-becb-3f16a4915094": return 'Básico';
+    case "4620a437-e3fd-41d6-93a7-582fdb75107e": return 'Pro';
+    case "16fa5a9b-37f7-4f27-856b-6a95fe251cdb": return 'Premium';
+    default: return 'not subscription';
   }
 };
 
-// "Traductor" de datos del backend al formato del frontend
-const mapApiToUser = (usersFromApi: UserFromApi[]): User[] => {
-  
-  // --- AÑADE ESTA LÍNEA PARA DEPURAR ---
-  console.log("Datos CRUDOS que llegan del backend:", usersFromApi);
-  // ------------------------------------
 
+const mapApiToUser = (usersFromApi: UserFromApi[]): User[] => {
   return usersFromApi.map(user => ({
     id: user.id,
     name: user.name,
-    role: user.role, // <-- Mapea el rol
+    role: user.role,
     email: user.email,
     avatarUrl: user.imgUrl || `https://i.pravatar.cc/150?u=${user.id}`,
-    plan: getPlanNameById(user.subscription_plan_id),
+    plan: getPlanNameById(user.suscription_level?.id ?? null),
     status: user.isActive ? 'Activo' : 'Inactivo',
     registrationDate: new Date(user.created_at).toLocaleDateString('es-ES'),
   }));
 };
+
+// --- COMPONENTE PRINCIPAL ---
 
 export function UsersClient() {
   const [users, setUsers] = useState<User[]>([]);
@@ -65,83 +59,183 @@ export function UsersClient() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const usersPerPage = 8;
+  
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const { token, isAuth } = useAuthContext();
 
-  useEffect(() => {
-    if (!isAuth || !token) return;
+   const fetchUsers = useCallback(async () => {
+    if (!token || !isAuth) return;
     
-    const fetchUsers = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(`https://agrotrack-develop.onrender.com/users?page=${currentPage}&limit=${usersPerPage}`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
+    setIsLoading(true);
+    setError(null);
 
-        if (!response.ok) throw new Error('No se pudieron cargar los usuarios.');
-        
-        const data = await response.json();
-        
-        setUsers(mapApiToUser(data.data));
-        setTotalPages(Math.ceil(data.total / usersPerPage));
+    try {
+      let url; // 'url' sí necesita ser 'let' porque su valor cambia
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
+      if (debouncedSearchTerm) {
+        const params = new URLSearchParams({ query: debouncedSearchTerm });
+        url = `https://agrotrack-develop.onrender.com/users/search?${params.toString()}`;
+      } else {
+        const params = new URLSearchParams({ page: String(currentPage), limit: String(usersPerPage) });
+        url = `https://agrotrack-develop.onrender.com/users?${params.toString()}`;
       }
-    };
+      
+      // La variable 'response' se declara con 'const' aquí
+      const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
 
+      if (!response.ok) {
+        if (response.status === 404) {
+          setUsers([]);
+          setTotalPages(0);
+          return;
+        }
+        throw new Error('No se pudieron cargar los usuarios.');
+      }
+      
+      const data = await response.json();
+      const usersData = Array.isArray(data) ? data : (data.data || (data ? [data] : []));
+      
+      setUsers(mapApiToUser(usersData));
+
+      if (debouncedSearchTerm) {
+        setTotalPages(1);
+        setCurrentPage(1);
+      } else {
+        setTotalPages(Math.ceil(data.total / usersPerPage));
+      }
+
+    } catch (err: any) {
+      setError(err.message);
+      setUsers([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentPage, debouncedSearchTerm, token, isAuth])
+
+  useEffect(() => {
     fetchUsers();
-  }, [currentPage, token, isAuth]);
+  }, [fetchUsers]);
 
-  const handleOpenEditModal = (user: User) => {
-    setEditingUser(user);
-    setIsModalOpen(true);
-  };
+  // --- MANEJADORES DE MODALES Y ACCIONES ---
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingUser(null);
-  };
+  const handleOpenEditModal = (user: User) => { setEditingUser(user); setIsEditModalOpen(true); };
+  const handleCloseEditModal = () => { setIsEditModalOpen(false); setEditingUser(null); };
+  
+  const handleOpenDeleteModal = (user: User) => { setDeletingUser(user); setIsDeleteModalOpen(true); };
+  const handleCloseDeleteModal = () => { setIsDeleteModalOpen(false); setDeletingUser(null); };
+
+  const handleOpenCreateModal = () => setIsCreateModalOpen(true);
+  const handleCloseCreateModal = () => setIsCreateModalOpen(false);
 
   const handleUpdateUser = async (updatedData: Partial<User>) => {
     if (!editingUser || !token) return;
+    const apiCalls: Promise<Response>[] = [];
+    const successMessages: string[] = [];
+
+    if (updatedData.name && updatedData.name !== editingUser.name) {
+      successMessages.push('Nombre actualizado.');
+      apiCalls.push(fetch(`https://agrotrack-develop.onrender.com/users/${editingUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ name: updatedData.name }),
+      }));
+    }
+
+    if (updatedData.status && updatedData.status !== editingUser.status && updatedData.status === 'Inactivo') {
+      successMessages.push('Usuario desactivado.');
+      apiCalls.push(fetch(`https://agrotrack-develop.onrender.com/users/${editingUser.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      }));
+    }
+
+    if (updatedData.plan && updatedData.plan !== editingUser.plan) {
+      if (updatedData.plan === 'not subscription') {
+        successMessages.push('Solicitud de cancelación enviada.');
+      } else {
+        successMessages.push(`Solicitud de cambio a plan ${updatedData.plan} enviada.`);
+      }
+      apiCalls.push(fetch(`https://agrotrack-develop.onrender.com/users/subscription/${editingUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ planName: updatedData.plan }),
+      }));
+    }
+
+    if (apiCalls.length === 0) { handleCloseEditModal(); return; }
 
     try {
-      const response = await fetch(`https://agrotrack-develop.onrender.com/users/${editingUser.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(updatedData),
-      });
-
-      if (!response.ok) throw new Error('Error al actualizar el usuario.');
-      
-      const { user: updatedUserFromApi } = await response.json();
-      
-      setUsers(prevUsers => prevUsers.map(u => u.id === updatedUserFromApi.id ? mapApiToUser([updatedUserFromApi])[0] : u));
-      
-      handleCloseModal();
-
-    } catch (error) {
-      console.error("Error al guardar:", error);
+      const responses = await Promise.all(apiCalls);
+      for (const response of responses) {
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Una de las actualizaciones falló.');
+        }
+      }
+      toast.success(successMessages.join(' ') || 'Usuario actualizado con éxito');
+      await fetchUsers();
+      handleCloseEditModal();
+    } catch (error: any) {
+      toast.error(error.message || 'Error al guardar los cambios.');
     }
   };
- const handleRoleChange = (userId: string, newRole: 'Admin' | 'User') => {
+
+  const handleConfirmDelete = async () => {
+    if (!deletingUser || !token) return;
+    try {
+      const response = await fetch(`https://agrotrack-develop.onrender.com/users/admin/${deletingUser.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error('Error al eliminar el usuario.');
+      toast.success(`Usuario "${deletingUser.name}" eliminado correctamente.`);
+      await fetchUsers();
+    } catch (error: any) {
+      toast.error(error.message || 'No se pudo eliminar al usuario.');
+    } finally {
+      handleCloseDeleteModal();
+    }
+  };
+
+  const handleCreateUser = async (newUserData: any) => {
+    try {
+      const response = await fetch('https://agrotrack-develop.onrender.com/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(newUserData),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al crear el usuario.');
+      }
+      toast.success('Usuario creado con éxito.');
+      await fetchUsers();
+      handleCloseCreateModal();
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleRoleChange = (userId: string, newRole: 'Admin' | 'User') => {
+    // La lógica de API real para esto ya está en RoleToggle.tsx
+    // Esto solo actualiza la UI al instante (actualización optimista)
     setUsers(currentUsers =>
       currentUsers.map(user =>
         user.id === userId ? { ...user, role: newRole } : user
       )
     );
   };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -149,12 +243,17 @@ export function UsersClient() {
           <h1 className="text-3xl font-bold">Gestión de Usuarios</h1>
           <p className="text-gray-500">Busca, filtra y gestiona los productores de tu plataforma.</p>
         </div>
-       
+        <button onClick={handleOpenCreateModal} className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2">
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Agregar Usuario
+        </button>
       </div>
       <div className="bg-white p-4 rounded-lg shadow-sm">
         <input 
           type="text" 
-          placeholder="Buscar por nombre o email..." 
+          placeholder="Buscar en toda la base de datos..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full lg:w-1/3 px-3 py-2 border border-gray-300 rounded-md text-sm"
         />
       </div>
@@ -163,25 +262,25 @@ export function UsersClient() {
       {error && <p className="text-center py-4 text-red-500">{error}</p>}
       {!isLoading && !error && (
         <>
-           <UserTable 
+          <UserTable 
             users={users} 
-            onEdit={handleOpenEditModal}
-            onRoleChange={handleRoleChange}
+            onEdit={handleOpenEditModal} 
+            onDelete={handleOpenDeleteModal}
+            onRoleChange={handleRoleChange} 
           />
-          <Pagination 
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+          {!debouncedSearchTerm && totalPages > 1 && (
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </>
       )}
 
-      <EditUserModal
-        isOpen={isModalOpen}
-        user={editingUser}
-        onClose={handleCloseModal}
-        onSave={handleUpdateUser}
-      />
+      <CreateUserModal isOpen={isCreateModalOpen} onClose={handleCloseCreateModal} onSave={handleCreateUser} />
+      <EditUserModal isOpen={isEditModalOpen} user={editingUser} onClose={handleCloseEditModal} onSave={handleUpdateUser} />
+      <ConfirmationModal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} onConfirm={handleConfirmDelete} title="Confirmar Eliminación" message={`¿Estás seguro de que quieres eliminar a ${deletingUser?.name}? Esta acción no se puede deshacer.`} />
     </div>
   );
 }
