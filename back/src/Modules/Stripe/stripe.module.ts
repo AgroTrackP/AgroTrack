@@ -27,5 +27,6 @@ import { ActivityLogsModule } from '../ActivityLogs/activity-logs.module';
     },
     MailService,
   ],
+  exports: [StripeService],
 })
 export class StripeModule {}
