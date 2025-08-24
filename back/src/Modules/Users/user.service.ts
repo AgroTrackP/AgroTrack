@@ -120,20 +120,18 @@ export class UsersService {
     }
   }
 
-  async remove(id: string): Promise<{ message: string }> {
+  async remove(id: string): Promise<void> {
     try {
       const user = await this.usersRepository.findOne({ where: { id } });
       if (!user) {
         throw new NotFoundException(`User not found`);
       }
       await this.usersRepository.update({ id }, { isActive: false });
-      return {
-        message: 'User deleted successfully',
-      };
     } catch (error) {
       throw new Error(`Error deleting user: ${error}`);
     }
   }
+
   async updateUserProfileImage(
     userId: string,
     { url, public_id }: { url: string; public_id: string },
@@ -219,59 +217,97 @@ export class UsersService {
     }
   }
 
-  async updateSubscription(userId: string, planName: string) {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
-    if (!user || !user.stripeCustomerId) {
-      throw new NotFoundException(
-        'Usuario no encontrado o sin ID de cliente de Stripe.',
+  async updateUserSubscription(userId: string, planName: string) {
+    let user = await this.usersRepository.findOneBy({ id: userId });
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado.');
+    }
+
+    if (!user.stripeCustomerId) {
+      const newStripeCustomer = await this.stripeService.createCustomer(
+        user.name,
+        user.email,
       );
+      user.stripeCustomerId = newStripeCustomer.id;
+      await this.usersRepository.save(user);
     }
 
     const activeSubscription = await this.stripeService.findActiveSubscription(
       user.stripeCustomerId,
     );
 
-    if (!activeSubscription) {
-      throw new NotFoundException(
-        'No se encontró una suscripción activa para este usuario.',
-      );
-    }
-
-    if (planName === 'not subscription') {
-      try {
+    if (activeSubscription) {
+      if (planName === 'not subscription') {
+        // Si se pide cancelar, la cancelamos.
         await this.stripeService.cancelSubscription(activeSubscription.id);
-        return {
-          message:
-            'Solicitud de cancelación enviada a Stripe. El plan se actualizará vía webhook.',
-        };
-      } catch (error) {
-        throw new InternalServerErrorException(
-          'Error al cancelar la suscripción en Stripe.',
-          error.message,
+        return { message: 'Suscripción cancelada exitosamente.' };
+      }
+
+      // Si se pide cambiar de plan, lo actualizamos.
+      const newPlan = await this.subscriptionRepository.findOneBy({
+        name: planName,
+      });
+      if (!newPlan || !newPlan.stripePriceId) {
+        throw new NotFoundException(`El plan '${planName}' no fue encontrado.`);
+      }
+
+      // Evitar "actualizar" al mismo plan
+      if (activeSubscription.items.data[0].price.id === newPlan.stripePriceId) {
+        throw new BadRequestException(
+          'El usuario ya está suscrito a este plan.',
         );
       }
-    }
 
-    const newPlan = await this.subscriptionRepository.findOneBy({
-      name: planName,
-    });
-    if (!newPlan || !newPlan.stripePriceId) {
-      throw new NotFoundException(`El plan '${planName}' no fue encontrado.`);
-    }
-
-    try {
       await this.stripeService.changeSubscriptionPlan(
         activeSubscription.id,
         newPlan.stripePriceId,
       );
 
       return {
-        message: `Solicitud de cambio al plan '${planName}' enviada a Stripe. El plan se actualizará vía webhook.`,
+        message: `Solicitud de cambio al plan '${planName}' enviada a Stripe.`,
       };
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'Error al cambiar el plan de suscripción en Stripe.',
-      );
     }
+
+    // Escenario B: El usuario NO TIENE una suscripción activa
+    else {
+      if (planName === 'not subscription') {
+        throw new BadRequestException(
+          'Este usuario no tiene una suscripción activa para cancelar.',
+        );
+      }
+
+      const newPlan = await this.subscriptionRepository.findOneBy({
+        name: planName,
+      });
+      if (!newPlan || !newPlan.stripePriceId) {
+        throw new NotFoundException(`El plan '${planName}' no fue encontrado.`);
+      }
+
+      await this.stripeService.createNewSubscription(
+        user.stripeCustomerId,
+        newPlan.stripePriceId,
+      );
+
+      return {
+        message: `Suscripción al plan '${planName}' creada exitosamente para el usuario.`,
+      };
+    }
+  }
+
+  async reactivateUser(id: string): Promise<{ message: string }> {
+    const user = await this.usersRepository.findOneBy({ id });
+    if (!user) {
+      throw new NotFoundException(`User not found`);
+    }
+
+    if (user.isActive) {
+      throw new BadRequestException('User is already active.');
+    }
+
+    await this.usersRepository.update(id, { isActive: true });
+
+    return {
+      message: 'User reactivated successfully',
+    };
   }
 }

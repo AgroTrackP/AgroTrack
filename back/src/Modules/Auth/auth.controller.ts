@@ -6,6 +6,7 @@ import {
   Post,
   Req,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dtos/CreateUser.dto';
@@ -16,6 +17,7 @@ import { LoginUserDto } from './dtos/LoginUser.dto';
 import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { hashPassword } from 'src/Helpers/hashPassword';
+import { ExcludePasswordInterceptor } from 'src/interceptor/exclude-pass.interceptor';
 
 @Controller('auth')
 export class AuthController {
@@ -34,6 +36,7 @@ export class AuthController {
 
   //Ruta de inicio de sesión
   @Post('login')
+  @UseInterceptors(ExcludePasswordInterceptor)
   async login(@Body() body: LoginUserDto) {
     const { email, password } = body;
     return await this.authService.login({ email, password });
