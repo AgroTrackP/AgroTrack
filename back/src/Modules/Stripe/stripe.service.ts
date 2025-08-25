@@ -297,41 +297,88 @@ export class StripeService {
   }
 
   async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+    console.log('--- Iniciando handleSubscriptionUpdated ---');
     const stripeCustomerId = subscription.customer as string;
 
-    // 1. Buscamos al usuario en nuestra DB con el ID de cliente
-    const user = await this.userDbService.findOneBy({ stripeCustomerId });
+    const user = await this.userDbService.findOne({
+      where: { stripeCustomerId },
+      relations: ['suscription_level'], // Aseguramos que la relación esté cargada
+    });
+
     if (!user) {
-      console.warn(
-        `Webhook Error: Usuario con Stripe Customer ID ${stripeCustomerId} no encontrado.`,
-      );
-      return;
+      throw new NotFoundException(`Webhook Error: Usuario no encontrado.`);
+    }
+    console.log(
+      `✅ Usuario encontrado: ${user.email}. Plan actual en DB: ${user.suscription_level?.name || 'Ninguno'}`,
+    );
+
+    const newStripePriceId = subscription.items.data[0]?.price.id;
+    if (!newStripePriceId) {
+      throw new BadRequestException(`Webhook Error: No se encontró Price ID.`);
     }
 
-    // 2. Obtenemos el ID del nuevo plan desde el evento
-    const newStripePriceId = subscription.items.data[0].price.id;
-
-    // 3. Buscamos el nuevo plan en nuestra DB para asociarlo
     const newPlan = await this.subscriptionPlanRepository.findOneBy({
       stripePriceId: newStripePriceId,
     });
     if (!newPlan) {
-      console.warn(
-        `Webhook Error: Plan con Stripe Price ID ${newStripePriceId} no encontrado.`,
+      throw new NotFoundException(`Webhook Error: Plan no encontrado en DB.`);
+    }
+    console.log(`✅ Plan a asignar encontrado en DB: ${newPlan.name}`);
+
+    // Comparamos los IDs para evitar un guardado innecesario
+    if (user.suscription_level?.id === newPlan.id) {
+      console.log(
+        'El usuario ya tiene el plan correcto. No se requieren cambios.',
       );
       return;
     }
 
-    // 4. Actualizamos el usuario con su nuevo plan y nos aseguramos de que esté activo
+    // --- DEPURACIÓN DEL GUARDADO ---
+    console.log(`Asignando el nuevo plan '${newPlan.name}' al usuario...`);
     user.suscription_level = newPlan;
     user.subscriptionStatus = SubscriptionStatus.ACTIVE;
-    await this.userDbService.save(user);
 
-    console.log(
-      `La suscripción del usuario ${user.email} fue actualizada al plan ${newPlan.name}.`,
-    );
+    try {
+      console.log('A punto de ejecutar .save(user)...');
+      await this.userDbService.save(user);
+      console.log('✅ ¡ÉXITO! La operación .save() se completó sin errores.');
+    } catch (error) {
+      console.error('❌ ERROR DURANTE .save(user):', error);
+      // Si hay un error aquí, es un problema con TypeORM o la base de datos
+      throw new InternalServerErrorException(
+        'Fallo al guardar el usuario en la base de datos.',
+      );
+    }
+  }
 
-    // Opcional: Registrar la actividad y enviar un correo de confirmación
+  async createCustomer(name: string, email: string) {
+    try {
+      const customer = await this.stripe.customers.create({
+        name,
+        email,
+        description: 'Cliente generado por AgroTrack',
+      });
+      return customer;
+    } catch (error) {
+      console.error('Error al crear un cliente en Stripe:', error);
+      throw new InternalServerErrorException(
+        'No se pudo crear el cliente en Stripe.',
+      );
+    }
+  }
+
+  async createNewSubscription(stripeCustomerId: string, priceId: string) {
+    try {
+      await this.stripe.subscriptions.create({
+        customer: stripeCustomerId,
+        items: [{ price: priceId }],
+      });
+    } catch (error) {
+      console.error('Error al crear una nueva suscripción en Stripe:', error);
+      throw new InternalServerErrorException(
+        `No se pudo crear la nueva suscripción en Stripe. Es posible que el cliente no tenga un método de pago válido.`,
+      );
+    }
   }
 
   // Método para la lógica de negocio del webhook
@@ -374,36 +421,6 @@ export class StripeService {
 
       default:
         console.warn(`Unhandled event type ${event.type}`);
-    }
-  }
-
-  async createCustomer(name: string, email: string) {
-    try {
-      const customer = await this.stripe.customers.create({
-        name,
-        email,
-        description: 'Cliente generado por AgroTrack',
-      });
-      return customer;
-    } catch (error) {
-      console.error('Error al crear un cliente en Stripe:', error);
-      throw new InternalServerErrorException(
-        'No se pudo crear el cliente en Stripe.',
-      );
-    }
-  }
-
-  async createNewSubscription(stripeCustomerId: string, priceId: string) {
-    try {
-      await this.stripe.subscriptions.create({
-        customer: stripeCustomerId,
-        items: [{ price: priceId }],
-      });
-    } catch (error) {
-      console.error('Error al crear una nueva suscripción en Stripe:', error);
-      throw new InternalServerErrorException(
-        `No se pudo crear la nueva suscripción en Stripe. Es posible que el cliente no tenga un método de pago válido.`,
-      );
     }
   }
 }
