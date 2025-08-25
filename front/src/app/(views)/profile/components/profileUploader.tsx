@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useAuthContext } from "@/context/authContext";
+import { toast } from "react-toastify";
 
 const ProfileImageUploader = () => {
     const { user, setUser, token } = useAuthContext();
@@ -62,7 +63,7 @@ const handleUpload = async () => {
     setUser((prev) =>
         (prev ? { ...prev, imgUrl: imageUrl } : prev
         ));
-        alert("Imagen actualizada correctamente ✅");
+        toast.success("Imagen actualizada correctamente ✅");
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error("Error subiendo imagen:", error.message);

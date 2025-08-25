@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useAuthContext } from "@/context/authContext";
 import ProfileUploader from "./profileUploader";
+import { toast } from "react-toastify";
+
 
 const UserData = () => {
   const { user, updateCredentials } = useAuthContext();
@@ -35,7 +37,7 @@ const UserData = () => {
       };
       await updateCredentials(updatedData);
       setIsEditing(false);
-      alert("Perfil actualizado correctamente.");
+      toast.success("Perfil actualizado correctamente.");
     } catch (err: unknown) {
       if (err instanceof Error) {
         setUpdateError(err.message);

@@ -27,22 +27,22 @@ function LocationMarker({ onPositionChange }: { onPositionChange: (pos: LatLng) 
   const [position, setPosition] = useState<LatLng | null>(null);
   useMapEvents({
     click(e) {
-    setPosition(e.latlng);
-    onPositionChange(e.latlng);
-},
-});
+      setPosition(e.latlng);
+      onPositionChange(e.latlng);
+    },
+  });
   return position === null ? null : (
     <Marker position={position}>
-    <Popup>📍 Ubicación seleccionada</Popup>
+      <Popup>📍 Ubicación seleccionada</Popup>
     </Marker>
-);
+  );
 }
 
 export default function LandForm() {
   const { user } = useAuthContext();
   const { createLand, isLoading, error: landError } = useLands();
   const router = useRouter();
-  const {subscription} = useAuthContext();
+  const { subscription } = useAuthContext();
 
   const isSubscriptionActive = subscription?.status === 'active';
 
@@ -60,7 +60,7 @@ export default function LandForm() {
     start_date: "",
     location: "",
   });
-  
+
   const [areaUnit, setAreaUnit] = useState<string>('m2');
   const [selectedCoords, setSelectedCoords] = useState<LatLng | null>(null);
   const [success, setSuccess] = useState("");
@@ -68,11 +68,11 @@ export default function LandForm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-  
+
   const handleAreaUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setAreaUnit(e.target.value);
   };
-  
+
   const handleMapClick = (latlng: LatLng) => {
     setSelectedCoords(latlng);
   };
@@ -82,22 +82,48 @@ export default function LandForm() {
     setSuccess("");
 
     if (!user) return;
-    
-    if (!selectedCoords) {
-      alert("Por favor, selecciona una ubicación en el mapa.");
+
+    if (!form.name.trim()) {
+      toast.error("El nombre del cultivo es obligatorio");
       return;
     }
 
-    if(!isSubscriptionActive){
-      toast.success("Necesitas una suscripción activa para realizar la acción")
+    if (form.name.length < 3) {
+      toast.error("El nombre del cultivo debe tener al menos 3 caracteres");
       return;
     }
-    
+
+    if (!form.area_m2 || parseFloat(form.area_m2) <= 0) {
+      toast.error("El área del terreno debe ser mayor que 0");
+      return;
+    }
+
+    if (!form.crop_type) {
+      toast.error("Debe seleccionar un tipo de plantación");
+      return;
+    }
+
+    if (!form.season) {
+      toast.error("La fecha de inicio es obligatoria");
+      return;
+    }
+
+    if (!selectedCoords) {
+      toast.error("Por favor, selecciona una ubicación en el mapa.");
+      return;
+    }
+
+    if (!isSubscriptionActive) {
+      toast.error("Necesitas una suscripción activa para realizar la acción")
+      return;
+    }
+
     // ✅ Conversión de la unidad de área antes de enviar
     let area_m2_number = parseFloat(form.area_m2);
     if (areaUnit === 'ha') {
-        area_m2_number = area_m2_number * 10000;
+      area_m2_number = area_m2_number * 10000;
     }
+
 
     try {
       const dataToSubmit = {
@@ -106,10 +132,10 @@ export default function LandForm() {
         // ✅ Creamos el string de ubicación desde las coordenadas
         location: `${selectedCoords.lat},${selectedCoords.lng}`,
       };
-      
+
       await createLand(dataToSubmit);
-      setSuccess("Terreno registrado correctamente ✅");
-      
+      toast.success("Terreno registrado correctamente ✅");
+
 
       setForm({
         name: "",
@@ -121,7 +147,7 @@ export default function LandForm() {
       });
       setAreaUnit('m2');
       setSelectedCoords(null);
-      
+
     } catch (err) {
       console.error("Error al registrar terreno:", err);
     }
@@ -142,13 +168,13 @@ export default function LandForm() {
         >
           {landError && <p className="text-red-600 text-sm">{landError}</p>}
           {success && <p className="text-green-600 text-sm">{success}</p>}
-  
+
           {/* ✅ Todos los inputs y selectores */}
           <div>
             <label htmlFor="name" className="block text-sm font-medium mb-1">Nombre del cultivo</label>
             <input type="text" id="name" name="name" value={form.name} onChange={handleChange} className="w-full border px-3 py-2 rounded" required />
           </div>
-  
+
           <div>
             <label htmlFor="area_m2" className="block text-sm font-medium mb-1">Área del terreno</label>
             <div className="flex items-center space-x-2">
@@ -159,7 +185,7 @@ export default function LandForm() {
               </select>
             </div>
           </div>
-  
+
           <div>
             <label htmlFor="crop_type" className="block text-sm font-medium mb-1">Tipo de plantación</label>
             <select id="crop_type" name="crop_type" value={form.crop_type} onChange={handleChange} required className="w-full border rounded-lg p-2">
@@ -172,7 +198,7 @@ export default function LandForm() {
               <option value="Pastos">Pastos</option>
             </select>
           </div>
-  
+
           <div>
             <label htmlFor="temporada" className="block text-sm font-medium mb-1">Temporada</label>
             <select id="season" name="season" value={form.season} onChange={handleChange} required className="w-full border rounded-lg p-2">
@@ -183,7 +209,7 @@ export default function LandForm() {
               <option value="otono">Otoño</option>
             </select>
           </div>
-          
+
           <div>
             <label htmlFor="start_date" className="block text-sm font-medium mb-1">Fecha de inicio</label>
             <input type="date" id="start_date" name="start_date" value={form.start_date} onChange={handleChange} className="w-full border px-3 py-2 rounded" required />
@@ -220,9 +246,9 @@ export default function LandForm() {
               readOnly
               className="w-full border px-3 py-2 rounded bg-gray-100"
               value={
-          selectedCoords
-            ? `${selectedCoords.lat.toFixed(6)}, ${selectedCoords.lng.toFixed(6)}`
-            : ""
+                selectedCoords
+                  ? `${selectedCoords.lat.toFixed(6)}, ${selectedCoords.lng.toFixed(6)}`
+                  : ""
               }
               placeholder="Selecciona una ubicación en el mapa"
             />
