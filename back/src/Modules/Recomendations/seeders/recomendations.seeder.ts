@@ -14,7 +14,7 @@ interface RecommendationSeed {
   recommended_fertilizer: string;
   additional_notes: string;
   recommended_diseases: string[];
-  recommended_products: string[];
+  recommended_products: string[]; // Actualizado para usar nombres de productos
   recommended_application_type: string;
 }
 
@@ -35,7 +35,7 @@ export class RecommendationsSeeder {
       const applicationTypesRepo =
         queryRunner.manager.getRepository(ApplicationType);
 
-      // Ruta corregida
+      // Leer los datos del archivo JSON
       const filePath = path.join(__dirname, '../data/recomendations.json');
       const data: RecommendationSeed[] = JSON.parse(
         fs.readFileSync(filePath, 'utf-8'),
@@ -45,6 +45,11 @@ export class RecommendationsSeeder {
         console.error('⚠️ El archivo JSON de recomendaciones no es un array.');
         return;
       }
+
+      // Obtener todos los productos y mapearlos por nombre para un acceso más rápido
+      const allProducts = await productsRepo.find();
+      const productMap = new Map<string, Products>();
+      allProducts.forEach((p) => productMap.set(p.name, p));
 
       for (const rec of data) {
         const existingRec = await recommendationsRepo.findOne({
@@ -60,9 +65,17 @@ export class RecommendationsSeeder {
           where: { name: In(rec.recommended_diseases) },
         });
 
-        const recommendedProducts = await productsRepo.find({
-          where: { name: In(rec.recommended_products) },
-        });
+        // Buscar los productos recomendados por su nombre en el mapa
+        const recommendedProducts = rec.recommended_products
+          .map((productName) => productMap.get(productName))
+          .filter((p): p is Products => p !== undefined);
+
+        // Si la lista de productos está vacía, mostrar una advertencia
+        if (recommendedProducts.length === 0) {
+          console.warn(
+            `⚠️ No se encontraron productos para la recomendación de tipo: "${rec.crop_type}".`,
+          );
+        }
 
         const recommendedApplicationType = await applicationTypesRepo.findOne({
           where: { name: rec.recommended_application_type },
@@ -92,6 +105,8 @@ export class RecommendationsSeeder {
       await queryRunner.commitTransaction();
     } catch (err) {
       await queryRunner.rollbackTransaction();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      console.error('❌ Error en RecommendationsSeeder:', err.message);
       throw err;
     } finally {
       await queryRunner.release();

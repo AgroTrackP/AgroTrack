@@ -18,21 +18,12 @@
     "isActive": true
   },
   {
-    "name": "Fungicida Delta",
-    "concentration": 8,
-    "water_per_liter": 1.2,
-    "stock": 35,
-    "alert_threshold": 7,
-    "category_name": "Fungicida",
-    "isActive": true
-  },
-  {
-    "name": "Fungicida Gamma",
-    "concentration": 6,
-    "water_per_liter": 1,
-    "stock": 25,
-    "alert_threshold": 5,
-    "category_name": "Fungicida",
+    "name": "Fertilizante Plus",
+    "concentration": 12,
+    "water_per_liter": 2,
+    "stock": 100,
+    "alert_threshold": 20,
+    "category_name": "Fertilizante",
     "isActive": true
   },
   {
@@ -45,12 +36,12 @@
     "isActive": true
   },
   {
-    "name": "Insecticida L",
-    "concentration": 10,
-    "water_per_liter": 0.8,
+    "name": "Alguicida Max",
+    "concentration": 15,
+    "water_per_liter": 0.7,
     "stock": 80,
     "alert_threshold": 15,
-    "category_name": "Insecticida",
+    "category_name": "Alguicida",
     "isActive": true
   }
 ]

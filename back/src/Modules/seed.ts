@@ -10,8 +10,8 @@ import { PlantationsSeeder } from './Plantations/seeders/plantations.seeder';
 import { PhenologiesSeeder } from './Phenologies/seeders/phenologies.seeder';
 import { DiseasesSeeder } from './Diseases/seeders/diseases.seeder';
 import { ApplicationTypesSeeder } from './ApplicationTypes/seeders/applicationtypes.seeder';
-import { ApplicationPlansSeeder } from './ApplicationPlans/seeders/applicationplans.seeder';
 import { RecommendationsSeeder } from './Recomendations/seeders/recomendations.seeder';
+import { ApplicationPlansSeeder } from './ApplicationPlans/seeders/applicationplans.seeder';
 
 // Importa las entidades para la limpieza de la base de datos
 import { ApplicationPlanItem } from './ApplicationPlans/entities/applicationplan.item.entity';
@@ -90,8 +90,10 @@ export async function runSeeders() {
     await new PhenologiesSeeder(dataSource).run();
     await new DiseasesSeeder(dataSource).run();
     await new ApplicationTypesSeeder(dataSource).run();
-    await new ApplicationPlansSeeder(dataSource).run();
+
+    // **¡CAMBIO AQUÍ!** Ejecuta RecommendationsSeeder antes que ApplicationPlansSeeder.
     await new RecommendationsSeeder(dataSource).run();
+    await new ApplicationPlansSeeder(dataSource).run();
 
     console.log('🎉 Todos los seeders se completaron exitosamente.');
   } catch (error) {
