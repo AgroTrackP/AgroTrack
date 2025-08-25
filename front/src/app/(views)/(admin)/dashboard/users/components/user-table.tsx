@@ -67,7 +67,7 @@ export function UserTable({ users, onEdit, onRoleChange, onDelete }: {
                   {user.status}
                 </span>
               </td>
-               <td className="px-6 py-4 whitespace-nowrap"> {/* <-- 5. Nueva celda para el rol */}
+              <td className="px-6 py-4 whitespace-nowrap"> 
                 <RoleToggle 
                   userId={user.id}
                   initialRole={user.role}

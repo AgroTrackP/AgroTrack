@@ -196,15 +196,22 @@ export class UsersService {
 
   async findByEmailOrName(query: string): Promise<Users[]> {
     try {
-      const users = await this.usersRepository
-        .createQueryBuilder('user')
-        .where('user.name ILIKE :query OR user.email ILIKE :query', {
-          query: `%${query}%`,
-        })
-        .getMany(); // <-- 2. Cambia getOne() por getMany()
+      // Usamos el método 'find' que es más simple para añadir relaciones
+      const users = await this.usersRepository.find({
+        // La condición 'where' busca en nombre O email
+        where: [{ name: ILike(`%${query}%`) }, { email: ILike(`%${query}%`) }],
+        // ¡AÑADE ESTO! Carga las mismas relaciones que en tu 'findAll'
+        relations: [
+          'plantations',
+          'diseases',
+          'applicationPlans',
+          'products',
+          'applicationTypes',
+          'phenologies',
+          'suscription_level', // <-- Importante si lo usas en el frontend
+        ],
+      });
 
-      // 3. Ya no necesitamos la comprobación de "no encontrado",
-      //    getMany() simplemente devolverá un array vacío si no hay resultados.
       return users;
     } catch (error) {
       throw new InternalServerErrorException(
@@ -214,7 +221,7 @@ export class UsersService {
   }
 
   async updateUserSubscription(userId: string, planName: string) {
-    let user = await this.usersRepository.findOneBy({ id: userId });
+    const user = await this.usersRepository.findOneBy({ id: userId });
     if (!user) {
       throw new NotFoundException('Usuario no encontrado.');
     }

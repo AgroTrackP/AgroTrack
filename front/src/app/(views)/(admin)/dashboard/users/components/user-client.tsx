@@ -84,10 +84,10 @@ export function UsersClient() {
 
       if (debouncedSearchTerm) {
         const params = new URLSearchParams({ query: debouncedSearchTerm });
-        url = `https://agrotrack-develop.onrender.com/users/search?${params.toString()}`;
+        url = `http://localhost:3010/users/search?${params.toString()}`;
       } else {
         const params = new URLSearchParams({ page: String(currentPage), limit: String(usersPerPage) });
-        url = `https://agrotrack-develop.onrender.com/users?${params.toString()}`;
+        url = `http://localhost:3010/users?${params.toString()}`;
       }
       
       // La variable 'response' se declara con 'const' aquí
