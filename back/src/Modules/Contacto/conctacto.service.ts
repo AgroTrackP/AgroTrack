@@ -27,4 +27,11 @@ export class ContactService {
 
     return { message: 'Mensaje enviado correctamente' };
   }
+
+  // Nuevo método para encontrar todos los mensajes de contacto
+  async findAllContacts(): Promise<Contact[]> {
+    return this.contactRepo.find({
+      order: { createdAt: 'DESC' },
+    });
+  }
 }
