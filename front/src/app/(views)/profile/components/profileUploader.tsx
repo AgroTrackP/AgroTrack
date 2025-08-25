@@ -1,7 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 import React, { useState } from "react";
-import axios from "axios";
 import { useAuthContext } from "@/context/authContext";
 
 const ProfileImageUploader = () => {
@@ -34,42 +33,56 @@ const handleUpload = async () => {
 
         const formData = new FormData();
         formData.append("file", selectedFile);
+
+        // Subir imagen al backend usando fetch
+        const response = await fetch(
+            // ⚠️ Asegúrate de usar la URL correcta (Render o localhost)
+            `https://agrotrack-develop.onrender.com/cloudinary/perfil/${user.id}`,
+            {
+                method: 'PUT',
+                headers: {
+                    // No es necesario 'Content-Type', el navegador lo pone por ti con FormData
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData,
+            }
+        );
+
+        // fetch no lanza error por respuestas 4xx/5xx, hay que comprobarlo manualmente
+        if (!response.ok) {
+            // Intenta obtener más detalles del error del cuerpo de la respuesta
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Error: ${response.status}`);
+        }
         
-      // Subir imagen al backend
-        const cloudinaryRes = await axios.put(
-        `https://agrotrack-develop.onrender.com/cloudinary/perfil/${user.id}`,
-        formData,
-    {
-            headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    }
-);
-        console.log("✅ Respuesta Cloudinary:", cloudinaryRes.data);
-        // 🔹 URL devuelta por backend / cloudinary
+        // 🔹 Se necesita un paso extra para convertir la respuesta a JSON
+        const responseData = await response.json();
+
+        console.log("✅ Respuesta del backend:", responseData);
+        
         const imageUrl =
-            cloudinaryRes.data.url ||
-            cloudinaryRes.data.secure_url ||
-            cloudinaryRes.data.imageUrl;
+            responseData.url ||
+            responseData.secure_url ||
+            responseData.imageUrl;
 
-    if (!imageUrl) {
-        throw new Error("No se recibió la URL de la imagen del backend");
-    }
+        if (!imageUrl) {
+            throw new Error("No se recibió la URL de la imagen del backend");
+        }
 
-    console.log("Token:", token);
+        console.log("Token:", token);
 
+        // ... resto de tu lógica para actualizar el estado del usuario ...
 
-    setUser((prev) =>
+   setUser((prev) =>
         (prev ? { ...prev, imgUrl: imageUrl } : prev
         ));
         alert("Imagen actualizada correctamente ✅");
     } catch (error) {
-        if (axios.isAxiosError(error)) {
-            console.error("Error subiendo imagen:", error.message);
-            console.error("Status:", error.response?.status);
-            console.error("Response data:", error.response?.data);
-            console.error(token); 
-            console.log(user.id);// Aquí vemos el motivo del 403
+    if (error instanceof Error) {
+        console.error("Error subiendo imagen:", error.message);
+
+        console.error(token); 
+        console.log(user.id);
     } else {
         console.error(error);
     }
@@ -78,6 +91,7 @@ const handleUpload = async () => {
         setLoading(false);
     }
 };
+
 
 return (
     <div className="flex flex-col items-center gap-4 p-4">

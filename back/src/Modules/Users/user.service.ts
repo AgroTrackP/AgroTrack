@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { Users } from './entities/user.entity';
 import { UpdateUserDto } from './dtos/update.user.dto';
 import { UserResponseDto } from './dtos/user.response.dto';
@@ -32,7 +32,27 @@ export class UsersService {
       email: savedUser.email,
     };
   }*/
+  async findAlluseradnplantation(
+    pageNum = 1,
+    limitNum = 10,
+  ): Promise<{
+    data: UserResponseDto[];
+    pageNum: number;
+    limitNum: number;
+    total: number;
+  }> {
+    try {
+      const [data, total] = await this.usersRepository.findAndCount({
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum,
+        relations: ['plantations', 'suscription_level'],
+      });
 
+      return { data, pageNum, limitNum, total };
+    } catch (error) {
+      throw new Error(`Error fetching users: ${error}`);
+    }
+  }
   async findAll(
     pageNum = 1,
     limitNum = 10,
@@ -203,11 +223,6 @@ export class UsersService {
         // ¡AÑADE ESTO! Carga las mismas relaciones que en tu 'findAll'
         relations: [
           'plantations',
-          'diseases',
-          'applicationPlans',
-          'products',
-          'applicationTypes',
-          'phenologies',
           'suscription_level', // <-- Importante si lo usas en el frontend
         ],
       });
@@ -253,7 +268,7 @@ export class UsersService {
       if (!newPlan || !newPlan.stripePriceId) {
         throw new NotFoundException(`El plan '${planName}' no fue encontrado.`);
       }
-
+      console.log(newPlan);
       // Evitar "actualizar" al mismo plan
       if (activeSubscription.items.data[0].price.id === newPlan.stripePriceId) {
         throw new BadRequestException(
@@ -261,10 +276,11 @@ export class UsersService {
         );
       }
 
-      await this.stripeService.changeSubscriptionPlan(
+      const plangchange = await this.stripeService.changeSubscriptionPlan(
         activeSubscription.id,
         newPlan.stripePriceId,
       );
+      console.log(plangchange);
 
       return {
         message: `Solicitud de cambio al plan '${planName}' enviada a Stripe.`,

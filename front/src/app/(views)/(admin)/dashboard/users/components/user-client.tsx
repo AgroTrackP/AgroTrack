@@ -8,6 +8,8 @@ import { Pagination } from './pagination';
 import { EditUserModal } from './edit-user-modal';
 import { ConfirmationModal } from './confirmation-modal';
 import { CreateUserModal } from './create-user-modal';
+import { UserPlantationsModal } from './user-plantation-modal'; // Importa el nuevo modal
+
 import { PlusCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -25,10 +27,10 @@ interface UserFromApi {
   suscription_level: { id: string; } | null;
 }
 
-const getPlanNameById = (planId: string | null): 'Básico' | 'Pro' | 'Premium' | 'not subscription' => {
+const getPlanNameById = (planId: string | null): 'Basic' | 'Pro' | 'Premium' | 'not subscription' => {
   if (!planId) return 'not subscription';
   switch (planId) {
-    case "d85e4028-3086-46d1-becb-3f16a4915094": return 'Básico';
+    case "d85e4028-3086-46d1-becb-3f16a4915094": return 'Basic';
     case "4620a437-e3fd-41d6-93a7-582fdb75107e": return 'Pro';
     case "16fa5a9b-37f7-4f27-856b-6a95fe251cdb": return 'Premium';
     default: return 'not subscription';
@@ -62,7 +64,9 @@ export function UsersClient() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
-
+ const [isPlantationsModalOpen, setIsPlantationsModalOpen] = useState(false);
+  const [selectedUserForPlantations, setSelectedUserForPlantations] = useState<User | null>(null);
+  
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   
@@ -84,13 +88,12 @@ export function UsersClient() {
 
       if (debouncedSearchTerm) {
         const params = new URLSearchParams({ query: debouncedSearchTerm });
-        url = `http://localhost:3010/users/search?${params.toString()}`;
+        url = `https://agrotrack-develop.onrender.com/users/search?${params.toString()}`;
       } else {
         const params = new URLSearchParams({ page: String(currentPage), limit: String(usersPerPage) });
-        url = `http://localhost:3010/users?${params.toString()}`;
+        url = `http://localhost:3010/users/admin/users/plantation?${params.toString()}`;
       }
       
-      // La variable 'response' se declara con 'const' aquí
       const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
 
       if (!response.ok) {
@@ -134,8 +137,19 @@ export function UsersClient() {
   const handleOpenDeleteModal = (user: User) => { setDeletingUser(user); setIsDeleteModalOpen(true); };
   const handleCloseDeleteModal = () => { setIsDeleteModalOpen(false); setDeletingUser(null); };
 
+  
   const handleOpenCreateModal = () => setIsCreateModalOpen(true);
   const handleCloseCreateModal = () => setIsCreateModalOpen(false);
+
+
+  const handleOpenPlantationsModal = (user: User) => {
+    setSelectedUserForPlantations(user);
+    setIsPlantationsModalOpen(true);
+  };
+  const handleClosePlantationsModal = () => {
+    setIsPlantationsModalOpen(false);
+    setSelectedUserForPlantations(null);
+  };
 
   const handleUpdateUser = async (updatedData: Partial<User>) => {
     if (!editingUser || !token) return;
@@ -179,7 +193,7 @@ export function UsersClient() {
       } else {
         successMessages.push(`Solicitud de cambio a plan ${updatedData.plan} enviada, este proceso puede tardar 24hs.`);
       }
-      apiCalls.push(fetch(`https://agrotrack-develop.onrender.com/users/subscription/${editingUser.id}`, {
+      apiCalls.push(fetch(`http://localhost:3010/users/subscription/${editingUser.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ planName: updatedData.plan }),
@@ -268,7 +282,7 @@ export function UsersClient() {
       <div className="bg-white p-4 rounded-lg shadow-sm">
         <input 
           type="text" 
-          placeholder="Buscar en toda la base de datos..." 
+          placeholder="Buscar por nombre o email..." 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full lg:w-1/3 px-3 py-2 border border-gray-300 rounded-md text-sm"
@@ -284,6 +298,8 @@ export function UsersClient() {
             onEdit={handleOpenEditModal} 
             onDelete={handleOpenDeleteModal}
             onRoleChange={handleRoleChange} 
+            onViewPlantations={handleOpenPlantationsModal}
+
           />
           {!debouncedSearchTerm && totalPages > 1 && (
             <Pagination 
@@ -292,12 +308,16 @@ export function UsersClient() {
               onPageChange={setCurrentPage}
             />
           )}
+          
         </>
+
       )}
 
       <CreateUserModal isOpen={isCreateModalOpen} onClose={handleCloseCreateModal} onSave={handleCreateUser} />
       <EditUserModal isOpen={isEditModalOpen} user={editingUser} onClose={handleCloseEditModal} onSave={handleUpdateUser} />
       <ConfirmationModal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} onConfirm={handleConfirmDelete} title="Confirmar Eliminación" message={`¿Estás seguro de que quieres eliminar a ${deletingUser?.name}? Esta acción no se puede deshacer.`} />
+            <UserPlantationsModal isOpen={isPlantationsModalOpen} user={selectedUserForPlantations} onClose={handleClosePlantationsModal} />
+
     </div>
   );
 }
