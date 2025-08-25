@@ -79,7 +79,7 @@ export function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalPr
             </select>
           </div>
           
-          <div>
+         <div>
             <label htmlFor="plan" className="block text-sm font-medium text-gray-700">Plan</label>
             <select
               id="plan"
@@ -88,11 +88,10 @@ export function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalPr
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
             >
-                            <option>not subscription</option>
-
               <option>Básico</option>
               <option>Pro</option>
               <option>Premium</option>
+              <option value="not subscription">Sin Suscripción (Cancelar)</option>
             </select>
           </div>
 
