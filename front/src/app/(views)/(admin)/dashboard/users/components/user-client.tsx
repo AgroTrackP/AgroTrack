@@ -139,9 +139,11 @@ export function UsersClient() {
 
   const handleUpdateUser = async (updatedData: Partial<User>) => {
     if (!editingUser || !token) return;
+
     const apiCalls: Promise<Response>[] = [];
     const successMessages: string[] = [];
 
+    // Lógica para el nombre (sin cambios)
     if (updatedData.name && updatedData.name !== editingUser.name) {
       successMessages.push('Nombre actualizado.');
       apiCalls.push(fetch(`https://agrotrack-develop.onrender.com/users/${editingUser.id}`, {
@@ -151,19 +153,31 @@ export function UsersClient() {
       }));
     }
 
-    if (updatedData.status && updatedData.status !== editingUser.status && updatedData.status === 'Inactivo') {
-      successMessages.push('Usuario desactivado.');
-      apiCalls.push(fetch(`https://agrotrack-develop.onrender.com/users/${editingUser.id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
-      }));
+    // --- LÓGICA PARA EL ESTADO (MODIFICADA) ---
+    if (updatedData.status && updatedData.status !== editingUser.status) {
+      if (updatedData.status === 'Inactivo') {
+        // Si el cambio es para DESACTIVAR
+        successMessages.push('Usuario desactivado.');
+        apiCalls.push(fetch(`https://agrotrack-develop.onrender.com/users/${editingUser.id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` },
+        }));
+      } else if (updatedData.status === 'Activo') {
+        // Si el cambio es para REACTIVAR
+        successMessages.push('Usuario reactivado.');
+        apiCalls.push(fetch(`https://agrotrack-develop.onrender.com/users/${editingUser.id}/reactivate`, {
+          method: 'PATCH', // <-- Usa el método PATCH
+          headers: { 'Authorization': `Bearer ${token}` },
+        }));
+      }
     }
 
+    // Lógica para el plan (sin cambios)
     if (updatedData.plan && updatedData.plan !== editingUser.plan) {
       if (updatedData.plan === 'not subscription') {
-        successMessages.push('Solicitud de cancelación enviada.');
+        successMessages.push('Solicitud de cancelación enviada, este proceso puede tardar 24hs.');
       } else {
-        successMessages.push(`Solicitud de cambio a plan ${updatedData.plan} enviada.`);
+        successMessages.push(`Solicitud de cambio a plan ${updatedData.plan} enviada, este proceso puede tardar 24hs.`);
       }
       apiCalls.push(fetch(`https://agrotrack-develop.onrender.com/users/subscription/${editingUser.id}`, {
         method: 'PUT',
@@ -172,7 +186,10 @@ export function UsersClient() {
       }));
     }
 
-    if (apiCalls.length === 0) { handleCloseEditModal(); return; }
+    if (apiCalls.length === 0) {
+      handleCloseEditModal();
+      return;
+    }
 
     try {
       const responses = await Promise.all(apiCalls);

@@ -69,6 +69,16 @@ export class UsersController {
   async getSubPlanByUsersId(@Param('id', ParseUUIDPipe) id: string) {
     return await this.usersService.getSubPlanByUserId(id);
   }
+  @Get('search') // La ruta será, por ejemplo, /users/search?query=juanperez@mail.com
+  @UseGuards(RoleGuard) // Asumiendo que quieres que solo los admins busquen
+  @Roles(Role.Admin)
+  async searchUser(@Query('query') searchTerm: string) {
+    if (!searchTerm) {
+      throw new BadRequestException('Search term cannot be empty.');
+    }
+    // Simplemente devuelve el resultado del servicio, que ahora es un array.
+    return await this.usersService.findByEmailOrName(searchTerm);
+  }
 
   // PUT /users/:id/make-admin
   @Put(':id/make-admin')
@@ -84,17 +94,6 @@ export class UsersController {
   @Roles(Role.Admin)
   removeAdmin(@Param('id', ParseUUIDPipe) id: string) {
     return this.usersService.setAdminRole(id, false);
-  }
-
-  @Get('search') // La ruta será, por ejemplo, /users/search?query=juanperez@mail.com
-  @UseGuards(RoleGuard) // Asumiendo que quieres que solo los admins busquen
-  @Roles(Role.Admin)
-  async searchUser(@Query('query') searchTerm: string) {
-    if (!searchTerm) {
-      throw new BadRequestException('Search term cannot be empty.');
-    }
-    // Simplemente devuelve el resultado del servicio, que ahora es un array.
-    return await this.usersService.findByEmailOrName(searchTerm);
   }
 
   @ApiBearerAuth('jwt')
