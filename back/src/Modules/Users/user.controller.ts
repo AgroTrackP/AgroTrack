@@ -11,7 +11,7 @@ import {
   ParseUUIDPipe,
   UseInterceptors,
   BadRequestException,
-
+  Patch,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { UpdateUserDto } from './dtos/update.user.dto';
