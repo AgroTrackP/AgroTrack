@@ -1,51 +1,48 @@
 /* eslint-disable @next/next/no-img-element */
-// src/app/(admin)/dashboard/users/components/user-table.tsx
-import { Pencil, Trash2 } from 'lucide-react';
-import { RoleToggle } from './roletoggle'; // <-- 1. Importa el toggle
+import { Pencil, Trash2, Tractor } from 'lucide-react';
+import { RoleToggle } from './roletoggle';
 
-// 2. Añade 'role' al tipo User
 export type User = {
   id: string;
   name: string;
   email: string;
   avatarUrl: string;
-  plan: 'Básico' | 'Pro' | 'Premium' | 'not subscription';
+  plan: 'Basic' | 'Pro' | 'Premium' | 'not subscription';
   status: 'Activo' | 'Inactivo';
   registrationDate: string;
-  role: 'Admin' | 'User'; // <-- Propiedad añadida
+  role: 'Admin' | 'User';
 };
-// Objeto para mapear el estado a colores de Tailwind CSS
+
 const statusColors = {
   Activo: 'bg-green-100 text-green-800',
   Inactivo: 'bg-gray-100 text-gray-800',
 };
 
 const planColors = {
-  Básico: 'bg-blue-100 text-blue-800',
+  Basic: 'bg-blue-100 text-blue-800',
   Pro: 'bg-purple-100 text-purple-800',
   Premium: 'bg-yellow-100 text-yellow-800',
-  'not subscription': 'bg-gray-100 text-gray-800', // <-- Añade el estilo para el nuevo valor
+  'not subscription': 'bg-gray-100 text-gray-800',
 };
 
-export function UserTable({ users, onEdit, onRoleChange, onDelete }: { 
+export function UserTable({ users, onEdit, onDelete, onRoleChange, onViewPlantations }: { 
   users: User[], 
-  onEdit: (user: User) => void, 
+  onEdit: (user: User) => void,
+  onDelete: (user: User) => void,
   onRoleChange: (userId: string, newRole: 'Admin' | 'User') => void,
-  onDelete: (user: User) => void 
+  onViewPlantations: (user: User) => void
 }) {
   return (
-
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                        <th /* ... */>Rol</th> {/* <-- 4. Nueva columna */}
-
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de Registro</th>
-            <th scope="col" className="relative px-6 py-3"><span className="sr-only">Acciones</span></th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -67,7 +64,7 @@ export function UserTable({ users, onEdit, onRoleChange, onDelete }: {
                   {user.status}
                 </span>
               </td>
-               <td className="px-6 py-4 whitespace-nowrap"> {/* <-- 5. Nueva celda para el rol */}
+              <td className="px-6 py-4 whitespace-nowrap">
                 <RoleToggle 
                   userId={user.id}
                   initialRole={user.role}
@@ -80,19 +77,17 @@ export function UserTable({ users, onEdit, onRoleChange, onDelete }: {
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.registrationDate}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div className="flex items-center space-x-4">
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div className="flex items-center space-x-4">
-                  {/* El botón de lápiz ahora llama a la función onEdit */}
-                  <button onClick={() => onEdit(user)} className="text-indigo-600 hover:text-indigo-900">
+                  <button onClick={() => onViewPlantations(user)} className="text-green-600 hover:text-green-900" title="Ver Terrenos">
+                    <Tractor size={18} />
+                  </button>
+                  <button onClick={() => onEdit(user)} className="text-indigo-600 hover:text-indigo-900" title="Editar Usuario">
                     <Pencil size={18} />
                   </button>
-                    <button onClick={() => onDelete(user)} className="text-red-600 hover:text-red-900">
+                  <button onClick={() => onDelete(user)} className="text-red-600 hover:text-red-900" title="Eliminar Usuario">
                     <Trash2 size={18} />
-                  </button>              
-                    </div>
-              </td>
+                  </button>
                 </div>
               </td>
             </tr>
