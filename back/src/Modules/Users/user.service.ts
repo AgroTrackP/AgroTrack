@@ -214,7 +214,7 @@ export class UsersService {
   }
 
   async updateUserSubscription(userId: string, planName: string) {
-    let user = await this.usersRepository.findOneBy({ id: userId });
+    const user = await this.usersRepository.findOneBy({ id: userId });
     if (!user) {
       throw new NotFoundException('Usuario no encontrado.');
     }
@@ -235,7 +235,7 @@ export class UsersService {
     if (activeSubscription) {
       if (planName === 'not subscription') {
         // Si se pide cancelar, la cancelamos.
-        await this.stripeService.cancelSubscription(activeSubscription.id);
+        await this.stripeService.cancelSubscription(user.id);
         return { message: 'Suscripción cancelada exitosamente.' };
       }
 
