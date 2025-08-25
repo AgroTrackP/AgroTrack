@@ -35,7 +35,7 @@
     "run:product:seed": "ts-node -r tsconfig-paths/register src/Modules/Products/seeders/products.seeder.ts ",
     "run:recommendation:seed": "ts-node -r tsconfig-paths/register src/Modules/Recomendations/seeders/recomendations.seeder.ts",
     "seed:all": "ts-node -r tsconfig-paths/register src/Modules/seed.ts",
-    "email": "email dev --dir src/emails"
+    "email": "email dev --dir src/nodemailer/templates"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.5",

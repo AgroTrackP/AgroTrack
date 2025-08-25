@@ -1,4 +1,8 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from './dtos/CreateUser.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -58,13 +62,9 @@ export class AuthService {
       await this.usersDbRepo.save(newUser);
 
       //enviar mail a usuario al registrarse
-      await this.mailService.sendMail(
+      await this.mailService.sendRegistrationEmail(
+        newUser.name || 'Usuario',
         newUser.email,
-        'Bienvenido a Agrotrack',
-        confirmationTemplate({
-          name: newUser.name || 'Usuario',
-          email: newUser.email,
-        }),
       );
 
       const {
