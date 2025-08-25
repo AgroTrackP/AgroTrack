@@ -1,19 +1,21 @@
 import { DataSource } from 'typeorm';
-import { connectionSource } from 'src/Config/TypeORM.config';
 import { Diseases } from '../entities/diseases.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 
+interface DiseaseSeed {
+  name: string;
+  description: string;
+}
+
 export class DiseasesSeeder {
-  static async run() {
-    const dataSource: DataSource = connectionSource;
+  constructor(private dataSource: DataSource) {}
 
-    if (!dataSource.isInitialized) await dataSource.initialize();
-
-    const repo = dataSource.getRepository(Diseases);
+  public async run(): Promise<void> {
+    const repo = this.dataSource.getRepository(Diseases);
 
     const filePath = path.join(__dirname, '../data/diseases.json');
-    const diseasesData: { name: string; description: string }[] = JSON.parse(
+    const diseasesData: DiseaseSeed[] = JSON.parse(
       fs.readFileSync(filePath, 'utf-8'),
     );
 
@@ -27,13 +29,6 @@ export class DiseasesSeeder {
         await repo.save(disease);
       }
     }
-
     console.log('✅ Diseases seeded (new items only)');
-
-    await dataSource.destroy();
   }
-}
-
-if (require.main === module) {
-  DiseasesSeeder.run().catch((err) => console.error(err));
 }
