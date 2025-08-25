@@ -5,7 +5,9 @@ import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 import { RoleGuard } from 'src/Guards/role.guard';
 import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from '../Users/user.enum';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('jwt')
 @Controller('contact')
 export class ContactController {
   constructor(private contactService: ContactService) {}
@@ -14,9 +16,9 @@ export class ContactController {
   sendContact(@Body() dto: CreateContactDto) {
     return this.contactService.createContact(dto);
   }
+  @Get()
   @UseGuards(PassportJwtAuthGuard, RoleGuard)
   @Roles(Role.Admin)
-  @Get()
   getAllContacts() {
     return this.contactService.findAllContacts();
   }
