@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Body,
   Button,
@@ -12,36 +11,40 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 
-// 1. La interfaz define las 'props' que recibirá tu plantilla
-interface ConfirmationEmailProps {
+interface SubscriptionCanceledEmailProps {
   name: string;
-  email: string;
 }
 
-// 2. Este es tu nuevo componente de correo
-export const ConfirmationEmail = ({ name, email }: ConfirmationEmailProps) => {
-  const confirmationUrl = `https://agrotrack-develop.onrender.com/auth/confirmation/${email}`;
+export const SubscriptionCanceledEmail = ({
+  name,
+}: SubscriptionCanceledEmailProps) => {
+  const feedbackUrl = `https://TU_FRONTEND_URL/feedback`;
 
   return (
     <Html>
       <Head />
-      <Preview>Bienvenido a AgroTrack - Confirma tu cuenta</Preview>
+      <Preview>Confirmación de cancelación de tu cuenta de AgroTrack</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>¡Hola, {name}!</Heading>
-          <Text style={text}>Gracias por registrarte en AgroTrack.</Text>
+          <Heading style={h1}>Lamentamos verte partir, {name}</Heading>
           <Text style={text}>
-            Por favor, confirma tu cuenta haciendo clic en el botón de abajo:
+            Te confirmamos que tu suscripción a AgroTrack ha sido cancelada
+            exitosamente.
           </Text>
-          <Button style={button} href={confirmationUrl}>
-            Confirmar Cuenta
+          <Text style={text}>
+            No te preocupes, aún tendrás acceso a todas las funcionalidades de
+            tu plan hasta el final de tu ciclo de facturación actual.
+          </Text>
+          <Text style={text}>
+            Nos encantaría saber por qué te vas para poder mejorar. Si tienes un
+            momento, te agradeceríamos que compartieras tu opinión.
+          </Text>
+          <Button style={button} href={feedbackUrl}>
+            Compartir Opinión
           </Button>
-          <Text style={text}>Si no te registraste, ignora este mensaje.</Text>
           <Hr style={hr} />
           <Text style={footer}>
-            Saludos,
-            <br />
-            El equipo de AgroTrack
+            Gracias por haber sido parte de la comunidad de AgroTrack.
           </Text>
         </Container>
       </Body>
@@ -49,10 +52,7 @@ export const ConfirmationEmail = ({ name, email }: ConfirmationEmailProps) => {
   );
 };
 
-export default ConfirmationEmail;
-
-// --- 3. Estilos en línea para máxima compatibilidad ---
-// Estos estilos se aplicarán directamente a cada etiqueta HTML.
+export default SubscriptionCanceledEmail;
 
 const main = {
   backgroundColor: '#f6f9fc',
@@ -80,11 +80,11 @@ const text = {
   fontSize: '16px',
   lineHeight: '26px',
   textAlign: 'center' as const,
-  margin: '0 20px',
+  margin: '20px 20px',
 };
 
 const button = {
-  backgroundColor: '#22c55e', // Verde de Tailwind
+  backgroundColor: '#22c55e',
   borderRadius: '5px',
   color: '#fff',
   fontSize: '16px',
@@ -92,7 +92,7 @@ const button = {
   textDecoration: 'none',
   textAlign: 'center' as const,
   display: 'block',
-  width: '210px',
+  width: '250px',
   padding: '12px',
   margin: '24px auto',
 };

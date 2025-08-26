@@ -62,6 +62,20 @@ export class UsersController {
     return await this.usersService.findAll(pageNum, limitNum);
   }
 
+  @Get('count/active')
+  @UseGuards(PassportJwtAuthGuard, RoleGuard, IsActiveGuard)
+  @Roles(Role.Admin)
+  @ApiOperation({ summary: 'Get the total count of active users (Admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the total number of active users',
+    schema: { example: { activeUsers: 150 } },
+  })
+  async getActiveUsersCount() {
+    const count = await this.usersService.countActiveUsers();
+    return { activeUsers: count };
+  }
+
   // --- 2. Rutas específicas que deben ir antes de las genéricas ---
   // GET /users/subscription-plan/:id
   @Get('subscription-plan/:id')

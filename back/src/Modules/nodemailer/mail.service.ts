@@ -4,9 +4,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { SubscriptionPlan } from '../SubscriptionPlan/entities/subscriptionplan.entity';
 import { Users } from '../Users/entities/user.entity';
-import ConfirmationEmail from './templates/confirmation';
 import { render } from '@react-email/components';
 import PaymentSuccessEmail from 'src/emails/payment-success';
+import ConfirmationEmail from 'src/emails/confirmation';
+import RenewalSuccessEmail from 'src/emails/renewal-success';
+import SubscriptionCanceledEmail from 'src/emails/subscription-canceled';
 
 @Injectable()
 export class MailService {
@@ -69,7 +71,7 @@ export class MailService {
   }
 
   async sendPaymentSuccessEmail(user: Users, plan: SubscriptionPlan) {
-    // 1. Renderiza el componente de React a un string de HTML
+    // Renderiza el componente de React a un string de HTML
     const html = await render(
       PaymentSuccessEmail({
         name: user.name,
@@ -79,7 +81,7 @@ export class MailService {
       }),
     );
 
-    // 2. Envía el correo usando tu método genérico o la lógica directa
+    // Envía el correo usando tu método genérico o la lógica directa
     try {
       await this.transporter.sendMail({
         from: `"AgroTrack" <${process.env.SMTP_USER}>`,
@@ -89,7 +91,6 @@ export class MailService {
       });
       console.log(`Payment confirmation email sent to ${user.email}`);
     } catch (error) {
-      // Usamos el tipado de error que implementamos antes
       if (error instanceof Error) {
         console.error(
           `Failed to send email to ${user.email}: ${error.message}`,
@@ -114,23 +115,22 @@ export class MailService {
     const nextBillingDate = new Date();
     nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
 
-    const mailOptions = {
-      from: '"AgroTrack" <no-reply@agrotrack.com>',
-      to: user.email,
-      subject: '✅ Tu suscripción a AgroTrack ha sido renovada',
-      html: `
-        <h1>¡Hola, ${user.name}!</h1>
-        <p>Te confirmamos que tu suscripción al plan <strong>${plan.name}</strong> ha sido renovada exitosamente.</p>
-        <p>Hemos procesado el pago de <strong>$${plan.price} ARS</strong> y tu acceso a todas las funcionalidades premium continúa sin interrupciones.</p>
-        <p>Tu próxima fecha de facturación será aproximadamente el ${nextBillingDate.toLocaleDateString('es-AR')}.</p>
-        <p>Gracias por seguir confiando en AgroTrack para potenciar tus cultivos.</p>
-        <br>
-        <p>El equipo de AgroTrack</p>
-      `,
-    };
+    const html = await render(
+      RenewalSuccessEmail({
+        name: user.name,
+        planName: plan.name,
+        planPrice: plan.price,
+        nextBillingDate: nextBillingDate.toLocaleDateString('es-AR'),
+      }),
+    );
 
     try {
-      await this.transporter.sendMail(mailOptions);
+      await this.transporter.sendMail({
+        from: `"AgroTrack" <no-reply@agrotrack.com>`,
+        to: user.email,
+        subject: '✅ Tu suscripción a AgroTrack ha sido renovada',
+        html,
+      });
       console.log(`Correo de renovación exitosa enviado a ${user.email}`);
     } catch (error) {
       console.error(
@@ -173,24 +173,19 @@ export class MailService {
   }
 
   async sendSubscriptionCanceledEmail(user: Users) {
-    const mailOptions = {
-      from: '"AgroTrack" <no-reply@agrotrack.com>',
-      to: user.email,
-      subject: 'Tu suscripción a AgroTrack ha sido cancelada',
-      html: `
-        <h1>¡Hola, ${user.name}!</h1>
-        <p>Te confirmamos que tu suscripción a AgroTrack ha sido cancelada exitosamente.</p>
-        <p>Lamentamos verte partir. Aún tendrás acceso a todas las funcionalidades de tu plan hasta el final de tu ciclo de facturación actual.</p>
-        <p>Si cambias de opinión en el futuro, siempre serás bienvenido de vuelta. ¡Nos encantaría saber por qué te vas para poder mejorar!</p>
-        <p>Si tienes un momento, te agradeceríamos que compartieras tu opinión con nosotros.</p>
-        <br>
-        <p>Gracias por haber sido parte de la comunidad de AgroTrack.</p>
-        <p>El equipo de AgroTrack</p>
-      `,
-    };
+    const html = await render(
+      SubscriptionCanceledEmail({
+        name: user.name,
+      }),
+    );
 
     try {
-      await this.transporter.sendMail(mailOptions);
+      await this.transporter.sendMail({
+        from: `"AgroTrack" <no-reply@agrotrack.com>`,
+        to: user.email,
+        subject: 'Tu suscripción a AgroTrack ha sido cancelada',
+        html,
+      });
       console.log(
         `Correo de cancelación de suscripción enviado a ${user.email}`,
       );

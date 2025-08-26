@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Body,
   Container,
@@ -14,7 +13,6 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 
-// 1. La interfaz define las 'props' que recibirá la plantilla
 interface PaymentSuccessEmailProps {
   name: string;
   planName: string;
@@ -22,7 +20,6 @@ interface PaymentSuccessEmailProps {
   planFeatures: string[];
 }
 
-// 2. Este es tu nuevo componente de correo
 export const PaymentSuccessEmail = ({
   name,
   planName,
@@ -81,7 +78,6 @@ export const PaymentSuccessEmail = ({
 
 export default PaymentSuccessEmail;
 
-// --- Estilos para el correo ---
 const main = {
   backgroundColor: '#f6f9fc',
   fontFamily:
