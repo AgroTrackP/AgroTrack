@@ -5,10 +5,10 @@ import { type User } from './user-table';
 import { useAuthContext } from '@/context/authContext';
 import { EditPlantationModal, type PlantationFormData } from './edit-plantation-modal';
 import { RecommendationsModal } from './recommendation-modal';
+import { Pagination } from './pagination';
 import { toast } from 'react-toastify';
 import { Lightbulb } from 'lucide-react';
 
-// Interfaz para un terreno/plantación
 interface Plantation {
   id: string;
   name: string;
@@ -26,7 +26,9 @@ export function UserPlantationsModal({ user, isOpen, onClose }: UserPlantationsM
   const [plantations, setPlantations] = useState<Plantation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { token } = useAuthContext();
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const itemsPerPage = 5;
   const [editingPlantation, setEditingPlantation] = useState<Plantation | null>(null);
   const [viewingRecsForId, setViewingRecsForId] = useState<string | null>(null);
 
@@ -34,12 +36,22 @@ export function UserPlantationsModal({ user, isOpen, onClose }: UserPlantationsM
     if (isOpen && user?.id && token) {
       setIsLoading(true);
       try {
-        const response = await fetch(`https://agrotrack-develop.onrender.com/plantations/user/${user.id}`, {
+        const params = new URLSearchParams({
+          page: String(currentPage),
+          limit: String(itemsPerPage),
+        });
+        
+        const response = await fetch(`https://agrotrack-develop.onrender.com/plantations/user/${user.id}?${params.toString()}`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         if (!response.ok) throw new Error('Error al cargar los terrenos');
+        
         const data = await response.json();
-        setPlantations(data);
+        
+        // CORRECCIÓN: Extrae el array 'data' de la respuesta
+        setPlantations(data.data || []);
+        
+        setTotalPages(data.totalPages || Math.ceil(data.total / itemsPerPage));
       } catch (error) {
         console.error(error);
         setPlantations([]);
@@ -47,11 +59,17 @@ export function UserPlantationsModal({ user, isOpen, onClose }: UserPlantationsM
         setIsLoading(false);
       }
     }
-  }, [isOpen, user, token]);
+  }, [isOpen, user, token, currentPage]);
 
   useEffect(() => {
     fetchPlantations();
   }, [fetchPlantations]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentPage(1);
+    }
+  }, [isOpen, user]);
 
   if (!isOpen || !user) return null;
   
@@ -63,12 +81,14 @@ export function UserPlantationsModal({ user, isOpen, onClose }: UserPlantationsM
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
-          <h2 className="text-2xl font-bold mb-4">Terrenos de {user.name}</h2>
+        <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl flex flex-col">
+          <h2 className="text-2xl font-bold mb-4">Terrenos de {user?.name}</h2>
           {isLoading ? (
-            <p>Cargando terrenos...</p>
+            <div className="flex-grow min-h-[300px] flex items-center justify-center">
+              <p>Cargando terrenos...</p>
+            </div>
           ) : (
-            <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
+            <div className="space-y-2 flex-grow min-h-[300px] max-h-[60vh] overflow-y-auto pr-2">
               {plantations.length > 0 ? plantations.map(p => (
                 <div key={p.id} className="flex justify-between items-center p-2 border rounded">
                   <div>
@@ -82,15 +102,28 @@ export function UserPlantationsModal({ user, isOpen, onClose }: UserPlantationsM
                     <button onClick={() => setEditingPlantation(p)} className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">Editar</button>
                   </div>
                 </div>
-              )) : <p>Este usuario no tiene terrenos registrados.</p>}
+              )) : (
+                <div className="flex-grow min-h-[300px] flex items-center justify-center">
+                  <p>Este usuario no tiene terrenos registrados.</p>
+                </div>
+              )}
             </div>
           )}
-          <button onClick={onClose} className="mt-6 px-4 py-2 bg-gray-300 rounded-md">Cerrar</button>
+          
+          <div className="mt-4 pt-4 border-t">
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            )}
+          </div>
+          
+          <button onClick={onClose} className="mt-6 px-4 py-2 bg-gray-300 rounded-md self-center">Cerrar</button>
         </div>
       </div>
       
-      {/* --- CAMBIO CLAVE AQUÍ --- */}
-      {/* Pasamos 'editingPlantation.id' a la prop 'plantationId' */}
       <EditPlantationModal 
         isOpen={!!editingPlantation}
         plantationId={editingPlantation?.id || null}

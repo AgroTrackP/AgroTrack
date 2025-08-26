@@ -9,11 +9,12 @@ import {
   HttpCode,
   HttpStatus,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { PlantationsService } from './plantations.service';
 import { CreatePlantationDto } from './dtos/create.plantation.dto';
 import { UpdatePlantationDto } from './dtos/update.plantation.dto';
-import { PaginationDto } from './dtos/pagination.dto';
+import { QueryPlantationsDto } from './dtos/pagination.dto';
 
 @Controller('plantations')
 export class PlantationsController {
@@ -29,14 +30,21 @@ export class PlantationsController {
     return this.plantationsService.findAll();
   }
 
-  @Get('paginated')
-  async findAllPaginated(@Query() paginationDto: PaginationDto) {
-    return this.plantationsService.findAllPaginated(paginationDto);
-  }
+  // En tu plantations.controller.ts
 
+  @Get('paginated')
+  async findAllPaginated(
+    @Query() queryDto: QueryPlantationsDto, // <-- Usa el nuevo DTO unificado
+  ) {
+    return this.plantationsService.findAllPaginated(queryDto); // <-- Pasa el DTO completo al servicio
+  }
   @Get('user/:id')
-  async findByUser(@Param('id') userId: string) {
-    return this.plantationsService.findByUser(userId);
+  async findByUser(
+    @Param('id') userId: string,
+    @Query('page', new ParseIntPipe({ optional: true })) page: number = 1,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 5,
+  ) {
+    return this.plantationsService.findByUser(userId, page, limit);
   }
 
   @Get(':id')

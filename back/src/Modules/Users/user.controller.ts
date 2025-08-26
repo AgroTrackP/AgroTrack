@@ -72,16 +72,19 @@ export class UsersController {
   async findAlluserandplantation(
     @Query('page') page: string | null,
     @Query('limit') limit?: string,
-  ): Promise<{
-    data: UserResponseDto[];
-    pageNum: number;
-    limitNum: number;
-    total: number;
-  }> {
+    @Query('sortBy') sortBy?: string, // <-- AÑADE ESTO
+    @Query('order') order?: 'ASC' | 'DESC', // <-- AÑADE ESTO
+  ): Promise<any> {
     const pageNum = parseInt(page ?? '1');
     const limitNum = parseInt(limit ?? '10');
 
-    return await this.usersService.findAlluseradnplantation(pageNum, limitNum);
+    // Pasa los nuevos parámetros al servicio
+    return await this.usersService.findAlluseradnplantation(
+      pageNum,
+      limitNum,
+      sortBy,
+      order,
+    );
   }
   // --- 2. Rutas específicas que deben ir antes de las genéricas ---
   // GET /users/subscription-plan/:id
