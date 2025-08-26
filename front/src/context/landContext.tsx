@@ -5,7 +5,7 @@ import { useAuthContext } from "./authContext";
 import { getTerrainsByUser, postTerrainInformation, deleteTerrain } from "@/services/auth";
 
 // Interfaz para los datos de un terreno
-interface LandData {
+export interface LandData {
   id?: string;
   name: string;
   area_m2: number;
@@ -16,7 +16,7 @@ interface LandData {
   userId: string;
 }
 
-interface LandUpdateData {
+export interface LandUpdateData {
   name?: string;
   area_m2?: number;
   crop_type?: string;
@@ -78,7 +78,12 @@ setTotalItems(responseData.total ?? 0);
 
       setIsLoading(true);
       try {
-        const landDataToApi = { ...data, area_m2: parseFloat(data.area_m2 as any), userId: user.id };
+        const landDataToApi: LandData = {
+  ...data,
+  area_m2: typeof data.area_m2 === "string" ? parseFloat(data.area_m2) : data.area_m2,
+  userId: user.id!, // <- le decimos a TS que no es undefined
+};
+
         await postTerrainInformation(landDataToApi);
         await fetchLands(currentPageFromApi, 5);
       } catch (error) {

@@ -7,6 +7,7 @@ import Button from "@/components/ui/button";
 import { ConfirmationModal } from "../../(admin)/dashboard/users/components/confirmation-modal";
 import EditLandModal from "./editLandModal";
 
+
 const TerrainInformation = () => {
   const {
     lands,
