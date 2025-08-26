@@ -24,14 +24,34 @@ export const getTerrains = async () => {
   }
 };
 
-export const getTerrainsByUser = async (userId: string, token: string) => {
-  
-  const res = await axiosApiBack.get(`/plantations/user/${userId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  console.log (res.data)
-  return res.data;
-  
+export const getTerrainsByUser = async (
+  userId: string,
+  token: string,
+  page: number = 1,
+  limit: number = 5
+) => {
+  try {
+    const res = await axiosApiBack.get(
+      `/plantations/user/${userId}?page=${page}&limit=${limit}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Error al obtener terrenos por usuario:", error);
+    throw error;
+  }
+};
+
+export const deleteTerrain = async (landId: string, token: string) => {
+  try {
+    const res = await axiosApiBack.delete(`/plantations/${landId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Error al eliminar el terreno:", error);
+    throw error;
+  }
 };
 
 export const postRegister = async (data: RegisterUserDto) => {
