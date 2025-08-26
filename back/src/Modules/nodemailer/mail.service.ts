@@ -4,6 +4,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { SubscriptionPlan } from '../SubscriptionPlan/entities/subscriptionplan.entity';
 import { Users } from '../Users/entities/user.entity';
+import ConfirmationEmail from './templates/confirmation';
+import { render } from '@react-email/components';
+import PaymentSuccessEmail from 'src/emails/payment-success';
 
 @Injectable()
 export class MailService {
@@ -42,15 +45,14 @@ export class MailService {
     return template;
   }
 
-  async sendMail(to: string, subject: string, templateName: string) {
+  async sendMail(to: string, subject: string, html: string) {
     try {
       await this.transporter.sendMail({
         from: `"Agrotrack" <${process.env.SMTP_USER}>`,
         to,
         subject,
-        html: templateName,
+        html, // El contenido ahora es el HTML renderizado
       });
-
       console.log(`📨 Email enviado a ${to} con asunto: ${subject}`);
     } catch (error) {
       console.error('❌ Error enviando correo:', error);
@@ -58,31 +60,45 @@ export class MailService {
     }
   }
 
-  async sendPaymentSuccessEmail(user: Users, plan: SubscriptionPlan) {
-    const mailOptions = {
-      from: `"Agrotrack" <${process.env.SMTP_USER}>`,
-      to: user.email,
-      subject: '✅ ¡Tu suscripción a AgroTrack está activa!',
-      html: `
-        <h1>¡Hola, ${user.name}!</h1>
-        <p>Gracias por suscribirte a AgroTrack. Tu pago ha sido procesado exitosamente.</p>
-        <p>Has activado el plan: <strong>${plan.name}</strong></p>
-        <p>Precio: $${plan.price} ARS</p>
-        <p>Ahora tienes acceso a las siguientes características:</p>
-        <ul>
-          ${plan.features.map((feature) => `<li>${feature}</li>`).join('')}
-        </ul>
-        <p>¡Gracias por confiar en nosotros para optimizar tus cultivos!</p>
-        <br>
-        <p>El equipo de AgroTrack</p>
-      `,
-    };
+  async sendRegistrationEmail(name: string, email: string) {
+    // 1. Renderiza el componente a un string de HTML
+    const html = await render(ConfirmationEmail({ name, email }));
 
+    // 2. Llama a tu método genérico para enviar el correo
+    await this.sendMail(email, 'Bienvenido a AgroTrack', html);
+  }
+
+  async sendPaymentSuccessEmail(user: Users, plan: SubscriptionPlan) {
+    // 1. Renderiza el componente de React a un string de HTML
+    const html = await render(
+      PaymentSuccessEmail({
+        name: user.name,
+        planName: plan.name,
+        planPrice: plan.price,
+        planFeatures: plan.features,
+      }),
+    );
+
+    // 2. Envía el correo usando tu método genérico o la lógica directa
     try {
-      await this.transporter.sendMail(mailOptions);
+      await this.transporter.sendMail({
+        from: `"AgroTrack" <${process.env.SMTP_USER}>`,
+        to: user.email,
+        subject: '✅ ¡Tu suscripción a AgroTrack está activa!',
+        html,
+      });
       console.log(`Payment confirmation email sent to ${user.email}`);
     } catch (error) {
-      console.log(`Failed to send email to ${user.email}`, error);
+      // Usamos el tipado de error que implementamos antes
+      if (error instanceof Error) {
+        console.error(
+          `Failed to send email to ${user.email}: ${error.message}`,
+        );
+      } else {
+        console.error(
+          `Failed to send email to ${user.email} with an unknown error.`,
+        );
+      }
     }
   }
 
