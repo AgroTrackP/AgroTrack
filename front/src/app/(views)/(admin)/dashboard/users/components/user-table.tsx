@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
-import { Pencil, Trash2, Tractor } from 'lucide-react';
+'use client';
+
+import { Pencil, Trash2, Tractor, ArrowDown, ArrowUp } from 'lucide-react';
 import { RoleToggle } from './roletoggle';
 
 export type User = {
@@ -25,23 +27,55 @@ const planColors = {
   'not subscription': 'bg-gray-100 text-gray-800',
 };
 
-export function UserTable({ users, onEdit, onDelete, onRoleChange, onViewPlantations }: { 
-  users: User[], 
-  onEdit: (user: User) => void,
-  onDelete: (user: User) => void,
-  onRoleChange: (userId: string, newRole: 'Admin' | 'User') => void,
-  onViewPlantations: (user: User) => void
+export function UserTable({ 
+  users, 
+  onEdit, 
+  onDelete, 
+  onRoleChange, 
+  onViewPlantations, 
+  onSort, 
+  sortConfig 
+}: { 
+  users: User[];
+  onEdit: (user: User) => void;
+  onDelete: (user: User) => void;
+  onRoleChange: (userId: string, newRole: 'Admin' | 'User') => void;
+  onViewPlantations: (user: User) => void;
+  onSort: (key: keyof User) => void;
+  sortConfig: { key: keyof User; direction: 'ascending' | 'descending' } | null;
 }) {
+  
+  const renderSortIcon = (key: keyof User) => {
+    if (!sortConfig || sortConfig.key !== key) return null;
+    return sortConfig.direction === 'ascending' ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />;
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de Registro</th>
+            <th scope="col" className="px-6 py-3 text-left">
+              <button className="flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider" onClick={() => onSort('name')}>
+                Nombre {renderSortIcon('name')}
+              </button>
+            </th>
+            <th scope="col" className="px-6 py-3 text-left">
+              <button className="flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider" onClick={() => onSort('status')}>
+                Estado {renderSortIcon('status')}
+              </button>
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
+            <th scope="col" className="px-6 py-3 text-left">
+              <button className="flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider" onClick={() => onSort('plan')}>
+                Plan {renderSortIcon('plan')}
+              </button>
+            </th>
+            <th scope="col" className="px-6 py-3 text-left">
+              <button className="flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider" onClick={() => onSort('registrationDate')}>
+                Fecha de Registro {renderSortIcon('registrationDate')}
+              </button>
+            </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
           </tr>
         </thead>
