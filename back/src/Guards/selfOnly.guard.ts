@@ -1,12 +1,9 @@
-// src/Guards/selfOnly.guard.ts
-
 import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-// Importa tu entidad de usuario directamente
 import { Role } from '../Modules/Users/user.enum';
 import { AuthRequest } from 'src/types/express';
 
