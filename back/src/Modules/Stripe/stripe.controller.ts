@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   Param,
+  ParseUUIDPipe,
   Post,
   Req,
   UseGuards,
