@@ -22,6 +22,7 @@ import { ApplicationTypesService } from './applicationtypes.service';
 import { CreateApplicationTypeDto } from './dtos/create.applicationtypes.dto';
 import { UpdateApplicationTypeDto } from './dtos/update.applicationtypes.dto';
 import { Request } from 'express';
+import { Users } from '../Users/entities/user.entity';
 
 @ApiTags('Application Types')
 @ApiBearerAuth()
@@ -39,7 +40,7 @@ export class ApplicationTypesController {
     @Body() createDto: CreateApplicationTypeDto,
     @Req() req: Request,
   ) {
-    const user = req.user as any;
+    const user = req.user as Users;
     return this.appTypesService.create(createDto, user);
   }
 
@@ -50,7 +51,7 @@ export class ApplicationTypesController {
     description: 'List of Application Types returned.',
   })
   async findAll(@Req() req: Request) {
-    const user = req.user as any;
+    const user = req.user as Users;
     return this.appTypesService.findAll(user);
   }
 
@@ -60,7 +61,7 @@ export class ApplicationTypesController {
   @ApiResponse({ status: 200, description: 'Application Type found.' })
   @ApiResponse({ status: 404, description: 'Application Type not found.' })
   async findOne(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
-    const user = req.user as any;
+    const user = req.user as Users;
     return this.appTypesService.findOne(id, user);
   }
 
@@ -77,7 +78,7 @@ export class ApplicationTypesController {
     @Body() updateDto: UpdateApplicationTypeDto,
     @Req() req: Request,
   ) {
-    const user = req.user as any;
+    const user = req.user as Users;
     return this.appTypesService.update(id, updateDto, user);
   }
 
@@ -91,7 +92,7 @@ export class ApplicationTypesController {
   })
   @ApiResponse({ status: 404, description: 'Application Type not found.' })
   async remove(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
-    const user = req.user as any;
+    const user = req.user as Users;
     await this.appTypesService.remove(id, user);
   }
 }

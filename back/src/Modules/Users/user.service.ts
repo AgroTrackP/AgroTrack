@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { Users } from './entities/user.entity';
 import { UpdateUserDto } from './dtos/update.user.dto';
 import { UserResponseDto } from './dtos/user.response.dto';
@@ -26,6 +26,54 @@ export class UsersService {
     private readonly activityService: ActivityService,
   ) {}
 
+  async findAlluseradnplantation(
+    pageNum = 1,
+    limitNum = 10,
+    sortBy: string = 'name',
+    order: 'ASC' | 'DESC' = 'ASC',
+  ): Promise<any> {
+    try {
+      const validSortKeys = ['name', 'email', 'created_at', 'status', 'plan'];
+      if (!validSortKeys.includes(sortBy)) {
+        sortBy = 'name'; // Asegura un valor por defecto seguro
+      }
+
+      // --- LÓGICA DE ORDENAMIENTO CORREGIDA ---
+      let orderConfig = {};
+
+      if (sortBy === 'plan') {
+        // Si se ordena por plan, creamos el objeto anidado correcto
+        orderConfig = {
+          suscription_level: {
+            name: order,
+          },
+        };
+      } else if (sortBy === 'status') {
+        orderConfig = { isActive: order };
+      } else {
+        // Para los demás casos, es un ordenamiento simple
+        orderConfig = {
+          [sortBy]: order,
+        };
+      }
+      // -------------------------------------------
+
+      const [data, total] = await this.usersRepository.findAndCount({
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum,
+        relations: ['plantations', 'suscription_level'],
+        order: orderConfig, // <-- Usamos el objeto de ordenamiento dinámico y correcto
+      });
+
+      return { data, pageNum, limitNum, total };
+    } catch (error) {
+      const errorMessage =
+        typeof error === 'object' && error !== null && 'message' in error
+          ? (error as { message: string }).message
+          : String(error);
+      throw new Error(`Error fetching users: ${errorMessage}`);
+    }
+  }
   async findAll(
     pageNum = 1,
     limitNum = 10,
@@ -160,7 +208,11 @@ export class UsersService {
         imgPublicId: public_id,
       });
     } catch (error) {
-      throw new Error(`Error updating user profile image: ${error.message}`);
+      const errorMessage =
+        typeof error === 'object' && error !== null && 'message' in error
+          ? (error as { message: string }).message
+          : String(error);
+      throw new Error(`Error updating user profile image: ${errorMessage}`);
     }
   }
 
@@ -205,28 +257,38 @@ export class UsersService {
       );
       return { message: 'User deleted successfully' };
     } catch (error) {
+      const errorMessage =
+        typeof error === 'object' && error !== null && 'message' in error
+          ? (error as { message: string }).message
+          : String(error);
       throw new InternalServerErrorException(
         'Error deleting user',
-        error.message,
+        errorMessage,
       );
     }
   }
 
   async findByEmailOrName(query: string): Promise<Users[]> {
     try {
-      const users = await this.usersRepository
-        .createQueryBuilder('user')
-        .where('user.name ILIKE :query OR user.email ILIKE :query', {
-          query: `%${query}%`,
-        })
-        .getMany(); // <-- 2. Cambia getOne() por getMany()
+      // Usamos el método 'find' que es más simple para añadir relaciones
+      const users = await this.usersRepository.find({
+        // La condición 'where' busca en nombre O email
+        where: [{ name: ILike(`%${query}%`) }, { email: ILike(`%${query}%`) }],
+        // ¡AÑADE ESTO! Carga las mismas relaciones que en tu 'findAll'
+        relations: [
+          'plantations',
+          'suscription_level', // <-- Importante si lo usas en el frontend
+        ],
+      });
 
-      // 3. Ya no necesitamos la comprobación de "no encontrado",
-      //    getMany() simplemente devolverá un array vacío si no hay resultados.
       return users;
     } catch (error) {
+      const errorMessage =
+        typeof error === 'object' && error !== null && 'message' in error
+          ? (error as { message: string }).message
+          : String(error);
       throw new InternalServerErrorException(
-        `Error searching user by name or email: ${error.message}`,
+        `Error searching user by name or email: ${errorMessage}`,
       );
     }
   }
@@ -264,7 +326,7 @@ export class UsersService {
       if (!newPlan || !newPlan.stripePriceId) {
         throw new NotFoundException(`El plan '${planName}' no fue encontrado.`);
       }
-
+      console.log(newPlan);
       // Evitar "actualizar" al mismo plan
       if (activeSubscription.items.data[0].price.id === newPlan.stripePriceId) {
         throw new BadRequestException(
@@ -272,10 +334,11 @@ export class UsersService {
         );
       }
 
-      await this.stripeService.changeSubscriptionPlan(
+      const plangchange = await this.stripeService.changeSubscriptionPlan(
         activeSubscription.id,
         newPlan.stripePriceId,
       );
+      console.log(plangchange);
 
       return {
         message: `Solicitud de cambio al plan '${planName}' enviada a Stripe.`,

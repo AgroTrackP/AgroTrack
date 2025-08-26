@@ -76,6 +76,30 @@ export class UsersController {
     return { activeUsers: count };
   }
 
+  @Get('admin/users/plantation')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
+  @UseInterceptors(ExcludePasswordInterceptor)
+  @ApiOperation({ summary: 'Get all users (Admin only)' })
+  @ApiResponse({ status: 200, description: 'All users found' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  async findAlluserandplantation(
+    @Query('page') page: string | null,
+    @Query('limit') limit?: string,
+    @Query('sortBy') sortBy?: string, // <-- AÑADE ESTO
+    @Query('order') order?: 'ASC' | 'DESC', // <-- AÑADE ESTO
+  ): Promise<any> {
+    const pageNum = parseInt(page ?? '1');
+    const limitNum = parseInt(limit ?? '10');
+
+    // Pasa los nuevos parámetros al servicio
+    return await this.usersService.findAlluseradnplantation(
+      pageNum,
+      limitNum,
+      sortBy,
+      order,
+    );
+  }
   // --- 2. Rutas específicas que deben ir antes de las genéricas ---
   // GET /users/subscription-plan/:id
   @Get('subscription-plan/:id')
@@ -83,14 +107,33 @@ export class UsersController {
   async getSubPlanByUsersId(@Param('id', ParseUUIDPipe) id: string) {
     return await this.usersService.getSubPlanByUserId(id);
   }
-  @Get('search') // La ruta será, por ejemplo, /users/search?query=juanperez@mail.com
-  @UseGuards(RoleGuard) // Asumiendo que quieres que solo los admins busquen
+  @Put('subscription/:id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Update user subscription plan (Admin only)' })
+  @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Subscription plan updated',
+    type: UserResponseDto,
+  })
+  @Roles(Role.Admin)
+  async updateSubscription(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateSubscriptionDto: UpdateSubscriptionDto,
+  ) {
+    return await this.usersService.updateUserSubscription(
+      id,
+      updateSubscriptionDto.planName,
+    );
+  }
+  @Get('search')
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
   @Roles(Role.Admin)
   async searchUser(@Query('query') searchTerm: string) {
     if (!searchTerm) {
       throw new BadRequestException('Search term cannot be empty.');
     }
-    // Simplemente devuelve el resultado del servicio, que ahora es un array.
     return await this.usersService.findByEmailOrName(searchTerm);
   }
 
@@ -126,27 +169,6 @@ export class UsersController {
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<UserResponseDto> {
     return await this.usersService.findOne(id);
-  }
-
-  @Put('subscription/:id')
-  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
-  @HttpCode(200)
-  @ApiOperation({ summary: 'Update user subscription plan (Admin only)' })
-  @ApiParam({ name: 'id', type: 'string', description: 'User ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Subscription plan updated',
-    type: UserResponseDto,
-  })
-  @Roles(Role.Admin)
-  async updateSubscription(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateSubscriptionDto: UpdateSubscriptionDto,
-  ) {
-    return await this.usersService.updateUserSubscription(
-      id,
-      updateSubscriptionDto.planName,
-    );
   }
 
   // PUT /users/:id

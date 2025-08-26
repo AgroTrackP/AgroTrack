@@ -90,7 +90,7 @@ export class CloudinaryController {
       );
     }
   }
-  @Put('/perfil/:userId')
+  @Put('perfil/:userId')
   @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadimageperfil(
@@ -99,7 +99,7 @@ export class CloudinaryController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({
-            maxSize: 300000,
+            maxSize: 2000000,
             message: 'el archivo es muy grande',
           }),
           new FileTypeValidator({
