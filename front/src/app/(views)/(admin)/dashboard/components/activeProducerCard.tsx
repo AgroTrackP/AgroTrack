@@ -18,7 +18,7 @@ export function ActiveProducersCard() {
     const fetchTotalUsers = async () => {
       try {
         // 1. Apuntamos al endpoint de usuarios (ajusta la ruta si es diferente)
-        const response = await fetch('https://agrotrack-develop.onrender.com/users', {
+        const response = await fetch('https://agrotrack-develop.onrender.com/users/admin/users/plantation', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         if (!response.ok) throw new Error('Failed to fetch users');

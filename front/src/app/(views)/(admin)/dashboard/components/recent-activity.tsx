@@ -2,13 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthContext } from '@/context/authContext';
-import { Users, Tractor, Wheat, type LucideIcon } from 'lucide-react';
+import { 
+  Users, 
+  Tractor, 
+  LogIn, 
+  UserPlus, 
+  Pencil, 
+  CreditCard, 
+  XCircle, 
+  type LucideIcon 
+} from 'lucide-react';
 
 // --- Interfaz para los datos que esperamos de la API ---
 interface ActivityFromApi {
   id: string;
   description: string;
-  type: string; // Ej: 'NEW_USER', 'NEW_PLANTATION', etc.
+  type: string; // Ej: 'USER_LOGIN', 'PLANTATION_CREATED', etc.
   timestamp: string;
 }
 
@@ -32,17 +41,21 @@ function ActivitySkeleton() {
   );
 }
 
+
 // --- Mapeo de tipos de actividad a íconos ---
+// Mapea los tipos de actividad de tu enum a un ícono específico.
 const activityIconMap: Record<string, LucideIcon> = {
-  NEW_USER_SUBSCRIPTION: Users,
-  NEW_PLANTATION: Tractor,
-  NEW_CROP: Wheat,
-  DEFAULT: Users, // Un ícono por defecto
+  USER_LOGIN: LogIn,
+  USER_REGISTER: UserPlus,
+  PLANTATION_CREATED: Tractor,
+  PLANTATION_UPDATED: Pencil,
+  SUBSCRIPTION_STARTED: CreditCard,
+  SUBSCRIPTION_CANCELED: XCircle,
+  DEFAULT: Users, // Un ícono por defecto si el tipo no coincide
 };
 
 // --- Función para formatear el tiempo (ej: "Hace 5 minutos") ---
-function formatTimeAgo(dateString: string): string {
-  const date = new Date(dateString);
+function formatTimeAgo(dateString: string): string {  const date = new Date(dateString);
   const now = new Date();
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
@@ -101,11 +114,12 @@ export function RecentActivity() {
     return <div className="bg-white p-6 rounded-lg shadow-sm text-red-500">{error}</div>;
   }
 
-  return (
+ return (
     <div className="bg-white p-6 rounded-lg shadow-sm">
       <h3 className="font-semibold text-lg mb-4">Actividad Reciente</h3>
       <ul className="space-y-4">
-        {activities.map((activity) => {
+        {activities.length > 0 ? activities.map((activity) => {
+          // 2. SELECCIONA EL ÍCONO CORRECTO
           const Icon = activityIconMap[activity.type] || activityIconMap.DEFAULT;
           return (
             <li key={activity.id} className="flex items-start space-x-3">
@@ -118,7 +132,9 @@ export function RecentActivity() {
               </div>
             </li>
           );
-        })}
+        }) : (
+          <p className="text-sm text-gray-500">No hay actividad reciente para mostrar.</p>
+        )}
       </ul>
     </div>
   );

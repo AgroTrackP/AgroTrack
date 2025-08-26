@@ -14,7 +14,7 @@ import { Users } from 'src/Modules/Users/entities/user.entity';
 import { RecommendationsService } from '../Recomendations/recomendations.service';
 import { ActivityService } from '../ActivityLogs/activity-logs.service';
 import { ActivityType } from '../ActivityLogs/entities/activity-logs.entity';
-import { PaginationDto } from './dtos/pagination.dto';
+import { QueryPlantationsDto } from './dtos/pagination.dto';
 
 @Injectable()
 export class PlantationsService {
@@ -123,46 +123,65 @@ export class PlantationsService {
     }
   }
 
-  async findAllPaginated(paginationDto: PaginationDto) {
-    const { page = 1, limit = 5 } = paginationDto;
+  // En tu plantations.service.ts
+
+  async findAllPaginated(queryDto: QueryPlantationsDto) {
+    const {
+      page = 1,
+      limit = 10,
+      crop_type,
+      season,
+      sortBy = 'name',
+      order = 'ASC',
+      ownerName, // <-- Extrae el nuevo filtro
+    } = queryDto;
     const skip = (page - 1) * limit;
 
+    const queryBuilder = this.plantationsRepo.createQueryBuilder('plantation');
+    queryBuilder.leftJoinAndSelect('plantation.user', 'user');
+
+    if (crop_type) {
+      queryBuilder.andWhere('plantation.crop_type = :crop_type', { crop_type });
+    }
+    if (season) {
+      queryBuilder.andWhere('plantation.season = :season', { season });
+    }
+    // --- AÑADE ESTA LÓGICA DE FILTRADO ---
+    if (ownerName) {
+      queryBuilder.andWhere('user.name ILIKE :ownerName', {
+        ownerName: `%${ownerName}%`,
+      });
+    }
+
+    // Valida que sortBy sea una columna segura para ordenar
+    const validSortKeys: Record<string, string> = {
+      name: 'plantation.name',
+      ownerName: 'user.name',
+      crop_type: 'plantation.crop_type',
+      area_m2: 'plantation.area_m2',
+      startDate: 'plantation.start_date',
+    };
+    const sortKey = validSortKeys[sortBy] || 'plantation.name';
+
     try {
-      // 1. Crear el query builder desde la entidad Plantations
-      const queryBuilder =
-        this.plantationsRepo.createQueryBuilder('plantation');
-
-      // 2. Unir las relaciones necesarias
-      queryBuilder
-        .leftJoinAndSelect('plantation.user', 'user')
-        .leftJoinAndSelect('plantation.applicationPlans', 'applicationPlans');
-
-      // 3. Obtener el conteo total de registros
       const total = await queryBuilder.getCount();
-
-      // 4. Aplicar la paginación con skip y take
       const plantations = await queryBuilder
+        .orderBy(sortKey, order)
         .skip(skip)
         .take(limit)
-        .orderBy('plantation.name', 'ASC') // Opcional: ordenar los resultados
         .getMany();
 
       return {
         data: plantations,
         total,
-        page,
-        limit,
+        page: Number(page),
+        limit: Number(limit),
         totalPages: Math.ceil(total / limit),
       };
-    } catch (error: unknown) {
-      // Manejo de errores
-      if (error instanceof Error) {
-        throw new BadRequestException(
-          `Error fetching paginated plantations: ${error.message}`,
-        );
-      }
+    } catch (error) {
       throw new BadRequestException(
-        'Unknown error fetching paginated plantations',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        `Error al buscar las plantaciones: ${error.message}`,
       );
     }
   }
@@ -222,24 +241,25 @@ export class PlantationsService {
     }
   }
 
-  async findByUser(userId: string): Promise<Plantations[]> {
-    try {
-      const user = await this.usersRepository.findOne({
-        where: { id: userId },
-        relations: ['plantations'],
-      });
-      if (!user) {
-        throw new BadRequestException('User does not exist.');
-      }
-      if (!user.plantations) {
-        throw new NotFoundException('User does not have plantatios yet.');
-      }
+  async findByUser(userId: string, page: number, limit: number) {
+    const skip = (page - 1) * limit;
 
-      return user.plantations;
-    } catch (error) {
-      throw new BadRequestException(
-        `Error fetching user plantations: ${error}`,
-      );
-    }
+    // Usamos findAndCount para obtener los terrenos de una página y el total
+    const [plantations, total] = await this.plantationsRepo.findAndCount({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
+      take: limit,
+      skip: skip,
+      order: { name: 'ASC' }, // Opcional: para un orden consistente
+    });
+
+    return {
+      data: plantations,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }
