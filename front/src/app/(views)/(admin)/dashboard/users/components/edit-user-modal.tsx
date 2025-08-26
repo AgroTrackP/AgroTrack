@@ -1,10 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-// 1. Importamos el tipo User para poder usarlo
 import { type User } from './user-table';
 
-// 2. (Opcional pero recomendado) Creamos un tipo para el estado del formulario
 type UserFormData = Pick<User, 'name' | 'status' | 'plan'>;
 
 interface EditUserModalProps {
@@ -15,12 +13,7 @@ interface EditUserModalProps {
 }
 
 export function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalProps) {
-  // 3. Le damos un tipo explícito al estado del formulario
-  const [formData, setFormData] = useState<UserFormData>({ 
-    name: '', 
-    status: 'Activo', 
-    plan: "not subscription"
-  });
+  const [formData, setFormData] = useState<UserFormData>({ name: '', status: 'Activo', plan: 'Basic' });
 
   useEffect(() => {
     if (user) {
@@ -36,14 +29,13 @@ export function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalPr
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    // TypeScript ahora confía en que los valores serán correctos gracias al tipado del useState
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setFormData(prev => ({ ...prev, [name]: value as any }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData); // ¡Ahora 'formData' coincide con el tipo esperado!
+    onSave(formData);
   };
 
   return (
@@ -64,7 +56,6 @@ export function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalPr
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
             />
           </div>
-          
           <div>
             <label htmlFor="status" className="block text-sm font-medium text-gray-700">Estado</label>
             <select
@@ -78,8 +69,7 @@ export function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalPr
               <option>Inactivo</option>
             </select>
           </div>
-          
-         <div>
+          <div>
             <label htmlFor="plan" className="block text-sm font-medium text-gray-700">Plan</label>
             <select
               id="plan"
@@ -88,13 +78,12 @@ export function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalPr
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
             >
-              <option>Básico</option>
+              <option>Basic</option>
               <option>Pro</option>
               <option>Premium</option>
               <option value="not subscription">Sin Suscripción (Cancelar)</option>
             </select>
           </div>
-
           <div className="flex justify-end space-x-4 pt-4">
             <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 rounded-md">Cancelar</button>
             <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md">Guardar Cambios</button>

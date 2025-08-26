@@ -8,12 +8,10 @@ import { Pagination } from './pagination';
 import { EditUserModal } from './edit-user-modal';
 import { ConfirmationModal } from './confirmation-modal';
 import { CreateUserModal } from './create-user-modal';
-import { UserPlantationsModal } from './user-plantation-modal'; // Importa el nuevo modal
-
+import { UserPlantationsModal } from './user-plantation-modal';
 import { PlusCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useDebounce } from '@/hooks/use-debounce';
-
 // --- INTERFACES Y FUNCIONES DE MAPEO ---
 
 interface UserFromApi {
@@ -37,6 +35,15 @@ const getPlanNameById = (planId: string | null): 'Basic' | 'Pro' | 'Premium' | '
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getPlanIdByName = (planName: string): string | undefined => {
+  const planMap = {
+    'Basic': "d85e4028-3086-46d1-becb-3f16a4915094",
+    'Pro': "4620a437-e3fd-41d6-93a7-582fdb75107e",
+    'Premium': "16fa5a9b-37f7-4f27-856b-6a95fe251cdb",
+  };
+  return planMap[planName as keyof typeof planMap];
+};
 
 const mapApiToUser = (usersFromApi: UserFromApi[]): User[] => {
   return usersFromApi.map(user => ({
@@ -64,9 +71,9 @@ export function UsersClient() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
- const [isPlantationsModalOpen, setIsPlantationsModalOpen] = useState(false);
-  const [selectedUserForPlantations, setSelectedUserForPlantations] = useState<User | null>(null);
   
+  const [sortConfig, setSortConfig] = useState<{ key: keyof User; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' });
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   
@@ -74,10 +81,13 @@ export function UsersClient() {
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  const [isPlantationsModalOpen, setIsPlantationsModalOpen] = useState(false);
+  const [selectedUserForPlantations, setSelectedUserForPlantations] = useState<User | null>(null);
 
   const { token, isAuth } = useAuthContext();
 
-   const fetchUsers = useCallback(async () => {
+  const fetchUsers = useCallback(async () => {
     if (!token || !isAuth) return;
     
     setIsLoading(true);
@@ -90,8 +100,13 @@ export function UsersClient() {
         const params = new URLSearchParams({ query: debouncedSearchTerm });
         url = `https://agrotrack-develop.onrender.com/users/search?${params.toString()}`;
       } else {
-        const params = new URLSearchParams({ page: String(currentPage), limit: String(usersPerPage) });
-        url = `http://localhost:3010/users/admin/users/plantation?${params.toString()}`;
+        const params = new URLSearchParams({
+          page: String(currentPage),
+          limit: String(usersPerPage),
+          sortBy: sortConfig.key,
+          order: sortConfig.direction === 'ascending' ? 'ASC' : 'DESC',
+        });
+        url = `https://agrotrack-develop.onrender.com/users/admin/users/plantation?${params.toString()}`;
       }
       
       const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -111,7 +126,7 @@ export function UsersClient() {
       setUsers(mapApiToUser(usersData));
 
       if (debouncedSearchTerm) {
-        setTotalPages(1);
+        setTotalPages(usersData.length > 0 ? 1 : 0);
         setCurrentPage(1);
       } else {
         setTotalPages(Math.ceil(data.total / usersPerPage));
@@ -123,34 +138,23 @@ export function UsersClient() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, debouncedSearchTerm, token, isAuth])
+  }, [currentPage, debouncedSearchTerm, sortConfig, token, isAuth]);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
 
   // --- MANEJADORES DE MODALES Y ACCIONES ---
 
-  const handleOpenEditModal = (user: User) => { setEditingUser(user); setIsEditModalOpen(true); };
+ const handleOpenEditModal = (user: User) => { setEditingUser(user); setIsEditModalOpen(true); };
   const handleCloseEditModal = () => { setIsEditModalOpen(false); setEditingUser(null); };
-  
   const handleOpenDeleteModal = (user: User) => { setDeletingUser(user); setIsDeleteModalOpen(true); };
   const handleCloseDeleteModal = () => { setIsDeleteModalOpen(false); setDeletingUser(null); };
-
-  
   const handleOpenCreateModal = () => setIsCreateModalOpen(true);
   const handleCloseCreateModal = () => setIsCreateModalOpen(false);
+  const handleOpenPlantationsModal = (user: User) => { setSelectedUserForPlantations(user); setIsPlantationsModalOpen(true); };
+  const handleClosePlantationsModal = () => { setIsPlantationsModalOpen(false); setSelectedUserForPlantations(null); };
 
-
-  const handleOpenPlantationsModal = (user: User) => {
-    setSelectedUserForPlantations(user);
-    setIsPlantationsModalOpen(true);
-  };
-  const handleClosePlantationsModal = () => {
-    setIsPlantationsModalOpen(false);
-    setSelectedUserForPlantations(null);
-  };
-
+  
   const handleUpdateUser = async (updatedData: Partial<User>) => {
     if (!editingUser || !token) return;
 
@@ -188,12 +192,13 @@ export function UsersClient() {
 
     // Lógica para el plan (sin cambios)
     if (updatedData.plan && updatedData.plan !== editingUser.plan) {
-      if (updatedData.plan === 'not subscription') {
+      if (updatedData.plan === 'not subscription'
+) {
         successMessages.push('Solicitud de cancelación enviada, este proceso puede tardar 24hs.');
       } else {
         successMessages.push(`Solicitud de cambio a plan ${updatedData.plan} enviada, este proceso puede tardar 24hs.`);
       }
-      apiCalls.push(fetch(`http://localhost:3010/users/subscription/${editingUser.id}`, {
+      apiCalls.push(fetch(`https://agrotrack-develop.onrender.com/users/subscription/${editingUser.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ planName: updatedData.plan }),
@@ -266,7 +271,14 @@ export function UsersClient() {
       )
     );
   };
-
+ const handleSort = (key: keyof User) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+    setCurrentPage(1);
+  };
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -282,7 +294,7 @@ export function UsersClient() {
       <div className="bg-white p-4 rounded-lg shadow-sm">
         <input 
           type="text" 
-          placeholder="Buscar por nombre o email..." 
+          placeholder="Buscar en toda la base de datos..." 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full lg:w-1/3 px-3 py-2 border border-gray-300 rounded-md text-sm"
@@ -299,7 +311,8 @@ export function UsersClient() {
             onDelete={handleOpenDeleteModal}
             onRoleChange={handleRoleChange} 
             onViewPlantations={handleOpenPlantationsModal}
-
+            onSort={handleSort}
+            sortConfig={sortConfig}
           />
           {!debouncedSearchTerm && totalPages > 1 && (
             <Pagination 
@@ -308,16 +321,13 @@ export function UsersClient() {
               onPageChange={setCurrentPage}
             />
           )}
-          
         </>
-
       )}
 
       <CreateUserModal isOpen={isCreateModalOpen} onClose={handleCloseCreateModal} onSave={handleCreateUser} />
       <EditUserModal isOpen={isEditModalOpen} user={editingUser} onClose={handleCloseEditModal} onSave={handleUpdateUser} />
       <ConfirmationModal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} onConfirm={handleConfirmDelete} title="Confirmar Eliminación" message={`¿Estás seguro de que quieres eliminar a ${deletingUser?.name}? Esta acción no se puede deshacer.`} />
-            <UserPlantationsModal isOpen={isPlantationsModalOpen} user={selectedUserForPlantations} onClose={handleClosePlantationsModal} />
-
+      <UserPlantationsModal isOpen={isPlantationsModalOpen} user={selectedUserForPlantations} onClose={handleClosePlantationsModal} />
     </div>
   );
 }

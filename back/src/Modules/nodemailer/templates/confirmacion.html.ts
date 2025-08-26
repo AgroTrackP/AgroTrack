@@ -13,6 +13,3 @@ export const confirmationTemplate = (option: {
   
   </div>`;
 };
-
-//en auth confirmacion y recuperacion de contraseña van aca
-//crear endpoint GET confirmacion, q reciba parametro email y confirme el usuario

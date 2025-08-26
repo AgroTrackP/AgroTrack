@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Req,
+  Res,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -55,13 +56,70 @@ export class AuthController {
   }
 
   @Get('confirmation/:email')
-  async confirmationEmail(@Param('email') email: string) {
+  async confirmationEmail(@Param('email') email: string, @Res() res: Response) {
     console.log(email);
     await this.authService.confirmationEmail({ email });
-    return {
-      message: 'Tu cuenta ha sido verificada',
-    };
+
+    // Devolver una plantilla HTML estética y redirigir
+    const htmlTemplate = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Cuenta Verificada</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+          }
+          .container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 90%;
+            animation: fadeIn 1.5s ease-in-out;
+          }
+          h1 {
+            color: #28a745;
+            margin-bottom: 20px;
+          }
+          p {
+            font-size: 1.1em;
+            color: #555;
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+          }
+        </style>
+        <script>
+          // Redirige al usuario después de 3 segundos
+          setTimeout(() => {
+            window.location.href = 'https://agrotrack-develop-full-b7e80rp5d-agrotrackprojects-projects.vercel.app/login';
+          }, 3000);
+        </script>
+      </head>
+      <body>
+        <div class="container">
+          <h1>¡Tu cuenta ha sido verificada! 🎉</h1>
+          <a href="https://agrotrack-develop-full-b7e80rp5d-agrotrackprojects-projects.vercel.app/login">Iniciar sesión</a>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Envía la respuesta HTML
+    res.send(htmlTemplate);
   }
+
   // Esta ruta inicia el flujo de autenticación, redirigiendo a Auth0.
   // La guardia 'auth0' maneja la redirección.
   @Post('auth0/login')
