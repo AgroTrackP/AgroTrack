@@ -58,7 +58,7 @@ export class StripeController {
     return { url: session.url, id: session.id };
   }
 
-  @Post('cancel')
+  @Post('cancel/:id')
   @UseGuards(PassportJwtAuthGuard, IsActiveGuard, SelfOnlyGuard)
   @ApiOperation({ summary: 'Cancela la suscripción activa del usuario' })
   @ApiResponse({
