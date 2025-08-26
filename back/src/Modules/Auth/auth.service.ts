@@ -13,7 +13,6 @@ import { validatePassword } from 'src/Helpers/passwordValidator';
 import { LoginUserDto } from './dtos/LoginUser.dto';
 import { JwtPayload } from 'src/types/jwt-payload.interface';
 import { MailService } from '../nodemailer/mail.service';
-import { confirmationTemplate } from '../nodemailer/templates/confirmacion.html';
 import { Role } from '../Users/user.enum'; // ✅ Correct import
 import { ActivityService } from '../ActivityLogs/activity-logs.service';
 import { ActivityType } from '../ActivityLogs/entities/activity-logs.entity';

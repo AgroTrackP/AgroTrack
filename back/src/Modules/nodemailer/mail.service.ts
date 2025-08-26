@@ -1,7 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import nodemailer from 'nodemailer';
-import * as fs from 'fs';
-import * as path from 'path';
 import { SubscriptionPlan } from '../SubscriptionPlan/entities/subscriptionplan.entity';
 import { Users } from '../Users/entities/user.entity';
 import ConfirmationEmail from './templates/confirmation';
@@ -22,27 +20,6 @@ export class MailService {
         pass: process.env.SMTP_PASS,
       },
     });
-  }
-
-  private loadTemplate(
-    templateName: string,
-    replacements: Record<string, string>,
-  ): string {
-    const isProd = process.env.NODE_ENV === 'production';
-
-    const basePath = isProd
-      ? path.join(__dirname, 'templates') // dist/Modules/nodemailer/templates
-      : path.join(__dirname, '..', 'templates'); // src/Modules/nodemailer/templates
-
-    const templatePath = path.join(basePath, `${templateName}.html`);
-
-    let template = fs.readFileSync(templatePath, 'utf-8');
-
-    for (const [key, value] of Object.entries(replacements)) {
-      template = template.replace(new RegExp(`{{${key}}}`, 'g'), value);
-    }
-
-    return template;
   }
 
   async sendMail(to: string, subject: string, html: string) {
