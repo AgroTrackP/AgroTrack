@@ -117,19 +117,17 @@ export class StripeService {
 
     // Verificamos que el client_reference_id (userId) exista en la sesión.
     if (!clientReferenceId) {
-      console.error(
-        `Webhook Error: client_reference_id no encontrado en la sesión ${session.id}. No se puede asociar el pago a un usuario.`,
+      throw new BadRequestException(
+        `Webhook Error: client_reference_id no encontrado.`,
       );
-      return;
     }
 
     // Ahora que sabemos que clientReferenceId es un string, podemos usarlo de forma segura.
     const user = await this.userDbService.findOneBy({ id: clientReferenceId });
     if (!user) {
-      console.error(
+      throw new NotFoundException(
         `Webhook Error: Usuario con ID ${clientReferenceId} no encontrado.`,
       );
-      return;
     }
 
     // Obtenemos el Price ID de forma segura.
@@ -150,10 +148,9 @@ export class StripeService {
       stripePriceId,
     });
     if (!plan) {
-      console.error(
+      throw new NotFoundException(
         `Webhook Error: Plan con Stripe Price ID ${stripePriceId} no encontrado.`,
       );
-      return;
     }
 
     // Actualizamos el usuario
