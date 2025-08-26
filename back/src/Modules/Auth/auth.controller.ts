@@ -103,14 +103,14 @@ export class AuthController {
         <script>
           // Redirige al usuario después de 3 segundos
           setTimeout(() => {
-            window.location.href = 'http://localhost:3000/login';
+            window.location.href = 'https://agrotrack-develop-full-b7e80rp5d-agrotrackprojects-projects.vercel.app/login';
           }, 3000);
         </script>
       </head>
       <body>
         <div class="container">
           <h1>¡Tu cuenta ha sido verificada! 🎉</h1>
-          <p>Redirigiendo a la página de inicio de sesión...</p>
+          <a href="https://agrotrack-develop-full-b7e80rp5d-agrotrackprojects-projects.vercel.app/login">Iniciar sesión</a>
         </div>
       </body>
       </html>
