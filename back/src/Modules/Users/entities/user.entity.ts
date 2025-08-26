@@ -19,6 +19,7 @@ import { Phenology } from 'src/Modules/Phenologies/entities/phenologies.entity';
 import { SubscriptionPlan } from 'src/Modules/SubscriptionPlan/entities/subscriptionplan.entity';
 import { SubscriptionStatus } from '../subscriptionStatus.enum';
 import { ActivityLog } from 'src/Modules/ActivityLogs/entities/activity-logs.entity';
+import { CalendarEntry } from 'src/Modules/Calendar/entities/calendar.entity';
 
 @Entity({
   name: 'USERS',
@@ -136,4 +137,7 @@ export class Users {
 
   @OneToMany(() => ActivityLog, (activityLog) => activityLog.user)
   activityLogs: ActivityLog[];
+
+  @OneToMany(() => CalendarEntry, (calendarEntry) => calendarEntry.user)
+  calendarEntries: CalendarEntry[];
 }
