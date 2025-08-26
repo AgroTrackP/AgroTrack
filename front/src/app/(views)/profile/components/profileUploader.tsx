@@ -16,6 +16,21 @@ const ProfileImageUploader = () => {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
+
+
+            const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+            if(!validTypes.includes(file.type)) {
+                toast.error("Solo se permiten imágenes JPG, JPEG, PNG o WEBP ❌");
+                e.target.value = "";
+                return;
+            }
+
+            const maxSize = 300000 * 1024;
+            if (file.size > maxSize) {
+                toast.error("La imagen no puede superar los 300MB ❌");
+            }
+
+
             setSelectedFile(file);
             setPreviewUrl(URL.createObjectURL(file));
     }
@@ -46,6 +61,7 @@ const handleUpload = async () => {
         },
     }
 );
+
         console.log("✅ Respuesta Cloudinary:", cloudinaryRes.data);
         // 🔹 URL devuelta por backend / cloudinary
         const imageUrl =

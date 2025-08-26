@@ -213,7 +213,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         try {       
             const responseData = await updateUserCredentials(user.id!, updatedData, tokenToSend);
-            setUser(responseData); 
+            if (responseData.user) {
+            setUser((prev) => (prev ? { ...prev, ...responseData.user } : responseData.user));
+            }
         } catch (error) {
             console.error("Error al actualizar las credenciales:", error);
             throw error;
