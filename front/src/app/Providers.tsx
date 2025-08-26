@@ -17,6 +17,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
       clientId={process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID!}
       authorizationParams={{
         redirect_uri: redirectUri,
+        audience: process.env.NEXT_PUBLIC_AUTH0_AUDIENCE, 
+        scope: "openid profile email",
       }}
     >
       <AuthProvider>
