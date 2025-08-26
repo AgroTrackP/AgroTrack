@@ -14,6 +14,7 @@ import { LayoutDashboard } from "lucide-react";
 
 export const AuthNavbar = () => {
     const { isAuth, logoutUser, user } = useAuthContext();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const pathname = usePathname();
     const router = useRouter();
 

@@ -34,6 +34,8 @@ export class UsersService {
   }*/
   // En tu archivo users.service.ts
 
+  // En tu archivo users.service.ts
+
   async findAlluseradnplantation(
     pageNum = 1,
     limitNum = 10,
@@ -41,36 +43,41 @@ export class UsersService {
     order: 'ASC' | 'DESC' = 'ASC',
   ): Promise<any> {
     try {
-      const validSortKeys = ['name', 'email', 'created_at', 'status', 'plan'];
-      if (!validSortKeys.includes(sortBy)) {
-        sortBy = 'name'; // Asegura un valor por defecto seguro
-      }
+      // --- MAPEO SEGURO DE CLAVES DE ORDENAMIENTO ---
+      // Este "diccionario" traduce los nombres del frontend a los nombres reales de las columnas.
+      const sortKeyMap: Record<string, string> = {
+        name: 'name',
+        status: 'isActive',
+        plan: 'suscription_level.name',
+        registrationDate: 'created_at', // <-- ¡AQUÍ ESTÁ LA TRADUCCIÓN CLAVE!
+      };
 
-      // --- LÓGICA DE ORDENAMIENTO CORREGIDA ---
+      // Si el 'sortBy' que llega no es válido, usa 'name' por defecto.
+      const orderByField = sortKeyMap[sortBy] || 'name';
+
+      // --- LÓGICA DE ORDENAMIENTO DINÁMICO MEJORADA ---
       let orderConfig = {};
 
-      if (sortBy === 'plan') {
-        // Si se ordena por plan, creamos el objeto anidado correcto
+      if (orderByField.includes('.')) {
+        // Maneja relaciones anidadas, como 'suscription_level.name'
+        const [relation, property] = orderByField.split('.');
         orderConfig = {
-          suscription_level: {
-            name: order,
+          [relation]: {
+            [property]: order,
           },
         };
-      } else if (sortBy === 'status') {
-        orderConfig = { isActive: order };
       } else {
-        // Para los demás casos, es un ordenamiento simple
+        // Maneja columnas simples
         orderConfig = {
-          [sortBy]: order,
+          [orderByField]: order,
         };
       }
-      // -------------------------------------------
 
       const [data, total] = await this.usersRepository.findAndCount({
         skip: (pageNum - 1) * limitNum,
         take: limitNum,
         relations: ['plantations', 'suscription_level'],
-        order: orderConfig, // <-- Usamos el objeto de ordenamiento dinámico y correcto
+        order: orderConfig, // <-- Usa el objeto de ordenamiento dinámico
       });
 
       return { data, pageNum, limitNum, total };

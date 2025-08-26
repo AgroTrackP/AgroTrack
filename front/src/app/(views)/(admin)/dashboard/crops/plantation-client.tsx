@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuthContext } from '@/context/authContext';
 import { PlantationsTable, type Plantation } from './components/plantation-table';
 import { Pagination } from '../users/components/pagination';

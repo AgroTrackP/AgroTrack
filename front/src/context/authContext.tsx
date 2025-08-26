@@ -31,6 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [token, setToken] = useState<string | null>(null);
     const [login, setLogin] = useState(false);
     const [subscription, setSubscription] = useState<IUserSubscription | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [loadingSubscription, setLoadingSubscription] = useState(true);
 
     const { user: auth0User, isAuthenticated, getAccessTokenSilently, logout } = useAuth0();
