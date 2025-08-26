@@ -64,7 +64,9 @@ export class StripeController {
     description: 'La solicitud de cancelación ha sido procesada.',
   })
   @ApiResponse({ status: 401, description: 'No autorizado.' })
-  async cancelSubscription(@Req() req: AuthRequest) {
+  async cancelSubscription(
+    @Param('id', ParseUUIDPipe) id: string, 
+    @Req() req: AuthRequest) {
     const userId = req.user.id;
     return await this.stripeService.cancelSubscription(userId);
   }
