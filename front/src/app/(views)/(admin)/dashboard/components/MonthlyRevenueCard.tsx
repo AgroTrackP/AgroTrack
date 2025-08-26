@@ -34,7 +34,7 @@ export function MonthlyRevenueCard() {
       }
     };
     fetchRevenue();
-  }, [token, isAuth]);
+  }, [token, isAuth, revenue]);
 
   const displayValue = isLoading 
     ? <div className="h-8 w-24 bg-gray-200 rounded animate-pulse"></div>

@@ -24,7 +24,6 @@
     "migration:run": "npm run build && typeorm migration:run -d dist/config/typeorm.config.js",
     "migration:revert": "npm run build && typeorm migration:revert -d dist/config/typeorm.config.js",
     "migration:create": "typeorm migration:create src/migrations/MigrationName",
-
     "seed:categories": "ts-node -r tsconfig-paths/register src/Modules/Categories/seeders/categories.seeder.ts",
     "seed:products": "ts-node -r tsconfig-paths/register src/Modules/Products/seeders/products.seeder.ts",
     "seed:plantations": "ts-node -r tsconfig-paths/register src/Modules/Plantations/seeders/plantations.seeder.ts",
@@ -32,11 +31,11 @@
     "seed:diseases": "ts-node -r tsconfig-paths/register src/Modules/Diseases/seeders/diseases.seeder.ts",
     "seed:applicationtype": "ts-node -r tsconfig-paths/register src/Modules/ApplicationTypes/seeders/applicationtypes.seeder.ts",
     "seed:applicationplan": "ts-node -r tsconfig-paths/register src/Modules/ApplicationPlans/seeders/applicationplans.seeder.ts",
-  
     "run:category:seed": "ts-node -r tsconfig-paths/register src/Modules/Categories/seeders/categories.seeder.ts",
     "run:product:seed": "ts-node -r tsconfig-paths/register src/Modules/Products/seeders/products.seeder.ts ",
     "run:recommendation:seed": "ts-node -r tsconfig-paths/register src/Modules/Recomendations/seeders/recomendations.seeder.ts",
-    "seed:all": "ts-node -r tsconfig-paths/register src/Modules/seed.ts"
+    "seed:all": "ts-node -r tsconfig-paths/register src/Modules/seed.ts",
+    "email": "email dev --dir src/nodemailer/templates"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.5",
@@ -46,6 +45,7 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.5",
     "@nestjs/swagger": "^11.2.0",
+    "@react-email/components": "^0.5.1",
     "@types/jsonwebtoken": "^9.0.10",
     "bcrypt": "^6.0.0",
     "buffer-to-stream": "^1.0.0",
@@ -64,6 +64,9 @@
     "passport-auth0": "^1.4.4",
     "passport-custom": "^1.1.1",
     "passport-jwt": "^4.0.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-email": "^4.2.8",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "stripe": "^18.4.0"
