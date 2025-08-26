@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ActivityLog, ActivityType } from './entities/activity-logs.entity';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { Users } from '../Users/entities/user.entity';
 
 @Injectable()
@@ -36,5 +36,30 @@ export class ActivityService {
 
     // Devolvemos un objeto compatible con la paginación del frontend
     return { data, total, page, limit };
+  }
+
+  async countNewSubscriptionsLast30Days(): Promise<number> {
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const count = await this.activityLogsRepository.count({
+        where: {
+          type: ActivityType.SUBSCRIPTION_STARTED,
+          timestamp: MoreThan(thirtyDaysAgo),
+        },
+      });
+
+      return count;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          `Error counting new subscriptions: ${error.message}`,
+        );
+      }
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while counting new subscriptions.',
+      );
+    }
   }
 }

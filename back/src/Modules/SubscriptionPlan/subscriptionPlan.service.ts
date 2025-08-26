@@ -29,28 +29,42 @@ export class SuscriptionPlanService {
     }
   }
 
-  // Esta función para nada se hizo con Gemini -F
-  async getAllSusPlansWithNum() {
+  async getUserCountsByPlan(): Promise<{
+    basic: number;
+    pro: number;
+    premium: number;
+  }> {
     try {
       const plansWithUserCount = await this.suscriptionPlanRepository
-        .createQueryBuilder('plan') // 1. Empezamos a construir la consulta desde la entidad SubscriptionPlan (alias 'plan')
-        .leftJoin('plan.users', 'user') // 2. Unimos con la tabla de usuarios (alias 'user')
-        .select('plan.name', 'name') // 3. Seleccionamos el nombre del plan y le damos un alias 'name'
-        .addSelect('COUNT(user.id)', 'userCount') // 4. Contamos los IDs de los usuarios unidos y le damos el alias 'userCount'
-        .groupBy('plan.name') // 5. Agrupamos los resultados por el nombre del plan para que el conteo sea correcto
-        .getRawMany(); // 6. Obtenemos los resultados en formato crudo (raw)
+        .createQueryBuilder('plan')
+        .leftJoin('plan.users', 'user')
+        .select('plan.name', 'planName')
+        .addSelect('COUNT(user.id)', 'userCount')
+        .groupBy('plan.name')
+        .getRawMany();
 
-      // El resultado será un array de objetos como: [{ name: 'Básico', userCount: '5' }]
-      // Convertimos el conteo a número
-      const formattedResult = plansWithUserCount.map((plan) => ({
-        planName: plan.name,
-        numberOfUsers: parseInt(plan.userCount, 10),
-      }));
+      const counts = {
+        basic: 0,
+        pro: 0,
+        premium: 0,
+      };
 
-      return formattedResult;
+      for (const result of plansWithUserCount) {
+        const planName = result.planName.toLowerCase();
+        if (counts.hasOwnProperty(planName)) {
+          counts[planName] = parseInt(result.userCount, 10);
+        }
+      }
+
+      return counts;
     } catch (error) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          `Error fetching user counts by plan: ${error.message}`,
+        );
+      }
       throw new InternalServerErrorException(
-        `Error fetching subscription plans with user count: ${error.message}`,
+        'An unexpected error occurred while fetching user counts.',
       );
     }
   }
