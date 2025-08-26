@@ -96,9 +96,18 @@ export const LandProvider = ({ children }: { children: React.ReactNode }) => {
 
     try {
       if (!user?.id || !token) return;
+
       const data = await getTerrainsByUser(user.id, token);
       console.log("🌱 Terrenos obtenidos - Contenido:", data);
-      setLands(data);
+      const terrains = Array.isArray(data)
+        ? data
+        : Array.isArray((data as any)?.terrains)
+          ? (data as any).terrains
+          : Array.isArray((data as any)?.data)
+            ? (data as any).data
+            : [];
+
+      setLands(terrains);
     } catch (err) {
       const apiError = err as ApiError;
       console.error("Error al obtener terrenos:", apiError);
