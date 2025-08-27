@@ -128,7 +128,8 @@ export default function LandForm() {
     try {
       const dataToSubmit = {
         ...form,
-        area_m2: area_m2_number.toString(),
+        area_m2: area_m2_number,
+        // .toString()
         // ✅ Creamos el string de ubicación desde las coordenadas
         location: `${selectedCoords.lat},${selectedCoords.lng}`,
       };
