@@ -8,7 +8,6 @@ import Button from "@/components/ui/button";
 import { ConfirmationModal } from "../../(admin)/dashboard/users/components/confirmation-modal";
 import EditLandModal from "./editLandModal";
 
-
 const TerrainInformation = () => {
   const {
     lands,
@@ -19,7 +18,7 @@ const TerrainInformation = () => {
     updateLand,
     totalPages,
     currentPageFromApi,
-    totalItems, // 👈 total global de terrenos
+    totalItems,
   } = useLands();
 
   const [selectTerrenoId, setSelectTerrenoId] = useState<string | null>(null);
@@ -62,9 +61,10 @@ const TerrainInformation = () => {
   };
   const handleConfirmEdit = async (updatedData: any) => {
     if (landToEdit) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, ...dataToSend } = updatedData;
-      await updateLand(landToEdit.id!, dataToSend);
+      // --- CORRECCIÓN AQUÍ ---
+      // No necesitamos desestructurar 'id' de 'updatedData'.
+      // Simplemente pasamos los datos actualizados directamente.
+      await updateLand(landToEdit.id!, updatedData);
       handleCancelEdit();
     }
   };
@@ -94,7 +94,7 @@ const TerrainInformation = () => {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-bold text-gray-800">🌱 Mis Terrenos</h2>
         <span className="text-sm text-gray-600 bg-green-100 px-3 py-1 rounded-full">
-        <span>Total: {totalItems}</span>
+          <span>Total: {totalItems}</span>
         </span>
       </div>
 
@@ -199,7 +199,3 @@ const TerrainInformation = () => {
 };
 
 export default TerrainInformation;
-
-
-
-
