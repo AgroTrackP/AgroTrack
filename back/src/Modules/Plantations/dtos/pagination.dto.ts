@@ -1,5 +1,12 @@
-import { IsOptional, IsNumber, Min, IsString, IsIn } from 'class-validator';
-import { Type } from 'class-transformer';
+import {
+  IsOptional,
+  IsNumber,
+  Min,
+  IsString,
+  IsIn,
+  IsBoolean,
+} from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class PaginationDto {
   @IsOptional()
@@ -56,5 +63,11 @@ export class QueryPlantationsDto {
 
   @IsOptional()
   @IsString()
-  ownerName?: string; // <-- AÑADE ESTA PROPIEDAD
+  ownerName?: string;
+
+  // --- AÑADE ESTA PROPIEDAD ---
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true') // Convierte "true" a true y cualquier otra cosa a false
+  isActive?: boolean;
 }

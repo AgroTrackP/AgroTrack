@@ -131,45 +131,49 @@ export class PlantationsService {
       limit = 10,
       crop_type,
       season,
+      ownerName,
       sortBy = 'name',
       order = 'ASC',
-      ownerName, // <-- Extrae el nuevo filtro
+      isActive, // <-- Extrae el nuevo filtro
     } = queryDto;
+
     const skip = (page - 1) * limit;
 
     const queryBuilder = this.plantationsRepo.createQueryBuilder('plantation');
     queryBuilder.leftJoinAndSelect('plantation.user', 'user');
 
+    // --- APLICA FILTROS ---
     if (crop_type) {
       queryBuilder.andWhere('plantation.crop_type = :crop_type', { crop_type });
     }
     if (season) {
       queryBuilder.andWhere('plantation.season = :season', { season });
     }
-    // --- AÑADE ESTA LÓGICA DE FILTRADO ---
     if (ownerName) {
       queryBuilder.andWhere('user.name ILIKE :ownerName', {
         ownerName: `%${ownerName}%`,
       });
     }
+    // --- AÑADE EL FILTRO 'isActive' ---
+    if (isActive !== undefined) {
+      queryBuilder.andWhere('plantation.isActive = :isActive', { isActive });
+    }
 
-    // Valida que sortBy sea una columna segura para ordenar
+    // --- APLICA ORDENAMIENTO ---
     const validSortKeys: Record<string, string> = {
       name: 'plantation.name',
       ownerName: 'user.name',
       crop_type: 'plantation.crop_type',
       area_m2: 'plantation.area_m2',
       startDate: 'plantation.start_date',
+      isActive: 'plantation.isActive',
     };
     const sortKey = validSortKeys[sortBy] || 'plantation.name';
+    queryBuilder.orderBy(sortKey, order);
 
     try {
       const total = await queryBuilder.getCount();
-      const plantations = await queryBuilder
-        .orderBy(sortKey, order)
-        .skip(skip)
-        .take(limit)
-        .getMany();
+      const plantations = await queryBuilder.skip(skip).take(limit).getMany();
 
       return {
         data: plantations,
@@ -179,9 +183,13 @@ export class PlantationsService {
         totalPages: Math.ceil(total / limit),
       };
     } catch (error) {
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Error al buscar las plantaciones: ${error.message}`,
+        );
+      }
       throw new BadRequestException(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        `Error al buscar las plantaciones: ${error.message}`,
+        'Error desconocido al buscar las plantaciones',
       );
     }
   }
@@ -250,6 +258,7 @@ export class PlantationsService {
         user: {
           id: userId,
         },
+        isActive: true,
       },
       take: limit,
       skip: skip,
@@ -260,6 +269,18 @@ export class PlantationsService {
       data: plantations,
       total,
       totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async setActivationStatus(id: string, isActive: boolean) {
+    const plantation = await this.plantationsRepo.findOneBy({ id });
+    if (!plantation) {
+      throw new NotFoundException(`Plantation with id ${id} not found`);
+    }
+    plantation.isActive = isActive;
+    await this.plantationsRepo.save(plantation);
+    return {
+      message: `Plantation ${isActive ? 'activated' : 'deactivated'} successfully.`,
     };
   }
 }

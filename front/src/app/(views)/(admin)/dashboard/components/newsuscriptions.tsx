@@ -1,14 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuthContext } from '@/context/authContext'; // Ajusta la ruta a tu contexto
+import { useAuthContext } from '@/context/authContext';
 import { Target } from 'lucide-react';
-
-// 1. AÑADIMOS la propiedad 'subscriptionStatus' a la interfaz
-interface User {
-  created_at: string;
-  subscriptionStatus: string; 
-}
 
 export function NewSubscriptionsCard() {
   const [count, setCount] = useState<number | null>(null);
@@ -23,29 +17,18 @@ export function NewSubscriptionsCard() {
 
     const fetchNewSubsCount = async () => {
       try {
-        const response = await fetch('https://agrotrack-develop.onrender.com/users?page=1&limit=1000', {
+        // 1. Apuntamos al nuevo endpoint. Asumo que el prefijo es 'subscription-plan'.
+        const response = await fetch('https://agrotrack-develop.onrender.com/subscription-plan/new-last-30-days', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
-        if (!response.ok) throw new Error('Failed to fetch users list');
-        
-        const responseData = await response.json();
-        const users: User[] = responseData.data;
 
-        // --- AÑADE ESTE CONSOLE.LOG ---
-        console.log("Usuarios recibidos del backend:", users);
-        // -----------------------------
+        if (!response.ok) {
+          throw new Error('Failed to fetch new subscriptions count');
+        }
         
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        
-        const newUsersCount = users.filter(user => {
-            const registrationDate = new Date(user.created_at);
-            const isRecent = registrationDate >= thirtyDaysAgo;
-            const isActive = user.subscriptionStatus === 'active';
-            return isRecent && isActive;
-        }).length;
-        
-        setCount(newUsersCount);
+        // 2. Extraemos el conteo directamente de la respuesta.
+        const data = await response.json();
+        setCount(data.newSubscriptions);
 
       } catch (error) {
         console.error(error);
@@ -54,6 +37,7 @@ export function NewSubscriptionsCard() {
         setIsLoading(false);
       }
     };
+
     fetchNewSubsCount();
   }, [token, isAuth]);
 
@@ -69,7 +53,7 @@ export function NewSubscriptionsCard() {
         <Target className="h-6 w-6 text-red-600" />
       </div>
       <div>
-        <p className="text-sm text-gray-500">Nuevas Subs Activas (30d)</p>
+        <p className="text-sm text-gray-500">Nuevas Subs (30d)</p>
         <p className="text-2xl font-bold">{displayValue}</p>
       </div>
     </div>
