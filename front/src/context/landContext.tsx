@@ -13,7 +13,7 @@ export interface LandData {
   season: string;
   location: string;
   start_date: string;
-  userId: string;
+  userId?: string; // userId puede ser opcional si el backend lo infiere del token
 }
 
 export interface LandUpdateData {
