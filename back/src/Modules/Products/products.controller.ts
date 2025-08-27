@@ -28,6 +28,7 @@ import { RoleGuard } from 'src/Guards/role.guard';
 import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from '../Users/user.enum';
 import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
+import { IsActiveGuard } from 'src/Guards/isActive.guard';
 
 @ApiTags('Products')
 @Controller('products')
@@ -36,7 +37,7 @@ export class ProductsController {
 
   // Crear un nuevo producto
   @Post()
-  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, RoleGuard, IsActiveGuard)
   @Roles(Role.Admin)
   @ApiOperation({ summary: 'Crear un nuevo producto' })
   @ApiBody({ type: CreateProductDto })
@@ -50,6 +51,7 @@ export class ProductsController {
 
   // Obtener todos los productos.
   @Get()
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard)
   @ApiOperation({ summary: 'Obtener todos los productos' })
   @ApiResponse({ status: 200, description: 'Lista de productos' })
   @HttpCode(200)
@@ -59,6 +61,7 @@ export class ProductsController {
 
   // Obtener productos paginados
   @Get('paginate')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard)
   @ApiOperation({ summary: 'Obtener productos paginados' })
   @ApiResponse({
     status: 200,
@@ -84,6 +87,7 @@ export class ProductsController {
 
   // Obtener un producto por su ID
   @Get(':id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard)
   @ApiOperation({ summary: 'Obtener un producto por su ID' })
   @ApiParam({ name: 'id', description: 'ID del producto' })
   @ApiResponse({ status: 200, description: 'Producto encontrado' })
@@ -94,7 +98,7 @@ export class ProductsController {
 
   // Actualizar un producto por su ID
   @Patch(':id')
-  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, RoleGuard, IsActiveGuard)
   @Roles(Role.Admin)
   @ApiOperation({ summary: 'Actualizar un producto por su ID' })
   @ApiParam({ name: 'id', description: 'ID del producto' })
@@ -110,7 +114,7 @@ export class ProductsController {
 
   // Eliminar un producto por su ID
   @Delete(':id')
-  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, RoleGuard, IsActiveGuard)
   @Roles(Role.Admin)
   @ApiOperation({ summary: 'Eliminar un producto por su ID' })
   @ApiParam({ name: 'id', description: 'ID del producto' })
