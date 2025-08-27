@@ -80,14 +80,14 @@ export class UsersController {
   @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
   @Roles(Role.Admin)
   @UseInterceptors(ExcludePasswordInterceptor)
-  @ApiOperation({ summary: 'Get all users (Admin only)' })
+  @ApiOperation({ summary: 'Get all users with Plantations (Admin only)' })
   @ApiResponse({ status: 200, description: 'All users found' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   async findAlluserandplantation(
     @Query('page') page: string | null,
     @Query('limit') limit?: string,
-    @Query('sortBy') sortBy?: string, // <-- AÑADE ESTO
-    @Query('order') order?: 'ASC' | 'DESC', // <-- AÑADE ESTO
+    @Query('sortBy') sortBy?: string,
+    @Query('order') order?: 'ASC' | 'DESC',
   ): Promise<any> {
     const pageNum = parseInt(page ?? '1');
     const limitNum = parseInt(limit ?? '10');
@@ -100,13 +100,13 @@ export class UsersController {
       order,
     );
   }
-  // --- 2. Rutas específicas que deben ir antes de las genéricas ---
-  // GET /users/subscription-plan/:id
+
   @Get('subscription-plan/:id')
   @UseGuards(PassportJwtAuthGuard, IsActiveGuard, SelfOnlyGuard)
   async getSubPlanByUsersId(@Param('id', ParseUUIDPipe) id: string) {
     return await this.usersService.getSubPlanByUserId(id);
   }
+
   @Put('subscription/:id')
   @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
   @HttpCode(200)
@@ -127,6 +127,7 @@ export class UsersController {
       updateSubscriptionDto.planName,
     );
   }
+
   @Get('search')
   @UseGuards(PassportJwtAuthGuard, RoleGuard)
   @Roles(Role.Admin)

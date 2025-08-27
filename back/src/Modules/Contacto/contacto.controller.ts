@@ -13,6 +13,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Contact } from './entities/contacto.entity';
+import { IsActiveGuard } from 'src/Guards/isActive.guard';
 
 @ApiBearerAuth('jwt')
 @ApiTags('Contact')
@@ -29,7 +30,7 @@ export class ContactController {
     return this.contactService.createContact(dto);
   }
   @Get()
-  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, RoleGuard, IsActiveGuard)
   @Roles(Role.Admin)
   @ApiBearerAuth()
   @ApiOperation({

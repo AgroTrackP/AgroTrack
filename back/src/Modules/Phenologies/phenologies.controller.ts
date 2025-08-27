@@ -8,6 +8,7 @@ import {
   Body,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { PhenologiesService } from './phenologies.service';
 import { CreatePhenologyDto } from './dtos/create.phenology.dto';
@@ -19,6 +20,11 @@ import {
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger';
+import { Roles } from '../Auth/decorators/roles.decorator';
+import { Role } from '../Users/user.enum';
+import { RoleGuard } from 'src/Guards/role.guard';
+import { IsActiveGuard } from 'src/Guards/isActive.guard';
+import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 
 @ApiTags('Phenologies')
 @Controller('phenologies')
@@ -26,6 +32,8 @@ export class PhenologiesController {
   constructor(private readonly phenologiesService: PhenologiesService) {}
 
   @Post()
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Crear una fenología' })
   @ApiBody({ type: CreatePhenologyDto })
   @ApiResponse({ status: 201, description: 'Fenología creada correctamente' })
@@ -34,6 +42,7 @@ export class PhenologiesController {
   }
 
   @Get()
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard)
   @ApiOperation({ summary: 'Obtener todas las fenologías' })
   @ApiResponse({
     status: 200,
@@ -44,6 +53,7 @@ export class PhenologiesController {
   }
 
   @Get(':id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard)
   @ApiOperation({ summary: 'Obtener una fenología por ID' })
   @ApiParam({
     name: 'id',
@@ -57,6 +67,8 @@ export class PhenologiesController {
   }
 
   @Put(':id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Actualizar una fenología por ID' })
   @ApiParam({
     name: 'id',
@@ -77,6 +89,8 @@ export class PhenologiesController {
   }
 
   @Delete(':id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Eliminar una fenología por ID' })
   @ApiParam({
