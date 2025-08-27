@@ -12,7 +12,9 @@ import { ProductsModule } from '../Products/products.module';
 import { UsersModule } from '../Users/users.module';
 import { ApplicationPlansService } from './applicationplans.service';
 import { Products } from '../Products/entities/products.entity';
-
+import { RecommendationsModule } from '../Recomendations/recomendations.module';
+import { TaskService } from '../task/task.service';
+import { NodemailerModule } from '../nodemailer/mail.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -27,9 +29,11 @@ import { Products } from '../Products/entities/products.entity';
     forwardRef(() => PlantationsModule),
     DiseasesModule,
     ProductsModule,
+    RecommendationsModule,
+    NodemailerModule,
   ],
   controllers: [ApplicationPlansController],
-  providers: [ApplicationPlansService],
-  exports: [ApplicationPlansService],
+  providers: [ApplicationPlansService, TaskService],
+  exports: [ApplicationPlansService, TaskService],
 })
 export class ApplicationPlansModule {}

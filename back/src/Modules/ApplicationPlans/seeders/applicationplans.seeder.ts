@@ -33,10 +33,15 @@ export class ApplicationPlansSeeder {
     console.log(`\n============================================`);
     console.log(`🚀 Iniciando seeder de planes de aplicación`);
     console.log(`============================================`);
+    console.log(`🔎 Total de plantaciones encontradas: ${plantations.length}`);
 
     for (const plantation of plantations) {
       console.log(
-        `\n🔄 Procesando plantación: ${plantation.name} (ID: ${plantation.id}, Tipo: ${plantation.crop_type})`,
+        `\n🔄 Procesando plantación: ${plantation.name} (ID: ${plantation.id})`,
+      );
+      // ✅ Línea de depuración clave
+      console.log(
+        `   --> Tipo de cultivo de la plantación: '${plantation.crop_type}'`,
       );
 
       const existingPlan = await plansRepo.findOne({
@@ -51,12 +56,21 @@ export class ApplicationPlansSeeder {
       }
 
       // Buscar la recomendación específica para el tipo de cultivo
+      // ✅ Línea de depuración clave
+      console.log(
+        `   --> Buscando recomendación para el 'crop_type': '${plantation.crop_type}'`,
+      );
       const recommendation = await recommendationsRepo.findOne({
         where: { crop_type: plantation.crop_type },
         relations: ['recommended_diseases', 'recommended_products'],
       });
 
-      if (!recommendation) {
+      // ✅ Línea de depuración clave
+      if (recommendation) {
+        console.log(
+          `   ✅ Recomendación encontrada para '${plantation.crop_type}'.`,
+        );
+      } else {
         console.warn(
           `⚠️ No se encontró una recomendación para el tipo de cultivo '${plantation.crop_type}'. Asegúrate de que existe en el seeder de recomendaciones.`,
         );
@@ -83,9 +97,9 @@ export class ApplicationPlansSeeder {
       );
       const diseaseToApply = recommendation.recommended_diseases[randomIndex];
 
-      console.log(`   - Enfermedad seleccionada: ${diseaseToApply.name}`);
+      console.log(`  - Enfermedad seleccionada: ${diseaseToApply.name}`);
       console.log(
-        `   - Productos recomendados para esta enfermedad: ${recommendation.recommended_products.map((p) => p.name).join(', ')}`,
+        `  - Productos recomendados para esta enfermedad: ${recommendation.recommended_products.map((p) => p.name).join(', ')}`,
       );
 
       const newPlan = plansRepo.create({

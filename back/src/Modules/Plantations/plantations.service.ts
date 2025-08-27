@@ -15,6 +15,7 @@ import { RecommendationsService } from '../Recomendations/recomendations.service
 import { ActivityService } from '../ActivityLogs/activity-logs.service';
 import { ActivityType } from '../ActivityLogs/entities/activity-logs.entity';
 import { QueryPlantationsDto } from './dtos/pagination.dto';
+import { ApplicationPlansService } from '../ApplicationPlans/applicationplans.service';
 
 @Injectable()
 export class PlantationsService {
@@ -27,6 +28,7 @@ export class PlantationsService {
     @InjectRepository(Users)
     private readonly usersRepo: Repository<Users>,
     private readonly activityService: ActivityService,
+    private readonly appPlansService: ApplicationPlansService,
   ) {}
 
   async create(payload: CreatePlantationDto) {
@@ -44,13 +46,17 @@ export class PlantationsService {
         plantation.user = user;
       }
 
-      await this.activityService.logActivity(
-        plantation.user,
-        ActivityType.PLANTATION_CREATED,
-        `El usuario creó la plantación '${plantation.name}'.`,
-      );
+      const savedPlantation = await this.plantationsRepo.save(plantation); // ⭐⭐ Llama a la nueva función para generar el plan de aplicación ⭐⭐
 
-      return await this.plantationsRepo.save(plantation);
+      await this.appPlansService.generatePlanForPlantation(savedPlantation);
+
+      await this.activityService.logActivity(
+        savedPlantation.user,
+        ActivityType.PLANTATION_CREATED,
+        `El usuario creó la plantación '${savedPlantation.name}'.`,
+      ); // Para que devuelva la plantación con el plan creado, puedes hacer una nueva búsqueda
+
+      return this.findOne(savedPlantation.id);
     } catch (error: unknown) {
       if (error instanceof Error) {
         throw new BadRequestException(
