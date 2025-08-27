@@ -11,6 +11,8 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
+  Query,
+  // Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApplicationPlansService } from './applicationplans.service';
@@ -21,20 +23,58 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
+  ApiOperation,
+  ApiQuery,
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ApplicationPlans } from './entities/applicationplan.entity';
 import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
+// import { Users } from '../Users/entities/user.entity';
+import { FindPendingPlansDto } from './dtos/pagination.dto';
+// import { Request } from 'express';
+import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
 import { IsActiveGuard } from 'src/Guards/isActive.guard';
 import { RoleGuard } from 'src/Guards/role.guard';
 import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from '../Users/user.enum';
 
+@ApiBearerAuth('jwt')
 @ApiTags('planes-de-aplicacion')
 @ApiBearerAuth('jwt')
 @Controller('planes-de-aplicacion')
 export class ApplicationPlansController {
   constructor(private readonly appPlansService: ApplicationPlansService) {}
+
+  @Get('pending/:userId')
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard) // Usar el guard para proteger la ruta
+  @ApiOperation({
+    summary:
+      'Obtener planes de aplicación pendientes para un usuario por un rango de fechas o para mañana por defecto.',
+  })
+  @ApiParam({ name: 'userId', description: 'ID del usuario', type: 'string' })
+  @ApiQuery({
+    name: 'startDate',
+    required: false,
+    type: 'string',
+    format: 'date-time',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    type: 'string',
+    format: 'date-time',
+  })
+  @ApiResponse({ status: 200, description: 'Lista de planes pendientes' })
+  async getPendingPlansForUser(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Query() query: FindPendingPlansDto,
+  ) {
+    return this.appPlansService.findPendingPlans(
+      userId,
+      query.startDate,
+      query.endDate,
+    );
+  }
 
   @Get()
   @ApiResponse({

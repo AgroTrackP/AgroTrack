@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Between } from 'typeorm';
 import { ApplicationPlans } from './entities/applicationplan.entity';
 import { ApplicationPlanItem } from './entities/applicationplan.item.entity';
 import { CreateApplicationPlanDto } from './dtos/create.applicationplan.dto';
@@ -173,6 +173,49 @@ export class ApplicationPlansService {
       if (error instanceof NotFoundException) throw error;
       throw new InternalServerErrorException('Error creating application plan');
     }
+  }
+
+  // ✅ MÉTODO MODIFICADO para aceptar un rango de fechas
+  async findPendingPlans(userId: string, startDate?: string, endDate?: string) {
+    let plannedDateCondition;
+
+    if (startDate && endDate) {
+      // Si se proporcionan las fechas, busca en ese rango
+      plannedDateCondition = Between(new Date(startDate), new Date(endDate));
+    } else {
+      // Si no, usa la lógica para el día de mañana
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const startOfTomorrow = new Date(
+        tomorrow.getFullYear(),
+        tomorrow.getMonth(),
+        tomorrow.getDate(),
+        0,
+        0,
+        0,
+        0,
+      );
+      const endOfTomorrow = new Date(
+        tomorrow.getFullYear(),
+        tomorrow.getMonth(),
+        tomorrow.getDate(),
+        23,
+        59,
+        59,
+        999,
+      );
+      plannedDateCondition = Between(startOfTomorrow, endOfTomorrow);
+    }
+
+    return this.appPlanRepo.find({
+      where: {
+        user: { id: userId },
+        status: Status.PENDING,
+        planned_date: plannedDateCondition,
+      },
+      relations: ['user', 'plantation', 'disease', 'items', 'items.product'],
+    });
   }
 
   async findAll(): Promise<ApplicationPlans[]> {
