@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -7,6 +6,7 @@ import { PlantationsTable, type Plantation } from './components/plantation-table
 import { Pagination } from '../users/components/pagination';
 import { toast } from 'react-toastify';
 import { EditPlantationModal } from '../users/components/edit-plantation-modal';
+import { RecommendationsModal } from '../users/components/recommendation-modal';
 import { useDebounce } from '@/hooks/use-debounce';
 
 // Interfaz de datos que vienen de la API
@@ -53,6 +53,8 @@ export function PlantationsClient() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingPlantation, setEditingPlantation] = useState<Plantation | null>(null);
 
+  const [viewingRecsForId, setViewingRecsForId] = useState<string | null>(null);
+
   const { token, isAuth } = useAuthContext();
 
   const fetchPlantations = useCallback(async () => {
@@ -79,9 +81,10 @@ export function PlantationsClient() {
       setPlantations(mapApiToPlantation(data.data));
       setTotalPages(data.totalPages || Math.ceil(data.total / itemsPerPage));
 
-    } catch (err: any) {
-      toast.error(err.message);
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Ocurrió un error inesperado.';
+      toast.error(errorMessage);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -104,12 +107,10 @@ export function PlantationsClient() {
     setEditingPlantation(plantation);
     setIsEditModalOpen(true);
   };
-
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
     setEditingPlantation(null);
   };
-
   const handleSavePlantation = async () => {
     await fetchPlantations();
     handleCloseEditModal();
@@ -121,6 +122,13 @@ export function PlantationsClient() {
         p.id === plantationId ? { ...p, isActive: newStatus } : p
       )
     );
+  };
+
+  const handleOpenRecsModal = (plantation: Plantation) => {
+    setViewingRecsForId(plantation.id);
+  };
+  const handleCloseRecsModal = () => {
+    setViewingRecsForId(null);
   };
 
   if (isLoading) return <p className="text-center py-4">Cargando terrenos...</p>;
@@ -162,6 +170,7 @@ export function PlantationsClient() {
         sortConfig={sortConfig}
         onEdit={handleOpenEditModal}
         onStatusChange={handleStatusChange}
+        onViewRecs={handleOpenRecsModal}
       />
 
       <Pagination 
@@ -175,6 +184,12 @@ export function PlantationsClient() {
         plantationId={editingPlantation?.id || null}
         onClose={handleCloseEditModal}
         onSave={handleSavePlantation}
+      />
+
+      <RecommendationsModal
+        isOpen={!!viewingRecsForId}
+        plantationId={viewingRecsForId}
+        onClose={handleCloseRecsModal}
       />
     </div>
   );

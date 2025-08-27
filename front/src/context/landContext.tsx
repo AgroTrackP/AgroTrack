@@ -3,7 +3,9 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useAuthContext } from "./authContext";
-import { getTerrainsByUser, postTerrainInformation, deleteTerrain } from "@/services/auth";
+import { getTerrainsByUser, postTerrainInformation, deactivateTerrain } from "@/services/auth";
+import { ApiError } from "next/dist/server/api-utils";
+import { toast } from "react-toastify";
 
 // Interfaz para los datos de un terreno
 export interface LandData {
@@ -97,21 +99,27 @@ setTotalItems(responseData.total ?? 0);
   );
 
   // ✅ deleteLand ahora usa deleteTerrain del servicio
-  const deleteLand = useCallback(
-    async (landId: string) => {
-      if (!user || !token) return;
-      setIsLoading(true);
-      try {
-        await deleteTerrain(landId, token);
-        await fetchLands(currentPageFromApi, 5);
-      } catch (error) {
-        setError("Error al eliminar el terreno.");
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [user, token, currentPageFromApi, fetchLands]
-  );
+  const deleteLand = useCallback(async (landId: string) => {
+    if (!token) {
+      toast.error("No estás autenticado.");
+      return;
+    }
+    try {
+      // 1. Llama a la función del servicio para desactivar en el backend
+      await deactivateTerrain(landId, token);
+      
+      toast.success("Terreno desactivado con éxito.");
+      
+      // 2. Actualiza la UI al instante para que el terreno desaparezca de la lista
+      setLands((prevLands) => prevLands.filter((land) => land.id !== landId));
+
+    } catch (err) {
+      const errorMessage =
+        (err instanceof Error && err.message) ||
+        "Error al desactivar el terreno.";
+      toast.error(errorMessage);
+    }
+  }, [token]); // El array de dependencias solo necesita el token
 
   const updateLand = useCallback(
     async (landId: string, data: LandUpdateData) => {

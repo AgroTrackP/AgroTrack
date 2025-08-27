@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowDown, ArrowUp, Pencil } from 'lucide-react';
+import { ArrowDown, ArrowUp, Pencil, Lightbulb } from 'lucide-react';
 import { PlantationStatusToggle } from './plantation-status-toggle';
 
 export type Plantation = {
@@ -19,9 +19,10 @@ interface PlantationsTableProps {
   sortConfig: { key: keyof Plantation; direction: 'ascending' | 'descending' } | null;
   onEdit: (plantation: Plantation) => void;
   onStatusChange: (plantationId: string, newStatus: boolean) => void;
+  onViewRecs: (plantation: Plantation) => void;
 }
 
-export function PlantationsTable({ plantations, onSort, sortConfig, onEdit, onStatusChange }: PlantationsTableProps) {
+export function PlantationsTable({ plantations, onSort, sortConfig, onEdit, onStatusChange, onViewRecs }: PlantationsTableProps) {
   
   const renderSortIcon = (key: keyof Plantation) => {
     if (!sortConfig || sortConfig.key !== key) return null;
@@ -49,11 +50,6 @@ export function PlantationsTable({ plantations, onSort, sortConfig, onEdit, onSt
               </button>
             </th>
             <th scope="col" className="px-6 py-3 text-left">
-              <button className="flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider" onClick={() => onSort('area_m2')}>
-                Área (m²) {renderSortIcon('area_m2')}
-              </button>
-            </th>
-             <th scope="col" className="px-6 py-3 text-left">
               <button className="flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider" onClick={() => onSort('startDate')}>
                 Fecha Inicio {renderSortIcon('startDate')}
               </button>
@@ -68,7 +64,6 @@ export function PlantationsTable({ plantations, onSort, sortConfig, onEdit, onSt
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{p.name}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.ownerName}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.crop_type}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.area_m2.toLocaleString('es-AR')}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.startDate}</td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <PlantationStatusToggle 
@@ -78,9 +73,14 @@ export function PlantationsTable({ plantations, onSort, sortConfig, onEdit, onSt
                 />
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button onClick={() => onEdit(p)} className="text-indigo-600 hover:text-indigo-900" title="Editar Terreno">
-                  <Pencil size={18} />
-                </button>
+                <div className="flex items-center space-x-4">
+                  <button onClick={() => onViewRecs(p)} className="text-yellow-500 hover:text-yellow-700" title="Ver Recomendaciones">
+                    <Lightbulb size={18} />
+                  </button>
+                  <button onClick={() => onEdit(p)} className="text-indigo-600 hover:text-indigo-900" title="Editar Terreno">
+                    <Pencil size={18} />
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

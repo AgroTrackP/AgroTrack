@@ -15,20 +15,28 @@ export function PlantationStatusToggle({ plantationId, initialStatus, onStatusCh
   const { token } = useAuthContext();
 
   const handleChange = async () => {
+    if (!token) {
+      toast.error("Error de autenticación.");
+      return;
+    }
+
     setIsLoading(true);
     const newStatus = !initialStatus;
     const endpoint = newStatus ? 'activate' : 'deactivate';
 
     try {
+      // Revisa que esta URL sea la correcta
       const response = await fetch(`https://agrotrack-develop.onrender.com/plantations/${plantationId}/${endpoint}`, {
         method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: {
+          'Authorization': `Bearer ${token}`, // Se envía el token
+        },
       });
 
-      if (!response.ok) throw new Error('Error al cambiar el estado.');
+      if (!response.ok) throw new Error('Error al cambiar el estado del terreno.');
       
       toast.success(`Terreno ${newStatus ? 'activado' : 'desactivado'}.`);
-      onStatusChange(plantationId, newStatus);
+      onStatusChange(plantationId, newStatus); // Se notifica al padre para actualizar la UI
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {

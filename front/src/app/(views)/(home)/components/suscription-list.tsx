@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
-
 import SuscriptionCard from '@/components/ui/suscription-card/suscription-card'
 import { useAuthContext } from '@/context/authContext'
 import { ISuscription } from '@/types'
@@ -19,24 +18,45 @@ const SuscriptionList = () => {
     const [error, setError] = useState<string | null>(null);
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
+   // En SuscriptionList.tsx
+
     useEffect(() => {
-        if (!subscription) {
-            const fetchPlans = async () => {
-                try {
-                    const response = await fetch('/api/subscription-plan');
-                    if (!response.ok) {
-                        throw new Error("No se pudieron cargar los planes");
-                    }
-                    const data = await response.json();
-                    setPlans(data);
-                } catch (err: unknown) {
-                    if (err instanceof Error) {
-                        setError(err.message);
-                    }
-                } finally {
-                    setLoadingPlans(false);
+        if (window.location.hash === '#planes') {
+            const element = document.getElementById('planes');
+            if (element) {
+                // --- CAMBIO CLAVE AQUÍ ---
+                // Esperamos un breve momento (ej. 100 milisegundos) para dar tiempo
+                // a que otros componentes como el carrusel se rendericen.
+                const timer = setTimeout(() => {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+
+                // Buena práctica: limpiar el temporizador si el componente se desmonta
+                return () => clearTimeout(timer);
+            }
+        }
+    }, []); // El array vacío asegura que solo se ejecute una vez
+    // useEffect para buscar los planes disponibles
+    useEffect(() => {
+        const fetchPlans = async () => {
+            setLoadingPlans(true);
+            try {
+                const response = await fetch('/api/subscription-plan');
+                if (!response.ok) {
+                    throw new Error("No se pudieron cargar los planes");
                 }
-            };
+                const data = await response.json();
+                setPlans(data);
+            } catch (err: unknown) {
+                if (err instanceof Error) {
+                    setError(err.message);
+                }
+            } finally {
+                setLoadingPlans(false);
+            }
+        };
+        
+        if (subscription?.status !== 'active') {
             fetchPlans();
         } else {
             setLoadingPlans(false);
@@ -53,21 +73,9 @@ const SuscriptionList = () => {
         setLoadingPlan(plan.stripePriceId);
 
         try {
-
-            console.log("Verificando el token antes de enviar: ", token);
             if (!token) {
-                alert("Error: El token de autenticación no está disponible. Por favor, vuelve a iniciar sesión.");
-                setLoadingPlan(null);
-                return;
+                throw new Error("Error: El token de autenticación no está disponible.");
             }
-
-            //este bloque solo es para ver q se envia
-            const dataToSend = {
-                userId: user.id,
-                priceId: plan.stripePriceId,
-            };
-            console.log("Enviando al backend:", dataToSend);
-
 
             const response = await fetch('/api/stripe/create-checkout-session', {
                 method: 'POST',
@@ -79,11 +87,9 @@ const SuscriptionList = () => {
                     userId: user.id,
                     priceId: plan.stripePriceId,
                 }),
-
             });
-            const session = await response.json();
-            console.log("Respuesta recibida del back", session);
 
+            const session = await response.json();
             if (!response.ok) {
                 throw new Error(session.error || "No se pudo crear la sesión de pago.");
             }
@@ -93,35 +99,36 @@ const SuscriptionList = () => {
                 const { error } = await stripe.redirectToCheckout({
                     sessionId: session.id,
                 });
-
                 if (error) {
-                    alert(error.message || "Error al redirigir a la página de pago");
+                    throw new Error(error.message || "Error al redirigir a la página de pago");
                 }
             }
         } catch (error) {
-            let errorMessage = "Ocurrio un error"
+            let errorMessage = "Ocurrió un error";
             if (error instanceof Error) {
-                errorMessage = error.message
+                errorMessage = error.message;
             }
-            alert(errorMessage)
+            toast.error(errorMessage);
         } finally {
             setLoadingPlan(null);
         }
     };
 
+    // Oculta por completo el componente si el usuario ya tiene un plan activo
     if (isAuth && subscription?.status === "active") {
         return null;
     }
 
     if (loadingPlans) {
-        return <div className="text-center py-20">Cargando planes...</div>
+        return <div className="text-center py-20">Cargando planes...</div>;
     }
 
     if (error) {
-        return <div className="text-center py-20">Error: {error}</div>
+        return <div className="text-center py-20">Error: {error}</div>;
     }
+
     return (
-        <div className="w-full max-w-6xl mx-auto px-4 py-20 flex flex-col md:flex-row items-center gap-32">
+        <div id="planes" className="w-full max-w-6xl mx-auto px-4 py-20 flex flex-col md:flex-row items-center gap-32">
             {plans?.map((plan) => (
                 <SuscriptionCard
                     key={plan.stripePriceId}
@@ -130,10 +137,9 @@ const SuscriptionList = () => {
                     isLoading={loadingPlan === plan.stripePriceId}
                 />
             ))}
-            {!plans?.length && <span>No hay suscripciones</span>}
+            {!plans?.length && <span>No hay suscripciones disponibles.</span>}
         </div>
     );
 };
 
 export default SuscriptionList;
-

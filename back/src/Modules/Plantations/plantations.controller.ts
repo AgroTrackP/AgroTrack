@@ -23,6 +23,7 @@ import { ApiOperation } from '@nestjs/swagger';
 import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 import { RoleGuard } from 'src/Guards/role.guard';
 import { Role } from '../Users/user.enum';
+import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
 
 @Controller('plantations')
 export class PlantationsController {
@@ -41,10 +42,13 @@ export class PlantationsController {
   // En tu plantations.controller.ts
 
   @Get('paginated')
-  async findAllPaginated(
-    @Query() queryDto: QueryPlantationsDto, // <-- Usa el nuevo DTO unificado
-  ) {
-    return this.plantationsService.findAllPaginated(queryDto); // <-- Pasa el DTO completo al servicio
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @Roles(Role.Admin)
+  @ApiOperation({
+    summary: 'Get all plantations with pagination, filtering, and sorting',
+  })
+  async findAllPaginated(@Query() queryDto: QueryPlantationsDto) {
+    return this.plantationsService.findAllPaginated(queryDto);
   }
   @Get('user/:id')
   async findByUser(
@@ -81,8 +85,7 @@ export class PlantationsController {
   }
 
   @Patch(':id/deactivate')
-  @UseGuards(PassportJwtAuthGuard, RoleGuard)
-  @Roles(Role.Admin)
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
   @ApiOperation({ summary: 'Deactivates a plantation (Admin only)' })
   async deactivatePlantation(@Param('id', ParseUUIDPipe) id: string) {
     return this.plantationsService.setActivationStatus(id, false);
