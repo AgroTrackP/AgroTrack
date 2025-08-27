@@ -6,12 +6,14 @@ import { PlantationsController } from './plantations.controller';
 import { PlantationsService } from './plantations.service';
 import { RecommendationsModule } from '../Recomendations/recomendations.module';
 import { ActivityLogsModule } from '../ActivityLogs/activity-logs.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Plantations, Users]),
     RecommendationsModule,
     ActivityLogsModule,
+    HttpModule,
   ],
   controllers: [PlantationsController],
   providers: [PlantationsService],

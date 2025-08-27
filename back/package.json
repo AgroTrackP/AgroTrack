@@ -38,6 +38,7 @@
     "email": "email dev --dir src/emails"
   },
   "dependencies": {
+    "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.1.5",
     "@nestjs/core": "^11.1.5",
     "@nestjs/jwt": "^11.0.0",
@@ -47,6 +48,7 @@
     "@nestjs/swagger": "^11.2.0",
     "@react-email/components": "^0.5.1",
     "@types/jsonwebtoken": "^9.0.10",
+    "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
     "buffer-to-stream": "^1.0.0",
     "class-transformer": "^0.5.1",

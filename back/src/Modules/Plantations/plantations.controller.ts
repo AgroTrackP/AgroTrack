@@ -46,8 +46,6 @@ export class PlantationsController {
     return this.plantationsService.findAll();
   }
 
-  // En tu plantations.controller.ts
-
   @Get('paginated')
   @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
   @Roles(Role.Admin)
@@ -65,6 +63,27 @@ export class PlantationsController {
     @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 5,
   ) {
     return this.plantationsService.findByUser(userId, page, limit);
+  }
+
+  @Get(':id/weather')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, PlantationOwnerGuard)
+  @ApiOperation({ summary: 'Get current weather for a specific plantation' })
+  @ApiResponse({
+    status: 200,
+    description: 'Current weather data retrieved successfully',
+    example: {
+      locationName: 'Cartagena',
+      temperature: '15.16°C',
+      feelsLike: '14.72°C',
+      humidity: '76%',
+      description: 'muy nuboso',
+      windSpeed: '1.65 m/s',
+      icon: 'https://openweathermap.org/img/wn/04d@2x.png',
+    },
+  })
+  @ApiResponse({ status: 404, description: 'Plantation not found' })
+  async getWeatherForPlantation(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.plantationsService.getWeatherForPlantation(id);
   }
 
   @Get(':id')
