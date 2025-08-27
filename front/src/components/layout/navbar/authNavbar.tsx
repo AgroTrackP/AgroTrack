@@ -1,4 +1,6 @@
-"use-client";
+// src/components/layout/navbar/authNavbar.tsx
+
+"use client"; // <-- AÑADE ESTA LÍNEA
 
 import Button from "@/components/ui/button";
 import { useAuthContext } from "@/context/authContext";
@@ -11,7 +13,6 @@ import { MdLogout } from "react-icons/md";
 import { SiTerraform } from "react-icons/si";
 import { LayoutDashboard } from "lucide-react";
 import Popup from "reactjs-popup";
-
 export const AuthNavbar = () => {
     const { isAuth, logoutUser, user, subscription } = useAuthContext();
     const router = useRouter();
