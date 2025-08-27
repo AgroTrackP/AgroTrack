@@ -18,39 +18,48 @@ import { PlantationsService } from './plantations.service';
 import { CreatePlantationDto } from './dtos/create.plantation.dto';
 import { UpdatePlantationDto } from './dtos/update.plantation.dto';
 import { QueryPlantationsDto } from './dtos/pagination.dto';
-import { Roles } from '../Auth/decorators/roles.decorator';
-import { ApiOperation } from '@nestjs/swagger';
+import { PlantationOwnerGuard } from 'src/Guards/plantation-owner.guard';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { UpdatePlantationStatusDto } from './dtos/update-status.dto';
 import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
+import { IsActiveGuard } from 'src/Guards/isActive.guard';
 import { RoleGuard } from 'src/Guards/role.guard';
+import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from '../Users/user.enum';
 import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
 
+@ApiBearerAuth('jwt')
 @Controller('plantations')
 export class PlantationsController {
   constructor(private readonly plantationsService: PlantationsService) {}
 
   @Post()
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard)
   async create(@Body() payload: CreatePlantationDto) {
     return this.plantationsService.create(payload);
   }
 
   @Get()
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
   async findAll() {
     return this.plantationsService.findAll();
   }
 
-  // En tu plantations.controller.ts
-
   @Get('paginated')
-  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
   @Roles(Role.Admin)
   @ApiOperation({
     summary: 'Get all plantations with pagination, filtering, and sorting',
-  })
-  async findAllPaginated(@Query() queryDto: QueryPlantationsDto) {
+  }
+  async findAllPaginated(
+    @Query() queryDto: QueryPlantationsDto,
+  ) {
     return this.plantationsService.findAllPaginated(queryDto);
   }
+
   @Get('user/:id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, SelfOnlyGuard)
   async findByUser(
     @Param('id') userId: string,
     @Query('page', new ParseIntPipe({ optional: true })) page: number = 1,
@@ -59,22 +68,46 @@ export class PlantationsController {
     return this.plantationsService.findByUser(userId, page, limit);
   }
 
+  @Get(':id/weather')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, PlantationOwnerGuard)
+  @ApiOperation({ summary: 'Get current weather for a specific plantation' })
+  @ApiResponse({
+    status: 200,
+    description: 'Current weather data retrieved successfully',
+    example: {
+      locationName: 'Cartagena',
+      temperature: '15.16°C',
+      feelsLike: '14.72°C',
+      humidity: '76%',
+      description: 'muy nuboso',
+      windSpeed: '1.65 m/s',
+      icon: 'https://openweathermap.org/img/wn/04d@2x.png',
+    },
+  })
+  @ApiResponse({ status: 404, description: 'Plantation not found' })
+  async getWeatherForPlantation(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.plantationsService.getWeatherForPlantation(id);
+  }
+
   @Get(':id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, PlantationOwnerGuard)
   async findOne(@Param('id') id: string) {
     return this.plantationsService.findOne(id);
   }
 
   @Put(':id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, PlantationOwnerGuard)
   async update(@Param('id') id: string, @Body() payload: UpdatePlantationDto) {
     return this.plantationsService.update(id, payload);
   }
 
   @Delete(':id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string) {
     await this.plantationsService.remove(id);
   }
-  // En plantations.controller.ts
 
   @Patch(':id/activate')
   @UseGuards(PassportJwtAuthGuard, RoleGuard)

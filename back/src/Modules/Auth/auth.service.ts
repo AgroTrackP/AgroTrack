@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from './dtos/CreateUser.dto';
@@ -16,6 +17,7 @@ import { MailService } from '../nodemailer/mail.service';
 import { Role } from '../Users/user.enum'; // ✅ Correct import
 import { ActivityService } from '../ActivityLogs/activity-logs.service';
 import { ActivityType } from '../ActivityLogs/entities/activity-logs.entity';
+import { ChangePasswordDto } from './dtos/ChangePassword.dto';
 
 @Injectable()
 export class AuthService {
@@ -184,5 +186,25 @@ export class AuthService {
     const token = this.jwtService.sign(payload);
 
     return { token };
+  }
+
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
+    const { currentPassword, newPassword } = changePasswordDto;
+
+    const user = await this.usersDbRepo.findOneBy({ id: userId });
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    await validatePassword(currentPassword, user.password);
+
+    const newHashedPassword = await hashPassword(newPassword);
+
+    await this.usersDbRepo.update(userId, { password: newHashedPassword });
+
+    return { message: 'Password changed successfully.' };
   }
 }
