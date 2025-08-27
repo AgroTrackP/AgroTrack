@@ -8,6 +8,7 @@ import React, { useState } from "react";
 import { LayoutDashboard, LogOut, User, Gem, Tractor, ChevronDown } from "lucide-react";
 import Popup from "reactjs-popup";
 import 'reactjs-popup/dist/index.css';
+import { destroyCookie } from "nookies";
 
 export const AuthNavbar = () => {
     const { isAuth, logoutUser, user, subscription } = useAuthContext();
@@ -21,10 +22,14 @@ export const AuthNavbar = () => {
     const isAdmin = user?.role === 'Admin';
     const canAddCrops = isAdmin || userSubscription;
 
-    const logout = () => {
-        logoutUser();
-        router.push(routes.home);
-    };
+   const logout = () => {
+    // Borra la cookie del token
+    destroyCookie(null, "auth_token", { path: "/" });
+
+    // Lógica existente de logout
+    logoutUser();
+    router.push(routes.home);
+};
 
     const handleProfileClick = () => {
         setIsMenuOpen(false);
@@ -119,12 +124,12 @@ export const AuthNavbar = () => {
                         Mi Perfil
                     </button>
                     <button 
-                        onClick={handleLogoutClick} 
-                        className="flex items-center w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
-                    >
-                        <LogOut size={16} className="mr-3" />
-                        Cerrar Sesión
-                    </button>
+    onClick={handleLogoutClick} 
+    className="flex items-center w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+>
+    <LogOut size={16} className="mr-3" />
+    Cerrar Sesión
+</button>
                 </div>
             </Popup>
 
