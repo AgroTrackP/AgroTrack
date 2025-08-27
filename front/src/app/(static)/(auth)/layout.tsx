@@ -49,7 +49,7 @@ const LayoutMainAuth: FC<LayoutMainAuthProps> = ({ children }) => {
             {/* Lado derecho: Imagen */}
             <div className="hidden md:block md:w-1/2 h-screen relative">
                 <Image
-                    src="https://images.unsplash.com/photo-1594498653385-d817b353949a?q=80&w=1887&auto=format&fit=crop" // Imagen más temática
+                    src="https://plus.unsplash.com/premium_photo-1678652878688-e4638fbff9bb?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" // Imagen más temática
                     alt="Campo agrícola"
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
