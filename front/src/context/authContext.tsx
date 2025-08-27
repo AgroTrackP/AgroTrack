@@ -11,13 +11,14 @@ type AuthContextType = {
     user: IUser | null;
     token: string | null;
     login: boolean;
-    subscription: IUserSubscription  | null;
+    subscription: IUserSubscription | null;
     loadingSubscription: boolean;
     saveUserData: (data: LoginResponse) => void;
     logoutUser: () => void;
     resetUserData: () => void;
     setUser: React.Dispatch<React.SetStateAction<IUser | null>>;
     updateCredentials: (updatedData: Partial<IUser>) => Promise<void>;
+    refetchSubscription: () => Promise<void>;
 };
 
 const AUTH_KEY = "authData";
@@ -34,6 +35,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [loadingSubscription, setLoadingSubscription] = useState(true);
 
     const { user: auth0User, isAuthenticated, getAccessTokenSilently, logout } = useAuth0();
+
 
     // 1. Recuperar la sesión del localStorage
     useEffect(() => {
@@ -118,38 +120,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // 3. Lógica para cargar la suscripción del usuario
     // bloque de suscripcion
-    useEffect(() => {
+
+    const refetchSubscription = useCallback(async () => {
         if (isAuth && user && token) {
-            const fetchSubscription = async () => {
-                try {
-                    const apiUrl = `/api/users/subscription-plan/${user.id}`;
-                    const response = await fetch(apiUrl, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-                    if (!response.ok) {
-                        if (response.status === 404) {
-                            console.log("El usuario no tiene una suscripción activa.");
-                            setSubscription(null);
-                            return;
-                        }
-                        const errorData = await response.json();
-                        throw new Error(errorData.message || 'No se pudo cargar la información del plan.');
+            try {
+                const apiUrl = `/api/users/subscription-plan/${user.id}`;
+                const response = await fetch(apiUrl, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
                     }
-                    const data = await response.json();
-                    console.log("Suscripción cargada con éxito:", data);
-                    setSubscription(data);
-    
-                } catch (error) {
-                    console.error("Error al cargar la suscripción:", error);
-                    setSubscription(null);
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'No se pudo cargar la información del plan.');
                 }
-            };
-    
-            fetchSubscription();
+                setSubscription(data);
+            } catch (error) {
+                console.error("Error al cargar la suscripción:", error);
+                setSubscription(null);
+            } finally {
+                setLoadingSubscription(false);
+            }
         }
     }, [isAuth, user, token]);
+
+    useEffect(() => {
+        if (isAuth) {
+            refetchSubscription();
+        }
+    }, [isAuth, refetchSubscription]);
 
     const saveUserData = (data: LoginResponse) => {
         setUser(data.user);
@@ -189,8 +190,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             console.error("No se puede actualizar, no hay usuario.");
             return;
         }
-        
-        let tokenToSend = token; 
+
+        let tokenToSend = token;
 
         const isAuth0Session = localStorage.getItem(AUTH0_FLAG) === "true";
         if (isAuth0Session) {
@@ -205,17 +206,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 throw new Error("No se pudo obtener un token de autenticación válido.");
             }
         }
-        
+
         if (!tokenToSend) {
             console.error("No hay un token válido para la solicitud.");
             throw new Error("No se pudo obtener un token de autenticación válido.");
         }
 
-        try {       
+        try {
             const responseData = await updateUserCredentials(user.id!, updatedData, tokenToSend);
-            if (responseData.user) {
-            setUser((prev) => (prev ? { ...prev, ...responseData.user } : responseData.user));
-            }
+            setUser(responseData);
         } catch (error) {
             console.error("Error al actualizar las credenciales:", error);
             throw error;
@@ -247,7 +246,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 logoutUser,
                 resetUserData,
                 setUser,
-                updateCredentials, 
+                updateCredentials,
+                refetchSubscription,
             }}
         >
             {children}
