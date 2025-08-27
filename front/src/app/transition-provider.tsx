@@ -25,7 +25,9 @@ export default function TransitionProvider({
         initial="hidden"
         animate="enter"
         exit="exit"
-        transition={{ type: "tween", duration: 1 }}
+        transition={{ type: "tween", duration: 0.2
+          
+         }}
       >
         {children}
       </motion.div>

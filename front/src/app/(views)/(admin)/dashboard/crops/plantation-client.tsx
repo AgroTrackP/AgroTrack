@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import { EditPlantationModal } from '../users/components/edit-plantation-modal';
 import { RecommendationsModal } from '../users/components/recommendation-modal';
 import { useDebounce } from '@/hooks/use-debounce';
+import { Loader2 } from 'lucide-react';
 
 // Interfaz de datos que vienen de la API
 interface PlantationFromApi {
@@ -17,13 +18,22 @@ interface PlantationFromApi {
   crop_type: string;
   start_date: string;
   season: string;
-  user: { name: string; };
+  user: { name: string };
   isActive: boolean;
 }
-
+export function OverlayLoader({ message = "Cargando..." }: { message?: string }) {
+  return (
+    <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="flex flex-col items-center">
+        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
+        <p className="mt-2 text-gray-700 font-medium">{message}</p>
+      </div>
+    </div>
+  );
+}
 // Función para mapear datos de la API al formato del frontend
 const mapApiToPlantation = (data: PlantationFromApi[]): Plantation[] => {
-  return data.map(p => ({
+  return data.map((p) => ({
     id: p.id,
     name: p.name,
     ownerName: p.user?.name || 'Sin Asignar',
@@ -42,14 +52,17 @@ export function PlantationsClient() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
-  
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Plantation; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' });
+
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Plantation;
+    direction: 'ascending' | 'descending';
+  }>({ key: 'name', direction: 'ascending' });
 
   const [cropFilter, setCropFilter] = useState('');
   const [seasonFilter, setSeasonFilter] = useState('');
   const [ownerSearch, setOwnerSearch] = useState('');
   const debouncedOwnerSearch = useDebounce(ownerSearch, 500);
-  
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingPlantation, setEditingPlantation] = useState<Plantation | null>(null);
 
@@ -72,17 +85,20 @@ export function PlantationsClient() {
       if (seasonFilter) params.append('season', seasonFilter);
       if (debouncedOwnerSearch) params.append('ownerName', debouncedOwnerSearch);
 
-      const response = await fetch(`https://agrotrack-develop.onrender.com/plantations/paginated?${params.toString()}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await fetch(
+        `https://agrotrack-develop.onrender.com/plantations/paginated?${params.toString()}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!response.ok) throw new Error('No se pudieron cargar los terrenos.');
-      
+
       const data = await response.json();
       setPlantations(mapApiToPlantation(data.data));
       setTotalPages(data.totalPages || Math.ceil(data.total / itemsPerPage));
-
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Ocurrió un error inesperado.';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Ocurrió un error inesperado.';
       toast.error(errorMessage);
       setError(errorMessage);
     } finally {
@@ -102,7 +118,7 @@ export function PlantationsClient() {
     setSortConfig({ key, direction });
     setCurrentPage(1);
   };
-  
+
   const handleOpenEditModal = (plantation: Plantation) => {
     setEditingPlantation(plantation);
     setIsEditModalOpen(true);
@@ -115,10 +131,10 @@ export function PlantationsClient() {
     await fetchPlantations();
     handleCloseEditModal();
   };
-  
+
   const handleStatusChange = (plantationId: string, newStatus: boolean) => {
-    setPlantations(currentPlantations =>
-      currentPlantations.map(p =>
+    setPlantations((currentPlantations) =>
+      currentPlantations.map((p) =>
         p.id === plantationId ? { ...p, isActive: newStatus } : p
       )
     );
@@ -131,15 +147,24 @@ export function PlantationsClient() {
     setViewingRecsForId(null);
   };
 
-  if (isLoading) return <p className="text-center py-4">Cargando terrenos...</p>;
-  if (error) return <p className="text-center py-4 text-red-500">{error}</p>;
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Overlay de carga */}
+      {isLoading && <OverlayLoader message="Cargando terrenos..." />}
+
+      {error && <p className="text-center py-4 text-red-500">{error}</p>}
+
       <h1 className="text-3xl font-bold">Todos los Terrenos</h1>
-      
+
       <div className="bg-white p-4 rounded-lg shadow-sm flex flex-wrap items-center gap-4">
-        <select value={cropFilter} onChange={(e) => { setCropFilter(e.target.value); setCurrentPage(1); }} className="border rounded-lg p-2 text-sm">
+        <select
+          value={cropFilter}
+          onChange={(e) => {
+            setCropFilter(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="border rounded-lg p-2 text-sm"
+        >
           <option value="">Todos los Cultivos</option>
           <option value="Frutas">Frutas</option>
           <option value="Vegetales">Vegetales</option>
@@ -148,14 +173,21 @@ export function PlantationsClient() {
           <option value="Ornamentales">Ornamentales</option>
           <option value="Pastos">Pastos</option>
         </select>
-        <select value={seasonFilter} onChange={(e) => { setSeasonFilter(e.target.value); setCurrentPage(1); }} className="border rounded-lg p-2 text-sm">
+        <select
+          value={seasonFilter}
+          onChange={(e) => {
+            setSeasonFilter(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="border rounded-lg p-2 text-sm"
+        >
           <option value="">Todas las Temporadas</option>
           <option value="verano">Verano</option>
           <option value="invierno">Invierno</option>
           <option value="primavera">Primavera</option>
           <option value="otono">Otoño</option>
         </select>
-        <input 
+        <input
           type="text"
           placeholder="Buscar por propietario..."
           value={ownerSearch}
@@ -163,8 +195,8 @@ export function PlantationsClient() {
           className="border rounded-lg p-2 text-sm w-full sm:w-auto"
         />
       </div>
-      
-      <PlantationsTable 
+
+      <PlantationsTable
         plantations={plantations}
         onSort={handleSort}
         sortConfig={sortConfig}
@@ -173,7 +205,7 @@ export function PlantationsClient() {
         onViewRecs={handleOpenRecsModal}
       />
 
-      <Pagination 
+      <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
