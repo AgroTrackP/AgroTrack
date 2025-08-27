@@ -7,6 +7,7 @@ import PaymentSuccessEmail from 'src/emails/payment-success';
 import ConfirmationEmail from 'src/emails/confirmation';
 import RenewalSuccessEmail from 'src/emails/renewal-success';
 import SubscriptionCanceledEmail from 'src/emails/subscription-canceled';
+import PasswordResetEmail from 'src/emails/password-reset';
 
 @Injectable()
 export class MailService {
@@ -169,6 +170,32 @@ export class MailService {
     } catch (error) {
       console.error(
         `Falló el envío del correo de cancelación a ${user.email}`,
+        error,
+      );
+    }
+  }
+
+  async sendPasswordResetEmail(name: string, email: string, resetUrl: string) {
+    const html = await render(
+      PasswordResetEmail({
+        name,
+        resetUrl,
+      }),
+    );
+
+    try {
+      await this.transporter.sendMail({
+        from: `"AgroTrack" <no-reply@agrotrack.com>`,
+        to: email,
+        subject: 'Restablece tu contraseña de AgroTrack',
+        html,
+      });
+      console.log(
+        `Correo de restablecimiento de contraseña enviado a ${email}`,
+      );
+    } catch (error) {
+      console.error(
+        `Falló el envío del correo de restablecimiento a ${email}`,
         error,
       );
     }
