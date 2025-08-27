@@ -20,7 +20,6 @@ import { UpdatePlantationDto } from './dtos/update.plantation.dto';
 import { QueryPlantationsDto } from './dtos/pagination.dto';
 import { PlantationOwnerGuard } from 'src/Guards/plantation-owner.guard';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { UpdatePlantationStatusDto } from './dtos/update-status.dto';
 import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 import { IsActiveGuard } from 'src/Guards/isActive.guard';
 import { RoleGuard } from 'src/Guards/role.guard';
@@ -51,10 +50,8 @@ export class PlantationsController {
   @Roles(Role.Admin)
   @ApiOperation({
     summary: 'Get all plantations with pagination, filtering, and sorting',
-  }
-  async findAllPaginated(
-    @Query() queryDto: QueryPlantationsDto,
-  ) {
+  })
+  async findAllPaginated(@Query() queryDto: QueryPlantationsDto) {
     return this.plantationsService.findAllPaginated(queryDto);
   }
 

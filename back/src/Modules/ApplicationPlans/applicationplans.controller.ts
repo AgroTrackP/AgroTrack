@@ -11,14 +11,27 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { ApplicationPlansService } from './applicationplans.service';
 import { CreateApplicationPlanDto } from './dtos/create.applicationplan.dto';
 import { UpdateApplicationPlanDto } from './dtos/update.applicationplan.dto';
-import { ApiTags, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiResponse,
+  ApiParam,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { ApplicationPlans } from './entities/applicationplan.entity';
+import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
+import { IsActiveGuard } from 'src/Guards/isActive.guard';
+import { RoleGuard } from 'src/Guards/role.guard';
+import { Roles } from '../Auth/decorators/roles.decorator';
+import { Role } from '../Users/user.enum';
 
 @ApiTags('planes-de-aplicacion')
+@ApiBearerAuth('jwt')
 @Controller('planes-de-aplicacion')
 export class ApplicationPlansController {
   constructor(private readonly appPlansService: ApplicationPlansService) {}
@@ -48,6 +61,8 @@ export class ApplicationPlansController {
   }
 
   @Post()
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   @ApiBody({
     type: CreateApplicationPlanDto,
@@ -65,6 +80,8 @@ export class ApplicationPlansController {
   }
 
   @Put(':id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   @ApiParam({
     name: 'id',
@@ -88,6 +105,8 @@ export class ApplicationPlansController {
   }
 
   @Delete(':id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
   @ApiParam({
     name: 'id',
     description: 'ID UUID del plan de aplicación a eliminar',

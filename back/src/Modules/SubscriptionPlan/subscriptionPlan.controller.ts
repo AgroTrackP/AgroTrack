@@ -13,6 +13,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ActivityService } from '../ActivityLogs/activity-logs.service';
+import { IsActiveGuard } from 'src/Guards/isActive.guard';
 
 @ApiTags('Subscription Plans')
 @ApiBearerAuth('jwt')
@@ -29,7 +30,7 @@ export class SuscriptionPlanController {
   }
 
   @Get('new-last-30-days')
-  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, RoleGuard, IsActiveGuard)
   @Roles(Role.Admin)
   @ApiOperation({
     summary: 'Get the count of new subscriptions in the last 30 days',
@@ -45,7 +46,7 @@ export class SuscriptionPlanController {
   }
 
   @Get('stats/user-counts')
-  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, RoleGuard, IsActiveGuard)
   @Roles(Role.Admin)
   @ApiOperation({
     summary: 'Get the count of users for each subscription plan (Admin only)',
@@ -67,14 +68,14 @@ export class SuscriptionPlanController {
   }
 
   @Post()
-  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, RoleGuard, IsActiveGuard)
   @Roles(Role.Admin)
   async createSuscriptionPlan(@Body() suscriptionData: CreateSuscriptionDto) {
     return this.suscriptionPlanService.createSuscriptionPlan(suscriptionData);
   }
 
   @Post('manual-seed')
-  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @UseGuards(PassportJwtAuthGuard, RoleGuard, IsActiveGuard)
   @Roles(Role.Admin)
   async createMultipleSuscriptionPlans(
     @Body() multipleSuscriptionData: CreateMultipleSubscriptionsDto,
