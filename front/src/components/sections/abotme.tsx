@@ -3,18 +3,9 @@ import React from 'react'
 
 const AboutMe = () => {
     return (
-        <section className="w-full max-w-6xl mx-auto px-4 py-20 flex flex-col md:flex-row items-center gap-32">
-            <div className="w-full md:w-1/2 " >
-                <Image
-                    src='https://res.cloudinary.com/dbemhu1mr/image/upload/v1754863524/img_1_pwjyxj.png'
-                    alt='about me'
-                    width={1024}
-                    height={559}
-                    className='rounded-br-full object-cover w-full h-auto shadow-lg'
-                />
-            </div>
+        <section className="w-full  mx-auto px-4 py-20 flex flex-col md:flex-row items-center gap-32 bg-secondary-50 mt-10">
 
-            <div className="w-full md:w-1/2">
+            <div className="w-full md:w-1/2 ml-10">
                 <h1 className="text-3xl md:text-4xl font-bold mb-6 text-primary-900">
                     Sobre AgroTrack
                 </h1>
@@ -31,6 +22,16 @@ const AboutMe = () => {
                     Creemos en el poder del campo y en el valor de impulsar el agro con innovación y tecnología
                     accesible para todos.
                 </p>
+            </div>
+
+            <div className="w-1/2" >
+                <Image
+                    src='https://res.cloudinary.com/dbemhu1mr/image/upload/v1756307429/5ef0f13f-4804-48a7-936d-631862ce0697.png'
+                    alt='about me'
+                    width={900}
+                    height={400}
+                    className='rounded-bl-3xl object-cover w-full h-auto shadow-lg'
+                />
             </div>
         </section>
     )

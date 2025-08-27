@@ -85,7 +85,7 @@ const TerrainInformation = () => {
   }
 
   return (
-    <div className="p-4 bg-white shadow-md rounded-lg rounded-xl">
+    <div className="p-4 bg-white shadow-md  rounded-xl">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-bold text-gray-800">🌱 Mis Terrenos</h2>
         <span className="text-sm text-gray-600 bg-green-100 px-3 py-1 rounded-full">
