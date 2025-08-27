@@ -4,37 +4,36 @@ import Button from "@/components/ui/button";
 import { useAuthContext } from "@/context/authContext";
 import { routes } from "@/routes";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { FaRegUser } from "react-icons/fa";
 import { MdLogout } from "react-icons/md";
 import { SiTerraform } from "react-icons/si";
-// 1. Importa el nuevo ícono
 import { LayoutDashboard } from "lucide-react";
 import Popup from "reactjs-popup";
 
 export const AuthNavbar = () => {
     const { isAuth, logoutUser, user, subscription } = useAuthContext();
-    const pathname = usePathname();
     const router = useRouter();
     const [subscriptionPopup, setSubscriptionPopup] = useState(false);
 
     const userSubscription = subscription?.status === 'active';
+    const isAdmin = user?.role === 'Admin';
 
     const logout = () => {
         logoutUser();
         router.push(routes.home);
     };
 
-    const handleuserSuscription = (e: React.MouseEvent) => {
-        if (!userSubscription) {
+    const handleAddCropsClick = (e: React.MouseEvent) => {
+        if (!isAdmin && !userSubscription) {
             e.preventDefault();
             setSubscriptionPopup(true);
         }
     }
 
     if (isAuth === null) {
-        return null; // O un componente de carga (loader)
+        return null;
     }
 
     if (!isAuth) {
@@ -58,11 +57,12 @@ export const AuthNavbar = () => {
         );
     }
 
+    const isAddCropsDisabled = !isAdmin && !userSubscription;
+
     return (
         <div className="flex items-center space-x-9 rtl:space-x-reverse">
-            {user?.role === 'Admin' && (
+            {isAdmin && (
                 <Link href={routes.dashboard} className='flex items-center space-x-2 rtl:space-x-reverse'>
-                    {/* 2. Reemplaza el ícono anterior */}
                     <LayoutDashboard className="h-5 w-5 text-gray-500" />
                     <span className='cursor-pointer font-medium'>Admin dashboard</span>
                 </Link>
@@ -75,8 +75,8 @@ export const AuthNavbar = () => {
 
             <Link
                 href={routes.page}
-                className={`flex items-center space-x-2 rtl:space-x-reverse ${!userSubscription ? 'text-gray-400 cursor-not-allowed' : 'text-gray-500'}`}
-                onClick={handleuserSuscription}
+                className={`flex items-center space-x-2 rtl:space-x-reverse ${isAddCropsDisabled ? 'text-gray-400 cursor-not-allowed' : 'text-gray-500'}`}
+                onClick={handleAddCropsClick}
             >
                 <SiTerraform className="h-5 w-5 text-gray-500" />
                 <span className='cursor-pointer font-medium'>Agregar cultivos</span>
@@ -100,7 +100,7 @@ export const AuthNavbar = () => {
                             Cerrar
                         </button>
                         <Link
-                            href={routes.home}
+                            href="/#planes"
                             className="px-6 py-2 bg-secondary-400 text-white rounded-md border border-primary-300  hover:bg-secondary-700"
                             onClick={() => setSubscriptionPopup(false)}
                         >

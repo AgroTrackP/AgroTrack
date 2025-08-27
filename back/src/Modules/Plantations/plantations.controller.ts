@@ -49,10 +49,13 @@ export class PlantationsController {
   @Get('paginated')
   @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
   @Roles(Role.Admin)
+  @ApiOperation({
+    summary: 'Get all plantations with pagination, filtering, and sorting',
+  }
   async findAllPaginated(
-    @Query() queryDto: QueryPlantationsDto, // <-- Usa el nuevo DTO unificado
+    @Query() queryDto: QueryPlantationsDto,
   ) {
-    return this.plantationsService.findAllPaginated(queryDto); // <-- Pasa el DTO completo al servicio
+    return this.plantationsService.findAllPaginated(queryDto);
   }
 
   @Get('user/:id')
@@ -106,19 +109,18 @@ export class PlantationsController {
     await this.plantationsService.remove(id);
   }
 
-  @Patch(':id/status')
-  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, PlantationOwnerGuard)
-  @ApiOperation({ summary: 'Activate or deactivate a plantation' })
-  @ApiResponse({
-    status: 200,
-    description: 'Plantation status updated successfully',
-  })
-  @ApiResponse({ status: 404, description: 'Plantation not found' })
-  async updateStatus(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateStatusDto: UpdatePlantationStatusDto,
-  ) {
-    const { isActive } = updateStatusDto;
-    return this.plantationsService.updateStatus(id, isActive);
+  @Patch(':id/activate')
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @Roles(Role.Admin)
+  @ApiOperation({ summary: 'Activates a plantation (Admin only)' })
+  async activatePlantation(@Param('id', ParseUUIDPipe) id: string) {
+    return this.plantationsService.setActivationStatus(id, true);
+  }
+
+  @Patch(':id/deactivate')
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+  @ApiOperation({ summary: 'Deactivates a plantation (Admin only)' })
+  async deactivatePlantation(@Param('id', ParseUUIDPipe) id: string) {
+    return this.plantationsService.setActivationStatus(id, false);
   }
 }

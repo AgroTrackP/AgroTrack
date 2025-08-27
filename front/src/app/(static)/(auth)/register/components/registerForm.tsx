@@ -55,6 +55,7 @@ const RegisterForm = () => {
   ) => {
     try {
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirmPassword, ...userData } = values;
       await postRegister(userData);
       toast.success("Usuario registrado correctamente");
