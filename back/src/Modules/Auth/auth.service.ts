@@ -123,6 +123,7 @@ export class AuthService {
         'applicationTypes',
         'phenologies',
         'suscription_level',
+        'calendarEntries',
       ],
     });
 
