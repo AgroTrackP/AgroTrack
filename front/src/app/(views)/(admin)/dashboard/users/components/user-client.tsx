@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
-
+import { Loader2, PlusCircle } from "lucide-react"; // Loader2 es un spinner de lucide
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthContext } from '@/context/authContext';
 import { UserTable, type User } from './user-table';
@@ -9,7 +9,6 @@ import { EditUserModal } from './edit-user-modal';
 import { ConfirmationModal } from './confirmation-modal';
 import { CreateUserModal } from './create-user-modal';
 import { UserPlantationsModal } from './user-plantation-modal';
-import { PlusCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useDebounce } from '@/hooks/use-debounce';
 // --- INTERFACES Y FUNCIONES DE MAPEO ---
@@ -279,55 +278,94 @@ export function UsersClient() {
     setSortConfig({ key, direction });
     setCurrentPage(1);
   };
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Gestión de Usuarios</h1>
-          <p className="text-gray-500">Busca, filtra y gestiona los productores de tu plataforma.</p>
-        </div>
-        <button onClick={handleOpenCreateModal} className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2">
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Agregar Usuario
-        </button>
-      </div>
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <input 
-          type="text" 
-          placeholder="Buscar en toda la base de datos..." 
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full lg:w-1/3 px-3 py-2 border border-gray-300 rounded-md text-sm"
-        />
-      </div>
-      
-      {isLoading && <p className="text-center py-4">Cargando usuarios...</p>}
-      {error && <p className="text-center py-4 text-red-500">{error}</p>}
-      {!isLoading && !error && (
-        <>
-          <UserTable 
-            users={users} 
-            onEdit={handleOpenEditModal} 
-            onDelete={handleOpenDeleteModal}
-            onRoleChange={handleRoleChange} 
-            onViewPlantations={handleOpenPlantationsModal}
-            onSort={handleSort}
-            sortConfig={sortConfig}
-          />
-          {!debouncedSearchTerm && totalPages > 1 && (
-            <Pagination 
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          )}
-        </>
-      )}
 
-      <CreateUserModal isOpen={isCreateModalOpen} onClose={handleCloseCreateModal} onSave={handleCreateUser} />
-      <EditUserModal isOpen={isEditModalOpen} user={editingUser} onClose={handleCloseEditModal} onSave={handleUpdateUser} />
-      <ConfirmationModal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} onConfirm={handleConfirmDelete} title="Confirmar Eliminación" message={`¿Estás seguro de que quieres eliminar a ${deletingUser?.name}? Esta acción no se puede deshacer.`} />
-      <UserPlantationsModal isOpen={isPlantationsModalOpen} user={selectedUserForPlantations} onClose={handleClosePlantationsModal} />
+return (
+  <div className="space-y-6 relative">
+    {/* Overlay de carga */}
+    {isLoading && (
+      <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="flex flex-col items-center">
+          <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
+          <p className="mt-2 text-gray-700 font-medium">Cargando usuarios...</p>
+        </div>
+      </div>
+    )}
+
+    <div className="flex items-center justify-between">
+      <div>
+        <h1 className="text-3xl font-bold">Gestión de Usuarios</h1>
+        <p className="text-gray-500">
+          Busca, filtra y gestiona los productores de tu plataforma.
+        </p>
+      </div>
+      <button
+        onClick={handleOpenCreateModal}
+        className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
+      >
+        <PlusCircle className="mr-2 h-4 w-4" />
+        Agregar Usuario
+      </button>
     </div>
-  );
+
+    <div className="bg-white p-4 rounded-lg shadow-sm">
+      <input
+        type="text"
+        placeholder="Buscar en toda la base de datos..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full lg:w-1/3 px-3 py-2 border border-gray-300 rounded-md text-sm"
+      />
+    </div>
+
+    {error && (
+      <p className="text-center py-4 text-red-500">{error}</p>
+    )}
+
+    {!isLoading && !error && (
+      <>
+        <UserTable
+          users={users}
+          onEdit={handleOpenEditModal}
+          onDelete={handleOpenDeleteModal}
+          onRoleChange={handleRoleChange}
+          onViewPlantations={handleOpenPlantationsModal}
+          onSort={handleSort}
+          sortConfig={sortConfig}
+        />
+
+        {!debouncedSearchTerm && totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        )}
+      </>
+    )}
+
+    <CreateUserModal
+      isOpen={isCreateModalOpen}
+      onClose={handleCloseCreateModal}
+      onSave={handleCreateUser}
+    />
+    <EditUserModal
+      isOpen={isEditModalOpen}
+      user={editingUser}
+      onClose={handleCloseEditModal}
+      onSave={handleUpdateUser}
+    />
+    <ConfirmationModal
+      isOpen={isDeleteModalOpen}
+      onClose={handleCloseDeleteModal}
+      onConfirm={handleConfirmDelete}
+      title="Confirmar Eliminación"
+      message={`¿Estás seguro de que quieres eliminar a ${deletingUser?.name}? Esta acción no se puede deshacer.`}
+    />
+    <UserPlantationsModal
+      isOpen={isPlantationsModalOpen}
+      user={selectedUserForPlantations}
+      onClose={handleClosePlantationsModal}
+    />
+  </div>
+);
 }

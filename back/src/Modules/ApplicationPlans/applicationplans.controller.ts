@@ -33,9 +33,14 @@ import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 import { FindPendingPlansDto } from './dtos/pagination.dto';
 // import { Request } from 'express';
 import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
+import { IsActiveGuard } from 'src/Guards/isActive.guard';
+import { RoleGuard } from 'src/Guards/role.guard';
+import { Roles } from '../Auth/decorators/roles.decorator';
+import { Role } from '../Users/user.enum';
 
 @ApiBearerAuth('jwt')
 @ApiTags('planes-de-aplicacion')
+@ApiBearerAuth('jwt')
 @Controller('planes-de-aplicacion')
 export class ApplicationPlansController {
   constructor(private readonly appPlansService: ApplicationPlansService) {}
@@ -96,6 +101,8 @@ export class ApplicationPlansController {
   }
 
   @Post()
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   @ApiBody({
     type: CreateApplicationPlanDto,
@@ -113,6 +120,8 @@ export class ApplicationPlansController {
   }
 
   @Put(':id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   @ApiParam({
     name: 'id',
@@ -136,6 +145,8 @@ export class ApplicationPlansController {
   }
 
   @Delete(':id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
   @ApiParam({
     name: 'id',
     description: 'ID UUID del plan de aplicación a eliminar',

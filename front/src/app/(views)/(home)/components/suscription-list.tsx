@@ -18,24 +18,19 @@ const SuscriptionList = () => {
     const [error, setError] = useState<string | null>(null);
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
-   // En SuscriptionList.tsx
-
+    // useEffect para centrar la vista al navegar con el ancla #planes
     useEffect(() => {
         if (window.location.hash === '#planes') {
             const element = document.getElementById('planes');
             if (element) {
-                // --- CAMBIO CLAVE AQUÍ ---
-                // Esperamos un breve momento (ej. 100 milisegundos) para dar tiempo
-                // a que otros componentes como el carrusel se rendericen.
                 const timer = setTimeout(() => {
                     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }, 100);
-
-                // Buena práctica: limpiar el temporizador si el componente se desmonta
                 return () => clearTimeout(timer);
             }
         }
-    }, []); // El array vacío asegura que solo se ejecute una vez
+    }, []);
+
     // useEffect para buscar los planes disponibles
     useEffect(() => {
         const fetchPlans = async () => {
@@ -46,7 +41,14 @@ const SuscriptionList = () => {
                     throw new Error("No se pudieron cargar los planes");
                 }
                 const data = await response.json();
-                setPlans(data);
+                
+                // Añade la propiedad 'highlight' al plan "Pro"
+                const plansWithHighlight = data.map((plan: ISuscription) => ({
+                    ...plan,
+                    highlight: plan.name === 'Pro',
+                }));
+                setPlans(plansWithHighlight);
+                
             } catch (err: unknown) {
                 if (err instanceof Error) {
                     setError(err.message);
@@ -120,15 +122,15 @@ const SuscriptionList = () => {
     }
 
     if (loadingPlans) {
-        return <div className="text-center py-20">Cargando planes...</div>;
+        return <div id="planes" className="text-center py-20">Cargando planes...</div>;
     }
 
     if (error) {
-        return <div className="text-center py-20">Error: {error}</div>;
+        return <div id="planes" className="text-center py-20">Error: {error}</div>;
     }
 
     return (
-        <div id="planes" className="w-full max-w-6xl mx-auto px-4 py-20 flex flex-col md:flex-row items-center gap-32">
+        <div id="planes" className="w-full max-w-6xl mx-auto px-4 py-20 flex flex-col md:flex-row items-center gap-10 md:gap-8">
             {plans?.map((plan) => (
                 <SuscriptionCard
                     key={plan.stripePriceId}

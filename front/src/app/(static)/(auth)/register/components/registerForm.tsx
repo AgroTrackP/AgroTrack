@@ -10,7 +10,9 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { postRegister } from "@/services/auth";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-
+import { Loader2 } from "lucide-react";
+import Link from "next/link"; // 1. Importa Link
+import { routes } from "@/routes"; // Asumiendo que 'routes.home' es '/'
 // Validaciones
 const RegisterSchema = yup.object().shape({
   email: yup.string().email("Correo inválido").required("Campo requerido"),
@@ -29,18 +31,13 @@ const RegisterSchema = yup.object().shape({
     .required("Confirma tu contraseña"),
   name: yup.string().required("Campo requerido"),
 });
-
 const RegisterForm = () => {
   const router = useRouter();
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
-  const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword((prev) => !prev);
-  }
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
+  const toggleConfirmPasswordVisibility = () => setShowConfirmPassword((prev) => !prev);
 
   const initialValues: RegisterUserDto & { confirmPassword: string } = {
     email: "",
@@ -54,21 +51,24 @@ const RegisterForm = () => {
     { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
   ) => {
     try {
-
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirmPassword, ...userData } = values;
       await postRegister(userData);
-      toast.success("Usuario registrado correctamente");
-      router.push("/login");
+      toast.success("Usuario registrado correctamente. Redirigiendo...");
+      
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
+
     } catch {
       toast.error("Error al registrar el usuario");
-    } finally {
-      setSubmitting(false);
+      setSubmitting(false); // Detiene la carga si hay un error
     }
   };
 
-  return (
-    <div>
+   return (
+    <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl">
+      <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Crear una Cuenta</h2>
       <Formik
         validationSchema={RegisterSchema}
         initialValues={initialValues}
@@ -83,7 +83,14 @@ const RegisterForm = () => {
           handleSubmit,
           isSubmitting,
         }) => (
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="relative">
+            {isSubmitting && (
+              <div className="absolute inset-0 bg-white bg-opacity-80 flex flex-col items-center justify-center rounded-xl z-10">
+                <Loader2 className="animate-spin h-12 w-12 text-green-600" />
+                <p className="mt-4 text-gray-600 font-semibold">Registrando usuario...</p>
+              </div>
+            )}
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Nombre"
@@ -116,9 +123,7 @@ const RegisterForm = () => {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 value={values.password}
-                error={
-                  errors.password && touched.password ? errors.password : ""
-                }
+                error={errors.password && touched.password ? errors.password : ""}
               >
                 <div
                   onClick={togglePasswordVisibility}
@@ -137,16 +142,13 @@ const RegisterForm = () => {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 value={values.confirmPassword}
-                error={
-                  errors.confirmPassword && touched.confirmPassword ? errors.confirmPassword : ""
-                }
+                error={errors.confirmPassword && touched.confirmPassword ? errors.confirmPassword : ""}
               >
                 <div
                   onClick={toggleConfirmPasswordVisibility}
                   className="cursor-pointer"
                 >
                   {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-
                 </div>
               </Input>
             </div>
@@ -154,12 +156,18 @@ const RegisterForm = () => {
             <Button
               type="submit"
               disabled={isSubmitting}
-              label="Registrarse"
-              className="w-full"
+              label={isSubmitting ? "Registrando..." : "Registrarse"}
+              className="w-full mt-6 bg-green-600 text-white hover:bg-green-700"
             />
           </form>
         )}
       </Formik>
+
+      <p className="text-center text-sm text-neutral-500 mt-4">
+        <Link href={routes.home} className="text-gray-600 hover:text-green-700 hover:underline">
+          ‹ Volver al inicio
+        </Link>
+      </p>
     </div>
   );
 };

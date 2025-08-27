@@ -5,8 +5,8 @@ import { useLands } from "@/context/landContext";
 import DetalleTerreno from "./detalleTerreno";
 import Button from "@/components/ui/button";
 import { ConfirmationModal } from "../../(admin)/dashboard/users/components/confirmation-modal";
-// 1. Importa el modal correcto del dashboard
 import { EditPlantationModal } from "../../(admin)/dashboard/users/components/edit-plantation-modal";
+import { OverlayLoader } from "@/components/overlay"; // ✅ Importamos overlay
 
 const TerrainInformation = () => {
   const {
@@ -24,7 +24,6 @@ const TerrainInformation = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [landIdToDelete, setLandIdToDelete] = useState<string | null>(null);
 
-  // 2. Simplificamos los estados para la edición
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [landIdToEdit, setLandIdToEdit] = useState<string | null>(null);
 
@@ -35,7 +34,7 @@ const TerrainInformation = () => {
     fetchLands(currentPageFromApi, itemsPerPage);
   }, [fetchLands, currentPageFromApi, itemsPerPage]);
 
-  // --- Lógica de Eliminar ---
+  // --- Eliminar terreno ---
   const handleDeleteClick = (landId: string) => {
     setLandIdToDelete(landId);
     setIsDeleteModalOpen(true);
@@ -51,7 +50,7 @@ const TerrainInformation = () => {
     }
   };
 
-  // --- 3. Lógica de Edición Simplificada ---
+  // --- Editar terreno ---
   const handleEditClick = (landId: string) => {
     setLandIdToEdit(landId);
     setIsEditModalOpen(true);
@@ -61,13 +60,9 @@ const TerrainInformation = () => {
     setLandIdToEdit(null);
   };
   const handleSaveSuccess = () => {
-    // Cuando el modal termina de guardar, refrescamos la lista y cerramos.
     fetchLands(currentPageFromApi, itemsPerPage);
     handleCancelEdit();
   };
-
-  if (isLoading) return <p className="text-blue-500">⏳ Cargando terrenos...</p>;
-  if (error) return <p className="text-red-500">❌ Error: {error}</p>;
 
   const filteredLands = lands.filter(
     (land) =>
@@ -80,12 +75,13 @@ const TerrainInformation = () => {
     fetchLands(pageNumber, itemsPerPage);
   };
 
-  if (lands.length === 0 && !searchTerm && !isLoading) {
-    return <p className="text-gray-500">No tienes terrenos registrados aún.</p>;
-  }
-
   return (
-    <div className="p-4 bg-white shadow-md rounded-lg rounded-xl">
+    <div className="p-4 bg-white shadow-md rounded-xl relative">
+      {/* ✅ Overlay loader bloquea la vista cuando está cargando */}
+      {isLoading && <OverlayLoader />}
+
+      {error && <p className="text-red-500">❌ Error: {error}</p>}
+
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-bold text-gray-800">🌱 Mis Terrenos</h2>
         <span className="text-sm text-gray-600 bg-green-100 px-3 py-1 rounded-full">
@@ -133,7 +129,7 @@ const TerrainInformation = () => {
             </li>
           ))
         ) : (
-          <p className="text-gray-500 col-span-2">No se encontraron terrenos.</p>
+          !isLoading && <p className="text-gray-500 col-span-2">No se encontraron terrenos.</p>
         )}
       </ul>
 
@@ -159,6 +155,7 @@ const TerrainInformation = () => {
         terrenoId={selectTerrenoId}
         onClose={() => setSelectTerrenoId(null)}
       />
+
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={handleCancelDelete}
@@ -166,8 +163,7 @@ const TerrainInformation = () => {
         title="Confirmar Eliminación"
         message="¿Estás seguro de que quieres eliminar este terreno?"
       />
-      
-      {/* 4. Usamos el modal del admin aquí */}
+
       <EditPlantationModal
         isOpen={isEditModalOpen}
         onClose={handleCancelEdit}

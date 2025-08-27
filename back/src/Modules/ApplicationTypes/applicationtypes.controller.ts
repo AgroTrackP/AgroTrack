@@ -10,6 +10,7 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -23,6 +24,11 @@ import { CreateApplicationTypeDto } from './dtos/create.applicationtypes.dto';
 import { UpdateApplicationTypeDto } from './dtos/update.applicationtypes.dto';
 import { Request } from 'express';
 import { Users } from '../Users/entities/user.entity';
+import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
+import { IsActiveGuard } from 'src/Guards/isActive.guard';
+import { RoleGuard } from 'src/Guards/role.guard';
+import { Roles } from '../Auth/decorators/roles.decorator';
+import { Role } from '../Users/user.enum';
 
 @ApiTags('Application Types')
 @ApiBearerAuth()
@@ -31,6 +37,8 @@ export class ApplicationTypesController {
   constructor(private readonly appTypesService: ApplicationTypesService) {}
 
   @Post()
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Create a new Application Type' })
   @ApiResponse({
     status: 201,
@@ -45,6 +53,7 @@ export class ApplicationTypesController {
   }
 
   @Get()
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard)
   @ApiOperation({ summary: 'Get all Application Types of the user' })
   @ApiResponse({
     status: 200,
@@ -56,6 +65,7 @@ export class ApplicationTypesController {
   }
 
   @Get(':id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard)
   @ApiOperation({ summary: 'Get a single Application Type by ID' })
   @ApiParam({ name: 'id', description: 'UUID of the Application Type' })
   @ApiResponse({ status: 200, description: 'Application Type found.' })
@@ -66,6 +76,8 @@ export class ApplicationTypesController {
   }
 
   @Patch(':id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
   @ApiOperation({ summary: 'Update an existing Application Type by ID' })
   @ApiParam({ name: 'id', description: 'UUID of the Application Type' })
   @ApiResponse({
@@ -83,6 +95,8 @@ export class ApplicationTypesController {
   }
 
   @Delete(':id')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Roles(Role.Admin)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete an Application Type by ID' })
   @ApiParam({ name: 'id', description: 'UUID of the Application Type' })
