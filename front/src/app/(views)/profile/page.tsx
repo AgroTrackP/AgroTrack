@@ -22,14 +22,12 @@ const PageProfile = () => {
         <UserData /> {/* ✅ UserData ahora contiene la lógica de edición */}
       </div>
 
-      <div className="mb-8">
-        <h3 className="text-xl font-semibold text-gray-700 mb-4">
+      <div className="mb-12">
+        <h3 className="text-xl font-semibold text-gray-700 mb-6">
           Gestión de Terrenos
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <TerrainInformation />
-          </div>
+        <div className="w-full">
+          <TerrainInformation />
         </div>
       </div>
 
@@ -46,14 +44,6 @@ const PageProfile = () => {
             <UserSuscription/>
           </div>
         </div>
-        {/* <div> */}
-        {/* <h3 className="text-xl font-semibold text-gray-700 mb-4">
-            Actualizar Perfil u otro dato
-          </h3> */}
-        {/* <div className="bg-white p-6 rounded-lg shadow-md border">
-            <p className="text-gray-500">Aquí irá el formulario para actualizar tus datos.</p>
-          </div> */}
-        {/* </div> */}
       </div>
     </div>
   );

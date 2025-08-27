@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcrypt';
-import { UnauthorizedException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 
 export const validatePassword = async (
   plainPassword: string,
@@ -7,6 +7,6 @@ export const validatePassword = async (
 ): Promise<void> => {
   const isValid = await bcrypt.compare(plainPassword, hashedPassword);
   if (!isValid) {
-    throw new UnauthorizedException('Invalid credentials.');
+    throw new BadRequestException('Invalid credentials.');
   }
 };

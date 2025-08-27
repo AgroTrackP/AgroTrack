@@ -67,8 +67,9 @@ export class StripeController {
   })
   @ApiResponse({ status: 401, description: 'No autorizado.' })
   async cancelSubscription(
-    @Param('id', ParseUUIDPipe) id: string, 
-    @Req() req: AuthRequest) {
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: AuthRequest,
+  ) {
     const userId = req.user.id;
     return await this.stripeService.cancelSubscription(userId);
   }

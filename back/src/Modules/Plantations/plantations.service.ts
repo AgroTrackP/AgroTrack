@@ -3,6 +3,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,13 +16,14 @@ import { RecommendationsService } from '../Recomendations/recomendations.service
 import { ActivityService } from '../ActivityLogs/activity-logs.service';
 import { ActivityType } from '../ActivityLogs/entities/activity-logs.entity';
 import { QueryPlantationsDto } from './dtos/pagination.dto';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { firstValueFrom } from 'rxjs';
 import { ApplicationPlansService } from '../ApplicationPlans/applicationplans.service';
 
 @Injectable()
 export class PlantationsService {
   constructor(
-    @InjectRepository(Users)
-    private readonly usersRepository: Repository<Users>,
     @InjectRepository(Plantations)
     private readonly plantationsRepo: Repository<Plantations>,
     private readonly recommendationsService: RecommendationsService,
@@ -29,6 +31,8 @@ export class PlantationsService {
     private readonly usersRepo: Repository<Users>,
     private readonly activityService: ActivityService,
     private readonly appPlansService: ApplicationPlansService,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(payload: CreatePlantationDto) {
@@ -137,45 +141,49 @@ export class PlantationsService {
       limit = 10,
       crop_type,
       season,
+      ownerName,
       sortBy = 'name',
       order = 'ASC',
-      ownerName, // <-- Extrae el nuevo filtro
+      isActive, // <-- Extrae el nuevo filtro
     } = queryDto;
+
     const skip = (page - 1) * limit;
 
     const queryBuilder = this.plantationsRepo.createQueryBuilder('plantation');
     queryBuilder.leftJoinAndSelect('plantation.user', 'user');
 
+    // --- APLICA FILTROS ---
     if (crop_type) {
       queryBuilder.andWhere('plantation.crop_type = :crop_type', { crop_type });
     }
     if (season) {
       queryBuilder.andWhere('plantation.season = :season', { season });
     }
-    // --- AÑADE ESTA LÓGICA DE FILTRADO ---
     if (ownerName) {
       queryBuilder.andWhere('user.name ILIKE :ownerName', {
         ownerName: `%${ownerName}%`,
       });
     }
+    // --- AÑADE EL FILTRO 'isActive' ---
+    if (isActive !== undefined) {
+      queryBuilder.andWhere('plantation.isActive = :isActive', { isActive });
+    }
 
-    // Valida que sortBy sea una columna segura para ordenar
+    // --- APLICA ORDENAMIENTO ---
     const validSortKeys: Record<string, string> = {
       name: 'plantation.name',
       ownerName: 'user.name',
       crop_type: 'plantation.crop_type',
       area_m2: 'plantation.area_m2',
       startDate: 'plantation.start_date',
+      isActive: 'plantation.isActive',
     };
     const sortKey = validSortKeys[sortBy] || 'plantation.name';
+    queryBuilder.orderBy(sortKey, order);
 
     try {
       const total = await queryBuilder.getCount();
-      const plantations = await queryBuilder
-        .orderBy(sortKey, order)
-        .skip(skip)
-        .take(limit)
-        .getMany();
+      const plantations = await queryBuilder.skip(skip).take(limit).getMany();
 
       return {
         data: plantations,
@@ -185,9 +193,13 @@ export class PlantationsService {
         totalPages: Math.ceil(total / limit),
       };
     } catch (error) {
+      if (error instanceof Error) {
+        throw new BadRequestException(
+          `Error al buscar las plantaciones: ${error.message}`,
+        );
+      }
       throw new BadRequestException(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        `Error al buscar las plantaciones: ${error.message}`,
+        'Error desconocido al buscar las plantaciones',
       );
     }
   }
@@ -256,6 +268,7 @@ export class PlantationsService {
         user: {
           id: userId,
         },
+        isActive: true,
       },
       take: limit,
       skip: skip,
@@ -266,6 +279,61 @@ export class PlantationsService {
       data: plantations,
       total,
       totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async getWeatherForPlantation(id: string) {
+    const plantation = await this.plantationsRepo.findOneBy({ id });
+    if (!plantation) {
+      throw new NotFoundException(`Plantation with ID ${id} not found.`);
+    }
+
+    const coords = plantation.location.split(',');
+    if (coords.length !== 2) {
+      throw new BadRequestException(
+        'Invalid location format in plantation data.',
+      );
+    }
+    const lat = parseFloat(coords[0].trim());
+    const lon = parseFloat(coords[1].trim());
+
+    // Llamada a la API de OpenWeatherMap
+    const apiKey = this.configService.getOrThrow<string>('WEATHER_API_KEY');
+    const apiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=es`;
+
+    try {
+      // Hacer la petición y obtener la respuesta
+      const response = await firstValueFrom(this.httpService.get(apiUrl));
+      const weatherData = response.data;
+
+      // Formatear la respuesta
+      return {
+        locationName: weatherData.name,
+        temperature: `${weatherData.main.temp}°C`,
+        feelsLike: `${weatherData.main.feels_like}°C`,
+        humidity: `${weatherData.main.humidity}%`,
+        description: weatherData.weather[0].description,
+        windSpeed: `${weatherData.wind.speed} m/s`,
+        icon: `https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`,
+      };
+    } catch (error) {
+      console.error(
+        'Error fetching weather data from OpenWeatherMap:',
+        error.response?.data || error.message,
+      );
+      throw new InternalServerErrorException('Failed to fetch weather data.');
+    }
+  }
+  
+  async setActivationStatus(id: string, isActive: boolean) {
+    const plantation = await this.plantationsRepo.findOneBy({ id });
+    if (!plantation) {
+      throw new NotFoundException(`Plantation with id ${id} not found`);
+    }
+    plantation.isActive = isActive;
+    await this.plantationsRepo.save(plantation);
+    return {
+      message: `Plantation ${isActive ? 'activated' : 'deactivated'} successfully.`,
     };
   }
 }

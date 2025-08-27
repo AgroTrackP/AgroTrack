@@ -7,6 +7,7 @@ import { PlantationsService } from './plantations.service';
 import { ActivityLogsModule } from '../ActivityLogs/activity-logs.module';
 import { ApplicationPlansModule } from '../ApplicationPlans/applicationPlans.module';
 import { RecommendationsModule } from '../Recomendations/recomendations.module';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { RecommendationsModule } from '../Recomendations/recomendations.module';
     ActivityLogsModule,
     forwardRef(() => ApplicationPlansModule),
     RecommendationsModule,
+    HttpModule,
   ],
   controllers: [PlantationsController],
   providers: [PlantationsService],

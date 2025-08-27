@@ -1,8 +1,4 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { SubscriptionPlan } from './entities/subscriptionplan.entity';
-import { Repository } from 'typeorm';
-import { Users } from '../Users/entities/user.entity';
 import { SuscriptionPlanService } from './subscriptionPlan.service';
 import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 import { RoleGuard } from 'src/Guards/role.guard';
@@ -10,19 +6,21 @@ import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from '../Users/user.enum';
 import { CreateSuscriptionDto } from './dtos/createSubscriptionPlan.dto';
 import { CreateMultipleSubscriptionsDto } from './dtos/createMultipleSubscription.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { IsActiveGuard } from 'src/Guards/isActive.guard';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { ActivityService } from '../ActivityLogs/activity-logs.service';
 
 @ApiTags('Subscription Plans')
 @ApiBearerAuth('jwt')
 @Controller('subscription-plan')
 export class SuscriptionPlanController {
   constructor(
-    @InjectRepository(SubscriptionPlan)
-    private readonly suscriptionPlanRepository: Repository<SubscriptionPlan>,
-    @InjectRepository(Users)
-    private readonly userRepository: Repository<Users>,
     private readonly suscriptionPlanService: SuscriptionPlanService,
+    private readonly activityService: ActivityService,
   ) {}
 
   @Get()
@@ -30,11 +28,37 @@ export class SuscriptionPlanController {
     return await this.suscriptionPlanService.getAllSusPlans();
   }
 
-  @Get('subs-with-count')
-  @UseGuards(PassportJwtAuthGuard, IsActiveGuard, RoleGuard)
+  @Get('new-last-30-days')
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
   @Roles(Role.Admin)
-  async getAllSusPlansWithCount() {
-    return await this.suscriptionPlanService.getAllSusPlansWithNum();
+  @ApiOperation({
+    summary: 'Get the count of new subscriptions in the last 30 days',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the total number of new subscriptions',
+    schema: { example: { newSubscriptions: 42 } },
+  })
+  async getNewSubscriptionsCount() {
+    const count = await this.activityService.countNewSubscriptionsLast30Days();
+    return { newSubscriptions: count };
+  }
+
+  @Get('stats/user-counts')
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @Roles(Role.Admin)
+  @ApiOperation({
+    summary: 'Get the count of users for each subscription plan (Admin only)',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Returns an object with the total number of users for each plan.',
+    schema: { example: { basic: 120, pro: 55, premium: 23 } },
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden. Admin role required.' })
+  async getUserCountsByPlan() {
+    return await this.suscriptionPlanService.getUserCountsByPlan();
   }
 
   @Get(':id')

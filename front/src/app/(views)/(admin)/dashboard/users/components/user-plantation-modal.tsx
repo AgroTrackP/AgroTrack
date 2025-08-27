@@ -3,10 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { type User } from './user-table';
 import { useAuthContext } from '@/context/authContext';
-import { EditPlantationModal, type PlantationFormData } from './edit-plantation-modal';
+import { EditPlantationModal } from './edit-plantation-modal';
 import { RecommendationsModal } from './recommendation-modal';
 import { Pagination } from './pagination';
-import { toast } from 'react-toastify';
 import { Lightbulb } from 'lucide-react';
 
 interface Plantation {

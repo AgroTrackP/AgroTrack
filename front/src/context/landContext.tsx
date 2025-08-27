@@ -1,11 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useAuthContext } from "./authContext";
-import { getTerrainsByUser, postTerrainInformation } from "@/services/auth";
+import { getTerrainsByUser, postTerrainInformation, deactivateTerrain } from "@/services/auth";
+import { ApiError } from "next/dist/server/api-utils";
+import { toast } from "react-toastify";
 
-// Interfaz para el DTO que la API espera
-interface LandDataToApi {
+// Interfaz para los datos de un terreno
+export interface LandData {
   id?: string;
   name: string;
   area_m2: number;
@@ -13,31 +16,30 @@ interface LandDataToApi {
   season: string;
   location: string;
   start_date: string;
-  userId: string;
+  userId?: string; // userId puede ser opcional si el backend lo infiere del token
+}
+
+export interface LandUpdateData {
+  name?: string;
+  area_m2?: number;
+  crop_type?: string;
+  season?: string;
+  location?: string;
+  start_date?: string;
 }
 
 interface LandContextType {
-  createLand: (data: {
-    name: string;
-    area_m2: string;
-    crop_type: string;
-    location: string;
-    season: string;
-    start_date: string;
-  }) => Promise<void>;
-  fetchLands: () => Promise<void>;
+  createLand: (data: Omit<LandData, "id" | "userId">) => Promise<void>;
+  fetchLands: (page?: number, limit?: number) => Promise<void>;
+  deleteLand: (id: string) => Promise<void>;
+  updateLand: (id: string, data: LandUpdateData) => Promise<void>;
   isLoading: boolean;
   error: string | null;
-  lands: LandDataToApi[];
+  lands: LandData[];
+  totalPages: number;
+  totalItems: number;
+  currentPageFromApi: number;
 }
-
-type ApiError = Error & {
-  response?: {
-    data?: {
-      message?: string;
-    };
-  };
-};
 
 const LandContext = createContext<LandContextType | undefined>(undefined);
 
@@ -45,76 +47,113 @@ export const LandProvider = ({ children }: { children: React.ReactNode }) => {
   const { user, token } = useAuthContext();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lands, setLands] = useState<LandDataToApi[]>([]);
+  const [lands, setLands] = useState<LandData[]>([]);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
+  const [currentPageFromApi, setCurrentPageFromApi] = useState(1);
 
-  const createLand = async (data: {
-    season: string;
-    name: string;
-    area_m2: string;
-    crop_type: string;
-    location: string;
-    start_date: string;
-  }) => {
-    if (!user || !token) {
-      setError("No hay usuario logueado o token disponible.");
+  // ✅ fetchLands ahora solo llama al servicio
+  const fetchLands = useCallback(
+    async (page: number = 1, limit: number = 5) => {
+      if (!user?.id || !token) return;
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const responseData = await getTerrainsByUser(user.id, token, page, limit);
+        setLands(responseData.data || []);
+setTotalPages(responseData.totalPages || 0);
+setTotalItems(responseData.total ?? 0);
+        setCurrentPageFromApi(responseData.currentPage || 1);
+      } catch (error) {
+        setError("Error al cargar los terrenos paginados.");
+        setLands([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [user, token]
+  );
+
+  const createLand = useCallback(
+    async (data: Omit<LandData, "id" | "userId">) => {
+      if (!user || !token) return;
+
+      setIsLoading(true);
+      try {
+        const landDataToApi: LandData = {
+  ...data,
+  area_m2: typeof data.area_m2 === "string" ? parseFloat(data.area_m2) : data.area_m2,
+  userId: user.id!, // <- le decimos a TS que no es undefined
+};
+
+        await postTerrainInformation(landDataToApi);
+        await fetchLands(currentPageFromApi, 5);
+      } catch (error) {
+        setError("Error al crear el cultivo.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [user, token, currentPageFromApi, fetchLands]
+  );
+
+  // ✅ deleteLand ahora usa deleteTerrain del servicio
+  const deleteLand = useCallback(async (landId: string) => {
+    if (!token) {
+      toast.error("No estás autenticado.");
       return;
     }
-
-    setIsLoading(true);
-    setError(null);
-
     try {
-      console.log("📤 Enviando terreno al backend desde el contexto:", data);
-      const landDataToApi: LandDataToApi = {
-        season: data.season,
-        name: data.name,
-        area_m2: parseFloat(data.area_m2),
-        crop_type: data.crop_type,
-        location: data.location,
-        start_date: data.start_date,
-        userId: user.id ?? "",
-      };
+      // 1. Llama a la función del servicio para desactivar en el backend
+      await deactivateTerrain(landId, token);
+      
+      toast.success("Terreno desactivado con éxito.");
+      
+      // 2. Actualiza la UI al instante para que el terreno desaparezca de la lista
+      setLands((prevLands) => prevLands.filter((land) => land.id !== landId));
 
-      const responseData = await postTerrainInformation(landDataToApi);
-      console.log("✅ Respuesta backend:", responseData);
-
-      setLands((prevLands) => [...prevLands, responseData]);
-
-      console.log("Cultivo creado exitosamente", responseData);
     } catch (err) {
-      const apiError = err as ApiError;
-      console.error("Error al enviar los datos:", apiError);
-      setError(apiError.response?.data?.message || "Error al crear el cultivo.");
-    } finally {
-      setIsLoading(false);
+      const errorMessage =
+        (err instanceof Error && err.message) ||
+        "Error al desactivar el terreno.";
+      toast.error(errorMessage);
     }
-  };
+  }, [token]); // El array de dependencias solo necesita el token
 
-  const fetchLands = useCallback(async () => {
-    if (!user || !token) return;
-    setIsLoading(true);
+  const updateLand = useCallback(
+    async (landId: string, data: LandUpdateData) => {
+      if (!user || !token) return;
 
-    try {
-      if (!user?.id || !token) return;
-      const data = await getTerrainsByUser(user.id, token);
-      console.log("🌱 Terrenos obtenidos - Contenido:", data);
-      setLands(data);
-    } catch (err) {
-      const apiError = err as ApiError;
-      console.error("Error al obtener terrenos:", apiError);
-      setError(apiError.response?.data?.message || "Error al cargar los terrenos.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user, token]);
+      setIsLoading(true);
+      try {
+        const response = await fetch(`https://agrotrack-develop.onrender.com/plantations/${landId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(data),
+        });
+
+        const updatedLand = await response.json();
+        setLands((prev) => prev.map((l) => (l.id === landId ? { ...l, ...updatedLand } : l)));
+      } catch (error) {
+        setError("Error al actualizar el terreno.");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [user, token]
+  );
 
   useEffect(() => {
-    fetchLands();
-  }, [user, token, fetchLands]);
+    fetchLands(1, 5);
+  }, [fetchLands]);
 
   return (
     <LandContext.Provider
-      value={{ lands, createLand, fetchLands, isLoading, error }}
+      value={{ lands, createLand, fetchLands, deleteLand, updateLand, isLoading, error, totalPages, totalItems, currentPageFromApi, }}
     >
       {children}
     </LandContext.Provider>
@@ -123,11 +162,11 @@ export const LandProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useLands = () => {
   const context = useContext(LandContext);
-  if (!context) {
-    throw new Error("useLands debe usarse dentro de un LandProvider");
-  }
+  if (!context) throw new Error("useLands debe usarse dentro de un LandProvider");
   return context;
 };
+
+
 
 
 

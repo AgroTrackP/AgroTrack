@@ -12,6 +12,8 @@ import { UserResponseDto } from './dtos/user.response.dto';
 import { Role } from './user.enum';
 import { SubscriptionPlan } from '../SubscriptionPlan/entities/subscriptionplan.entity';
 import { StripeService } from '../Stripe/stripe.service';
+import { ActivityService } from '../ActivityLogs/activity-logs.service';
+import { ActivityType } from '../ActivityLogs/entities/activity-logs.entity';
 
 @Injectable()
 export class UsersService {
@@ -21,6 +23,7 @@ export class UsersService {
     @InjectRepository(SubscriptionPlan)
     private readonly subscriptionRepository: Repository<SubscriptionPlan>,
     private readonly stripeService: StripeService,
+    private readonly activityService: ActivityService,
   ) {}
 
   /*async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
@@ -34,6 +37,8 @@ export class UsersService {
   }*/
   // En tu archivo users.service.ts
 
+  // En tu archivo users.service.ts
+
   async findAlluseradnplantation(
     pageNum = 1,
     limitNum = 10,
@@ -41,36 +46,41 @@ export class UsersService {
     order: 'ASC' | 'DESC' = 'ASC',
   ): Promise<any> {
     try {
-      const validSortKeys = ['name', 'email', 'created_at', 'status', 'plan'];
-      if (!validSortKeys.includes(sortBy)) {
-        sortBy = 'name'; // Asegura un valor por defecto seguro
-      }
+      // --- MAPEO SEGURO DE CLAVES DE ORDENAMIENTO ---
+      // Este "diccionario" traduce los nombres del frontend a los nombres reales de las columnas.
+      const sortKeyMap: Record<string, string> = {
+        name: 'name',
+        status: 'isActive',
+        plan: 'suscription_level.name',
+        registrationDate: 'created_at', // <-- ¡AQUÍ ESTÁ LA TRADUCCIÓN CLAVE!
+      };
 
-      // --- LÓGICA DE ORDENAMIENTO CORREGIDA ---
+      // Si el 'sortBy' que llega no es válido, usa 'name' por defecto.
+      const orderByField = sortKeyMap[sortBy] || 'name';
+
+      // --- LÓGICA DE ORDENAMIENTO DINÁMICO MEJORADA ---
       let orderConfig = {};
 
-      if (sortBy === 'plan') {
-        // Si se ordena por plan, creamos el objeto anidado correcto
+      if (orderByField.includes('.')) {
+        // Maneja relaciones anidadas, como 'suscription_level.name'
+        const [relation, property] = orderByField.split('.');
         orderConfig = {
-          suscription_level: {
-            name: order,
+          [relation]: {
+            [property]: order,
           },
         };
-      } else if (sortBy === 'status') {
-        orderConfig = { isActive: order };
       } else {
-        // Para los demás casos, es un ordenamiento simple
+        // Maneja columnas simples
         orderConfig = {
-          [sortBy]: order,
+          [orderByField]: order,
         };
       }
-      // -------------------------------------------
 
       const [data, total] = await this.usersRepository.findAndCount({
         skip: (pageNum - 1) * limitNum,
         take: limitNum,
         relations: ['plantations', 'suscription_level'],
-        order: orderConfig, // <-- Usamos el objeto de ordenamiento dinámico y correcto
+        order: orderConfig, // <-- Usa el objeto de ordenamiento dinámico
       });
 
       return { data, pageNum, limitNum, total };
@@ -158,6 +168,13 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
+
+    await this.activityService.logActivity(
+      user,
+      ActivityType.USER_INFO_UPDATED,
+      `El usuario '${user.name}' (${user.id}) ha actualizado su información de usuario.`,
+    );
+
     try {
       await this.usersRepository.update(id, updateUserDto);
       return {
@@ -170,12 +187,18 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<void> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User not found`);
+    }
+
     try {
-      const user = await this.usersRepository.findOne({ where: { id } });
-      if (!user) {
-        throw new NotFoundException(`User not found`);
-      }
       await this.usersRepository.update({ id }, { isActive: false });
+      await this.activityService.logActivity(
+        user,
+        ActivityType.USER_INNACTIVE,
+        `El usuario '${user.name}' (${user.id}) ha sido deshabilitado.`,
+      );
     } catch (error) {
       throw new Error(`Error deleting user: ${error}`);
     }
@@ -189,6 +212,12 @@ export class UsersService {
     if (!user) {
       throw new Error('User not found');
     }
+
+    await this.activityService.logActivity(
+      user,
+      ActivityType.USER_IMG_UPDATED,
+      `El usuario '${user.name}' (${user.id}) ha actualizado su foto de perfil.`,
+    );
 
     try {
       // Actualizamos con la nueva imagen
@@ -236,8 +265,14 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
     }
+
     try {
       await this.usersRepository.delete(user.id);
+      await this.activityService.logActivity(
+        user,
+        ActivityType.USER_DELETED,
+        `El usuario '${user.name}' (${user.id}) ha sido removido de la base de datos.`,
+      );
       return { message: 'User deleted successfully' };
     } catch (error) {
       const errorMessage =
@@ -369,5 +404,22 @@ export class UsersService {
     return {
       message: 'User reactivated successfully',
     };
+  }
+
+  async countActiveUsers(): Promise<number> {
+    try {
+      return await this.usersRepository.count({
+        where: { isActive: true },
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          `Error counting active users: ${error.message}`,
+        );
+      }
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while counting active users.',
+      );
+    }
   }
 }

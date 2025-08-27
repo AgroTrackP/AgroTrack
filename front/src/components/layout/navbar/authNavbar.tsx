@@ -4,26 +4,36 @@ import Button from "@/components/ui/button";
 import { useAuthContext } from "@/context/authContext";
 import { routes } from "@/routes";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import React from "react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import { FaRegUser } from "react-icons/fa";
 import { MdLogout } from "react-icons/md";
 import { SiTerraform } from "react-icons/si";
-// 1. Importa el nuevo ícono
-import { LayoutDashboard } from "lucide-react"; 
+import { LayoutDashboard } from "lucide-react";
+import Popup from "reactjs-popup";
 
 export const AuthNavbar = () => {
-    const { isAuth, logoutUser, user } = useAuthContext();
-    const pathname = usePathname();
+    const { isAuth, logoutUser, user, subscription } = useAuthContext();
     const router = useRouter();
+    const [subscriptionPopup, setSubscriptionPopup] = useState(false);
+
+    const userSubscription = subscription?.status === 'active';
+    const isAdmin = user?.role === 'Admin';
 
     const logout = () => {
         logoutUser();
         router.push(routes.home);
     };
 
+    const handleAddCropsClick = (e: React.MouseEvent) => {
+        if (!isAdmin && !userSubscription) {
+            e.preventDefault();
+            setSubscriptionPopup(true);
+        }
+    }
+
     if (isAuth === null) {
-        return null; // O un componente de carga (loader)
+        return null;
     }
 
     if (!isAuth) {
@@ -47,11 +57,12 @@ export const AuthNavbar = () => {
         );
     }
 
+    const isAddCropsDisabled = !isAdmin && !userSubscription;
+
     return (
         <div className="flex items-center space-x-9 rtl:space-x-reverse">
-            {user?.role === 'Admin' && (
+            {isAdmin && (
                 <Link href={routes.dashboard} className='flex items-center space-x-2 rtl:space-x-reverse'>
-                    {/* 2. Reemplaza el ícono anterior */}
                     <LayoutDashboard className="h-5 w-5 text-gray-500" />
                     <span className='cursor-pointer font-medium'>Admin dashboard</span>
                 </Link>
@@ -61,15 +72,43 @@ export const AuthNavbar = () => {
                 <FaRegUser className="h-5 w-5 text-gray-500" />
                 <span className='cursor-pointer font-medium'> {user?.name}</span>
             </Link>
-            
-            <Link href={routes.page} className='flex items-center space-x-2 rtl:space-x-reverse'>
+
+            <Link
+                href={routes.page}
+                className={`flex items-center space-x-2 rtl:space-x-reverse ${isAddCropsDisabled ? 'text-gray-400 cursor-not-allowed' : 'text-gray-500'}`}
+                onClick={handleAddCropsClick}
+            >
                 <SiTerraform className="h-5 w-5 text-gray-500" />
                 <span className='cursor-pointer font-medium'>Agregar cultivos</span>
             </Link>
-            
+
             <div onClick={logout} className="cursor-pointer">
                 <MdLogout className="h-5 w-5 text-gray-500" />
             </div>
+
+            <Popup open={subscriptionPopup} onClose={() => setSubscriptionPopup(false)} modal>
+                <div className="p-8 bg-white rounded-lg shadow-xl text-center max-w-sm border border-primary-300">
+                    <h3 className="text-lg font-bold text-gray-800">Funciones con plan</h3>
+                    <p className="my-4 text-gray-600">
+                        Necesitas una suscripción activa para poder registrar nuevos cultivos.
+                    </p>
+                    <div className="flex justify-center space-x-4">
+                        <button
+                            onClick={() => setSubscriptionPopup(false)}
+                            className="px-6 py-2 bg-gray-200 rounded-md border border-primary-300  hover:bg-primary-500"
+                        >
+                            Cerrar
+                        </button>
+                        <Link
+                            href="/#planes"
+                            className="px-6 py-2 bg-secondary-400 text-white rounded-md border border-primary-300  hover:bg-secondary-700"
+                            onClick={() => setSubscriptionPopup(false)}
+                        >
+                            Ver planes
+                        </Link>
+                    </div>
+                </div>
+            </Popup>
         </div>
     )
 };
