@@ -262,4 +262,24 @@ export class PlantationsService {
       totalPages: Math.ceil(total / limit),
     };
   }
+
+  async updateStatus(
+    id: string,
+    isActive: boolean,
+  ): Promise<{ message: string; status: boolean }> {
+    const plantation = await this.plantationsRepo.findOneBy({ id });
+
+    if (!plantation) {
+      throw new NotFoundException(`Plantation with ID ${id} not found.`);
+    }
+
+    plantation.isActive = isActive;
+    await this.plantationsRepo.save(plantation);
+
+    const message = isActive
+      ? 'Plantation has been activated.'
+      : 'Plantation has been deactivated.';
+
+    return { message, status: plantation.isActive };
+  }
 }
