@@ -8,7 +8,7 @@ import { routes } from "@/routes";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { SiAuth0 } from "react-icons/si";
+import { FaGoogle } from "react-icons/fa";
 import { useAuth0 } from "@auth0/auth0-react";
 
 const loginSchema = yup.object({
@@ -181,8 +181,8 @@ export default function LoginForm() {
                 <button type="button" 
                 onClick={() => loginWithRedirect()}
                     className="w-full py-2 px-4 rounded-md border border-gray-300 text-gray-700 flex items-center justify-center space-x-2 shadow-sm hover:bg-gray-50 transition">
-                    <SiAuth0 className="text-xl" />
-                    Iniciar sesión con Auth0
+                    <FaGoogle  className="text-xl" />
+                    Iniciar sesión con Google
                 </button>
             </div>
         </form>

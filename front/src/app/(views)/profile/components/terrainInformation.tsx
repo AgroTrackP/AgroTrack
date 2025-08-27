@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useLands } from "@/context/landContext";
+import { LandData, LandUpdateData, useLands } from "@/context/landContext";
 import DetalleTerreno from "./detalleTerreno";
 import Button from "@/components/ui/button";
 import { ConfirmationModal } from "../../(admin)/dashboard/users/components/confirmation-modal";
@@ -25,7 +25,7 @@ const TerrainInformation = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [landIdToDelete, setLandIdToDelete] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [landToEdit, setLandToEdit] = useState<any | null>(null);
+  const [landToEdit, setLandToEdit] = useState<LandData |  null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   const itemsPerPage = 5;
@@ -51,7 +51,7 @@ const TerrainInformation = () => {
   };
 
   // --- Editar ---
-  const handleEditClick = (land: any) => {
+  const handleEditClick = (land: LandData) => {
     setLandToEdit(land);
     setIsEditModalOpen(true);
   };
@@ -59,12 +59,19 @@ const TerrainInformation = () => {
     setIsEditModalOpen(false);
     setLandToEdit(null);
   };
-  const handleConfirmEdit = async (updatedData: any) => {
+  const handleConfirmEdit = async (updatedData: LandUpdateData) => {
     if (landToEdit) {
+<<<<<<< HEAD
       // --- CORRECCIÓN AQUÍ ---
       // No necesitamos desestructurar 'id' de 'updatedData'.
       // Simplemente pasamos los datos actualizados directamente.
       await updateLand(landToEdit.id!, updatedData);
+=======
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, ...dataToSend } = updatedData;
+      await updateLand(landToEdit.id!, dataToSend);
+
+>>>>>>> 5de0275978f4a07127b8b02b99e27dd198576809
       handleCancelEdit();
     }
   };
