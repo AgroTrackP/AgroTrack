@@ -1,12 +1,22 @@
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, Matches } from 'class-validator';
 
 export class ChangePasswordDto {
-  @IsString()
+  @ApiProperty({
+    description:
+      'The password must contain at least one capital letter, one number, and one of these symbols: !@#$%^&*',
+    example: 'Facundo.13!',
+  })
   @IsNotEmpty()
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,15}$/)
   currentPassword: string;
 
-  @IsString()
+  @ApiProperty({
+    description:
+      'The password must contain at least one capital letter, one number, and one of these symbols: !@#$%^&*',
+    example: 'Facundito.13!',
+  })
   @IsNotEmpty()
-  @MinLength(8, { message: 'New password must be at least 8 characters long.' })
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,15}$/)
   newPassword: string;
 }
