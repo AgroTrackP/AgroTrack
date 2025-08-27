@@ -5,6 +5,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import Popup from 'reactjs-popup';
 import { useAuthContext } from '@/context/authContext';
+import { Loader2 } from "lucide-react";
 
 // Esta interfaz ahora puede ser más simple porque IRecommendations es correcta
 interface IDetalleTerrenoData {
@@ -36,9 +37,10 @@ const DetalleTerreno: React.FC<IProps> = ({ terrenoId, isOpen, onClose }) => {
                 setIsLoadingDetalle(true);
                 setPlanPlantationData(null);
                 try {
-                    const response = await axios.get(`https://agrotrack-develop.onrender.com/plantations/${terrenoId}`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
+                    const response = await axios.get(
+                        `https://agrotrack-develop.onrender.com/plantations/${terrenoId}`,
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
                     setPlanPlantationData(response.data);
                 } catch (error) {
                     console.error("Error al cargar detalle del terreno:", error);
@@ -56,14 +58,35 @@ const DetalleTerreno: React.FC<IProps> = ({ terrenoId, isOpen, onClose }) => {
     };
 
     return (
-        <Popup open={isOpen} onClose={handleClose} modal nested contentStyle={{ width: '90%', maxWidth: '1280px' }} >
-            <div className="p-8 bg-white rounded-lg shadow-xl w-full">
-                <button onClick={handleClose} className="absolute top-4 right-4 text-2xl text-gray-500 hover:text-gray-800">&times;</button>
-                <h2 className="text-2xl font-bold mb-4 border-b pb-2">Detalles del Terreno: {planPlantationData?.name}</h2>
+        <Popup
+            open={isOpen}
+            onClose={handleClose}
+            modal
+            nested
+            contentStyle={{ width: '90%', maxWidth: '1280px' }}
+        >
+            <div className="relative p-8 bg-white rounded-lg shadow-xl w-full min-h-[300px]">
+                <button
+                    onClick={handleClose}
+                    className="absolute top-4 right-4 text-2xl text-gray-500 hover:text-gray-800"
+                >
+                    &times;
+                </button>
 
-                {isLoadingDetalle ? (
-                    <div className="text-center py-10">Cargando información...</div>
-                ) : planPlantationData ? (
+                <h2 className="text-2xl font-bold mb-4 border-b pb-2">
+                    Detalles del Terreno: {planPlantationData?.name}
+                </h2>
+
+                {/* LOADER */}
+                {isLoadingDetalle && (
+                    <div className="absolute inset-0 bg-white/70 flex flex-col items-center justify-center rounded-lg z-50">
+                        <Loader2 className="w-12 h-12 text-green-600 animate-spin" />
+                        <p className="mt-3 text-gray-700 font-medium">Cargando información...</p>
+                    </div>
+                )}
+
+                {/* CONTENIDO */}
+                {!isLoadingDetalle && planPlantationData ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 max-h-[70vh] overflow-y-auto pr-4 text-left">
                         
                         {/* --- COLUMNA IZQUIERDA: DATOS Y PLANES --- */}
@@ -85,7 +108,9 @@ const DetalleTerreno: React.FC<IProps> = ({ terrenoId, isOpen, onClose }) => {
                                             </li>
                                         ))}
                                     </ul>
-                                ) : (<p className="text-gray-500 italic">No hay planes de aplicación registrados.</p>)}
+                                ) : (
+                                    <p className="text-gray-500 italic">No hay planes de aplicación registrados.</p>
+                                )}
                             </div>
                         </div>
 
@@ -120,10 +145,15 @@ const DetalleTerreno: React.FC<IProps> = ({ terrenoId, isOpen, onClose }) => {
                                         </ul>
                                     ) : (<p className="text-gray-500 italic">No hay enfermedades a vigilar.</p>)}
                                 </div>
-                            ) : (<p className="text-gray-500 italic">No hay recomendaciones disponibles para este tipo de cultivo.</p>)}
+                            ) : (
+                                <p className="text-gray-500 italic">No hay recomendaciones disponibles para este tipo de cultivo.</p>
+                            )}
                         </div>
                     </div>
-                ) : (
+                ) : null}
+
+                {/* MENSAJE SI NO HAY DATOS */}
+                {!isLoadingDetalle && !planPlantationData && (
                     <p className="text-center py-10">No se pudieron cargar los detalles del terreno.</p>
                 )}
             </div>

@@ -7,9 +7,10 @@ import { postLogin } from "@/services/auth";
 import { routes } from "@/routes";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { FaGoogle } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 import { useAuth0 } from "@auth0/auth0-react";
+import { Loader2 } from "lucide-react"; // Ícono de carga
+import Link from "next/link";
 
 const loginSchema = yup.object({
     email: yup
@@ -69,11 +70,12 @@ export default function LoginForm() {
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        // Evita el comportamiento por defecto del formulario
         e.preventDefault();
         const isValid = await handleValidation();
         if (!isValid) return;
+        
         setLoading(true);
+        setErrors({});
 
         try {
             const res = await postLogin(form);
@@ -81,110 +83,109 @@ export default function LoginForm() {
 
             if (!data?.token || !data?.user) {
                 toast.error(data?.message || "Datos incorrectos");
+                setLoading(false);
                 return;
             }
 
-            console.log("Datos de inicio de sesión:", data);
-            // Guardar token y usuario
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
-
-            // Actualiza el contexto global
-
             saveUserData(data);
+            toast.success("¡Bienvenido! Redirigiendo a tu perfil...");
 
-            //guardar el token en localStorage o cookies
-
-            toast.success(" Inició de sesión exitoso");
-
-
-            // redireccionar a la pagina de inicio o dashboard
             setTimeout(() => {
                 router.push(routes.profile)
             }, 2000);
 
-            // (error:unknown)
         } catch (error) {
-            toast.error("Error al iniciar sesión");
+            toast.error("Error al iniciar sesión. Por favor, verifica tus credenciales.");
             console.error("Error de inicio de sesión:", error);
-
-        } finally {
-            setTimeout(() => {
-                setLoading(false);
-            }, 2000);
+            setLoading(false);
         }
     };
 
-    return (
-        <form
-            onSubmit={handleSubmit}
-            className="max-w-md mx-auto bg-white p-11 rounded shadow space-y-8">
-            <h2 className="text-2xl font-semibold text-center"> Iniciar Sesion</h2>
+     return (
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-md mx-auto bg-white p-11 rounded-xl shadow-lg space-y-8 relative"
+    >
+      {/* --- Overlay de Carga --- */}
+      {loading && (
+        <div className="absolute inset-0 bg-white bg-opacity-80 flex flex-col items-center justify-center rounded-xl z-10">
+          <Loader2 className="animate-spin h-10 w-10 text-green-600" />
+          <p className="mt-4 text-gray-600">Iniciando sesión...</p>
+        </div>
+      )}
+      
+      <h2 className="text-2xl font-semibold text-center"> Iniciar Sesión</h2>
 
+      <div>
+        <label className="block text-sm font-medium mb-1">Correo electrónico</label>
+        <input
+          type="email"
+          name="email"
+          value={form.email}
+          onChange={handleChange}
+          className="w-full border px-3 py-2 rounded-lg"
+          required
+        />
+        {errors?.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
+      </div>
 
-            <div>
-                <label className="block text-sm font-medium mb-1">Correo electrónico</label>
-                <input
+      <div>
+        <label className="block text-sm font-medium mb-1">Contraseña</label>
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded-lg"
+            required
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute inset-y-0 right-0 flex items-center justify-center w-10 h-full text-gray-500 hover:text-gray-700"
+          >
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
+          </button>
+        </div>
+        {errors?.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
+      </div>
+      
+      <button
+        disabled={loading}
+        type="submit"
+        className="w-full bg-green-600 text-white py-2 px-4 rounded-lg transition-colors duration-300 hover:bg-green-700 disabled:opacity-50 disabled:cursor-wait"
+      >
+        Iniciar Sesión
+      </button>
 
-                    type="email"
-                    name="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    className="w-full border px-3 py-2 rounded-lg"
-                    required
-                />
-            </div>
+      <p className="text-center text-sm text-gray-600">
+        ¿No tienes una cuenta?{" "}
+        <Link href={routes.register} className="text-green-600 hover:underline font-medium">
+          Regístrate aquí
+        </Link>
+      </p>
 
-            <div>
-                <label className="block text-sm font-medium mb-1">Contraseña</label>
-                <div className="relative">
-                    <input
+      <div className="relative flex items-center">
+        <div className="flex-grow border-t border-gray-300"></div>
+        <span className="flex-shrink mx-4 text-gray-400 text-sm">o</span>
+        <div className="flex-grow border-t border-gray-300"></div>
+      </div>
 
-                        type={showPassword ? "text" : "password"}
-                        name="password"
-                        value={form.password}
-                        onChange={handleChange}
-                        className="w-full border px-3 py-2 rounded-lg"
-                        required
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0  flex items-center justify-center w-10 h-10 bg-green-500 rounded-tr-lg rounded-br-lg rounded-l-none text-white"
-                    >
-                        {showPassword ? <FaEyeSlash /> : <FaEye />}
-                    </button>
-                </div>
-            </div>
-            {errors?.password && <p className="text-red-600 text-sm">{errors.password}</p>}
-            <button
-                disabled={loading}
-                type="submit"
-                className="w-full bg-white text-green-600 py-2 px-4 rounded-lg border border-green-600 transition-colors duration-300 hover:bg-green-600 hover:text-white"
-            >
-                Iniciar Sesión
-            </button>
+      <button type="button" 
+        onClick={() => loginWithRedirect()}
+        disabled={loading}
+        className="w-full py-2 px-4 rounded-md border border-gray-300 text-gray-700 flex items-center justify-center space-x-2 shadow-sm hover:bg-gray-50 transition disabled:opacity-50">
+        <FaGoogle className="text-lg" />
+        <span>Continuar con Google</span>
+      </button>
 
-            <p className="text-center text-sm text-gray-600 mt-4">
-                ¿No tienes una cuenta?{" "}
-                <a href={routes.register} className="text-blue-600 hover:underline">
-                    Regístrate aquí
-                </a>
-            </p>
-            <div className="flex items-center justify-center">
-                <span className="text-gray-500 text-sm">o continúa con</span>
-            </div>
-
-            <div className="flex flex-col space-y-2">
-
-                <hr />
-                <button type="button" 
-                onClick={() => loginWithRedirect()}
-                    className="w-full py-2 px-4 rounded-md border border-gray-300 text-gray-700 flex items-center justify-center space-x-2 shadow-sm hover:bg-gray-50 transition">
-                    <FaGoogle  className="text-xl" />
-                    Iniciar sesión con Google
-                </button>
-            </div>
-        </form>
-    );
+      {/* --- ENLACE AÑADIDO AQUÍ --- */}
+      <p className="text-center text-sm text-neutral-500">
+        <Link href={routes.home} className="text-gray-600 hover:text-green-700 hover:underline">
+          ‹ Volver al inicio
+        </Link>
+      </p>
+    </form>
+  );
 }
