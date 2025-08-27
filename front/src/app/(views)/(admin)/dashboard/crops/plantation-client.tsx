@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -5,7 +6,8 @@ import { useAuthContext } from '@/context/authContext';
 import { PlantationsTable, type Plantation } from './components/plantation-table';
 import { Pagination } from '../users/components/pagination';
 import { toast } from 'react-toastify';
-import { useDebounce } from '@/hooks/use-debounce'; // Asegúrate de que la ruta al hook sea correcta
+import { EditPlantationModal } from '../users/components/edit-plantation-modal';
+import { useDebounce } from '@/hooks/use-debounce';
 
 // Interfaz de datos que vienen de la API
 interface PlantationFromApi {
@@ -16,6 +18,7 @@ interface PlantationFromApi {
   start_date: string;
   season: string;
   user: { name: string; };
+  isActive: boolean;
 }
 
 // Función para mapear datos de la API al formato del frontend
@@ -27,6 +30,7 @@ const mapApiToPlantation = (data: PlantationFromApi[]): Plantation[] => {
     area_m2: p.area_m2,
     crop_type: p.crop_type,
     startDate: new Date(p.start_date).toLocaleDateString('es-ES'),
+    isActive: p.isActive,
   }));
 };
 
@@ -35,23 +39,22 @@ export function PlantationsClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Estados para paginación
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
   
-  // Estado para el ordenamiento
   const [sortConfig, setSortConfig] = useState<{ key: keyof Plantation; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' });
 
-  // Estados para los filtros
   const [cropFilter, setCropFilter] = useState('');
   const [seasonFilter, setSeasonFilter] = useState('');
   const [ownerSearch, setOwnerSearch] = useState('');
-  const debouncedOwnerSearch = useDebounce(ownerSearch, 500); // Debounce para la búsqueda
+  const debouncedOwnerSearch = useDebounce(ownerSearch, 500);
+  
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingPlantation, setEditingPlantation] = useState<Plantation | null>(null);
 
   const { token, isAuth } = useAuthContext();
 
-  // Lógica de Fetching (traer datos)
   const fetchPlantations = useCallback(async () => {
     if (!token || !isAuth) return;
     setIsLoading(true);
@@ -70,14 +73,12 @@ export function PlantationsClient() {
       const response = await fetch(`https://agrotrack-develop.onrender.com/plantations/paginated?${params.toString()}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-
       if (!response.ok) throw new Error('No se pudieron cargar los terrenos.');
       
       const data = await response.json();
       setPlantations(mapApiToPlantation(data.data));
       setTotalPages(data.totalPages || Math.ceil(data.total / itemsPerPage));
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       toast.error(err.message);
       setError(err.message);
@@ -96,9 +97,32 @@ export function PlantationsClient() {
       direction = 'descending';
     }
     setSortConfig({ key, direction });
-    setCurrentPage(1); // Resetea a la página 1 al cambiar el orden
+    setCurrentPage(1);
   };
   
+  const handleOpenEditModal = (plantation: Plantation) => {
+    setEditingPlantation(plantation);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingPlantation(null);
+  };
+
+  const handleSavePlantation = async () => {
+    await fetchPlantations();
+    handleCloseEditModal();
+  };
+  
+  const handleStatusChange = (plantationId: string, newStatus: boolean) => {
+    setPlantations(currentPlantations =>
+      currentPlantations.map(p =>
+        p.id === plantationId ? { ...p, isActive: newStatus } : p
+      )
+    );
+  };
+
   if (isLoading) return <p className="text-center py-4">Cargando terrenos...</p>;
   if (error) return <p className="text-center py-4 text-red-500">{error}</p>;
 
@@ -136,12 +160,21 @@ export function PlantationsClient() {
         plantations={plantations}
         onSort={handleSort}
         sortConfig={sortConfig}
+        onEdit={handleOpenEditModal}
+        onStatusChange={handleStatusChange}
       />
 
       <Pagination 
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
+      />
+
+      <EditPlantationModal
+        isOpen={isEditModalOpen}
+        plantationId={editingPlantation?.id || null}
+        onClose={handleCloseEditModal}
+        onSave={handleSavePlantation}
       />
     </div>
   );

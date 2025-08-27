@@ -58,6 +58,11 @@ export class Plantations {
   @JoinColumn({ name: 'user_id' })
   user: Users;
 
+  @Column({
+    type: 'boolean',
+    default: true,
+  })
+  isActive: boolean;
   // @ManyToOne(() => Recommendation)
   // @JoinColumn({ name: 'recommendation_id' })
   // recommendation: Recommendation;

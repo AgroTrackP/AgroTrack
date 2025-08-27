@@ -10,11 +10,19 @@ import {
   HttpStatus,
   Query,
   ParseIntPipe,
+  Patch,
+  UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { PlantationsService } from './plantations.service';
 import { CreatePlantationDto } from './dtos/create.plantation.dto';
 import { UpdatePlantationDto } from './dtos/update.plantation.dto';
 import { QueryPlantationsDto } from './dtos/pagination.dto';
+import { Roles } from '../Auth/decorators/roles.decorator';
+import { ApiOperation } from '@nestjs/swagger';
+import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
+import { RoleGuard } from 'src/Guards/role.guard';
+import { Role } from '../Users/user.enum';
 
 @Controller('plantations')
 export class PlantationsController {
@@ -61,5 +69,22 @@ export class PlantationsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string) {
     await this.plantationsService.remove(id);
+  }
+  // En plantations.controller.ts
+
+  @Patch(':id/activate')
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @Roles(Role.Admin)
+  @ApiOperation({ summary: 'Activates a plantation (Admin only)' })
+  async activatePlantation(@Param('id', ParseUUIDPipe) id: string) {
+    return this.plantationsService.setActivationStatus(id, true);
+  }
+
+  @Patch(':id/deactivate')
+  @UseGuards(PassportJwtAuthGuard, RoleGuard)
+  @Roles(Role.Admin)
+  @ApiOperation({ summary: 'Deactivates a plantation (Admin only)' })
+  async deactivatePlantation(@Param('id', ParseUUIDPipe) id: string) {
+    return this.plantationsService.setActivationStatus(id, false);
   }
 }

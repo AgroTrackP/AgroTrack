@@ -26,7 +26,6 @@ export class UsersService {
     private readonly activityService: ActivityService,
   ) {}
 
-<<<<<<< HEAD
   /*async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
     const user = this.usersRepository.create(createUserDto);
     const savedUser = await this.usersRepository.save(user);
@@ -40,8 +39,6 @@ export class UsersService {
 
   // En tu archivo users.service.ts
 
-=======
->>>>>>> 77a5e3366c8b64b9a77b142143b359bbedcecf3e
   async findAlluseradnplantation(
     pageNum = 1,
     limitNum = 10,

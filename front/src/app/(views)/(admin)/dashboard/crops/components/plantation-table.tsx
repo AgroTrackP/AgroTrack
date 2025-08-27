@@ -1,6 +1,7 @@
 'use client';
 
-import { ArrowDown, ArrowUp } from 'lucide-react';
+import { ArrowDown, ArrowUp, Pencil } from 'lucide-react';
+import { PlantationStatusToggle } from './plantation-status-toggle';
 
 export type Plantation = {
   id: string;
@@ -9,15 +10,19 @@ export type Plantation = {
   area_m2: number;
   crop_type: string;
   startDate: string;
+  isActive: boolean;
 };
 
 interface PlantationsTableProps {
   plantations: Plantation[];
   onSort: (key: keyof Plantation) => void;
   sortConfig: { key: keyof Plantation; direction: 'ascending' | 'descending' } | null;
+  onEdit: (plantation: Plantation) => void;
+  onStatusChange: (plantationId: string, newStatus: boolean) => void;
 }
 
-export function PlantationsTable({ plantations, onSort, sortConfig }: PlantationsTableProps) {
+export function PlantationsTable({ plantations, onSort, sortConfig, onEdit, onStatusChange }: PlantationsTableProps) {
+  
   const renderSortIcon = (key: keyof Plantation) => {
     if (!sortConfig || sortConfig.key !== key) return null;
     return sortConfig.direction === 'ascending' ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />;
@@ -28,21 +33,33 @@ export function PlantationsTable({ plantations, onSort, sortConfig }: Plantation
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              <button className="flex items-center" onClick={() => onSort('name')}>Nombre Terreno {renderSortIcon('name')}</button>
+            <th scope="col" className="px-6 py-3 text-left">
+              <button className="flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider" onClick={() => onSort('name')}>
+                Nombre Terreno {renderSortIcon('name')}
+              </button>
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              <button className="flex items-center" onClick={() => onSort('ownerName')}>Propietario {renderSortIcon('ownerName')}</button>
+            <th scope="col" className="px-6 py-3 text-left">
+              <button className="flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider" onClick={() => onSort('ownerName')}>
+                Propietario {renderSortIcon('ownerName')}
+              </button>
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              <button className="flex items-center" onClick={() => onSort('crop_type')}>Cultivo {renderSortIcon('crop_type')}</button>
+            <th scope="col" className="px-6 py-3 text-left">
+              <button className="flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider" onClick={() => onSort('crop_type')}>
+                Cultivo {renderSortIcon('crop_type')}
+              </button>
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              <button className="flex items-center" onClick={() => onSort('area_m2')}>Área (m²) {renderSortIcon('area_m2')}</button>
+            <th scope="col" className="px-6 py-3 text-left">
+              <button className="flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider" onClick={() => onSort('area_m2')}>
+                Área (m²) {renderSortIcon('area_m2')}
+              </button>
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              <button className="flex items-center" onClick={() => onSort('startDate')}>Fecha Inicio {renderSortIcon('startDate')}</button>
+             <th scope="col" className="px-6 py-3 text-left">
+              <button className="flex items-center text-xs font-medium text-gray-500 uppercase tracking-wider" onClick={() => onSort('startDate')}>
+                Fecha Inicio {renderSortIcon('startDate')}
+              </button>
             </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Activo</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -53,6 +70,18 @@ export function PlantationsTable({ plantations, onSort, sortConfig }: Plantation
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.crop_type}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.area_m2.toLocaleString('es-AR')}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{p.startDate}</td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <PlantationStatusToggle 
+                  plantationId={p.id}
+                  initialStatus={p.isActive}
+                  onStatusChange={onStatusChange}
+                />
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button onClick={() => onEdit(p)} className="text-indigo-600 hover:text-indigo-900" title="Editar Terreno">
+                  <Pencil size={18} />
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
