@@ -63,6 +63,7 @@ export class Plantations {
     default: true,
   })
   isActive: boolean;
+
   // @ManyToOne(() => Recommendation)
   // @JoinColumn({ name: 'recommendation_id' })
   // recommendation: Recommendation;

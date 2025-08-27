@@ -3,6 +3,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,18 +16,21 @@ import { RecommendationsService } from '../Recomendations/recomendations.service
 import { ActivityService } from '../ActivityLogs/activity-logs.service';
 import { ActivityType } from '../ActivityLogs/entities/activity-logs.entity';
 import { QueryPlantationsDto } from './dtos/pagination.dto';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class PlantationsService {
   constructor(
-    @InjectRepository(Users)
-    private readonly usersRepository: Repository<Users>,
     @InjectRepository(Plantations)
     private readonly plantationsRepo: Repository<Plantations>,
     private readonly recommendationsService: RecommendationsService,
     @InjectRepository(Users)
     private readonly usersRepo: Repository<Users>,
     private readonly activityService: ActivityService,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(payload: CreatePlantationDto) {
@@ -272,6 +276,49 @@ export class PlantationsService {
     };
   }
 
+  async getWeatherForPlantation(id: string) {
+    const plantation = await this.plantationsRepo.findOneBy({ id });
+    if (!plantation) {
+      throw new NotFoundException(`Plantation with ID ${id} not found.`);
+    }
+
+    const coords = plantation.location.split(',');
+    if (coords.length !== 2) {
+      throw new BadRequestException(
+        'Invalid location format in plantation data.',
+      );
+    }
+    const lat = parseFloat(coords[0].trim());
+    const lon = parseFloat(coords[1].trim());
+
+    // Llamada a la API de OpenWeatherMap
+    const apiKey = this.configService.getOrThrow<string>('WEATHER_API_KEY');
+    const apiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=es`;
+
+    try {
+      // Hacer la petición y obtener la respuesta
+      const response = await firstValueFrom(this.httpService.get(apiUrl));
+      const weatherData = response.data;
+
+      // Formatear la respuesta
+      return {
+        locationName: weatherData.name,
+        temperature: `${weatherData.main.temp}°C`,
+        feelsLike: `${weatherData.main.feels_like}°C`,
+        humidity: `${weatherData.main.humidity}%`,
+        description: weatherData.weather[0].description,
+        windSpeed: `${weatherData.wind.speed} m/s`,
+        icon: `https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`,
+      };
+    } catch (error) {
+      console.error(
+        'Error fetching weather data from OpenWeatherMap:',
+        error.response?.data || error.message,
+      );
+      throw new InternalServerErrorException('Failed to fetch weather data.');
+    }
+  }
+  
   async setActivationStatus(id: string, isActive: boolean) {
     const plantation = await this.plantationsRepo.findOneBy({ id });
     if (!plantation) {

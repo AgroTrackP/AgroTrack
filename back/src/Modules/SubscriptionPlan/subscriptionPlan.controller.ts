@@ -1,8 +1,4 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { SubscriptionPlan } from './entities/subscriptionplan.entity';
-import { Repository } from 'typeorm';
-import { Users } from '../Users/entities/user.entity';
 import { SuscriptionPlanService } from './subscriptionPlan.service';
 import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
 import { RoleGuard } from 'src/Guards/role.guard';
@@ -23,10 +19,6 @@ import { ActivityService } from '../ActivityLogs/activity-logs.service';
 @Controller('subscription-plan')
 export class SuscriptionPlanController {
   constructor(
-    @InjectRepository(SubscriptionPlan)
-    private readonly suscriptionPlanRepository: Repository<SubscriptionPlan>,
-    @InjectRepository(Users)
-    private readonly userRepository: Repository<Users>,
     private readonly suscriptionPlanService: SuscriptionPlanService,
     private readonly activityService: ActivityService,
   ) {}

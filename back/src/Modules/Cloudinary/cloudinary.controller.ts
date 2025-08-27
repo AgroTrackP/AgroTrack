@@ -4,8 +4,10 @@ import {
   Get,
   InternalServerErrorException,
   MaxFileSizeValidator,
+  NotFoundException,
   Param,
   ParseFilePipe,
+  ParseUUIDPipe,
   Post,
   Put,
   UploadedFile,
@@ -20,12 +22,17 @@ import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
 import { RoleGuard } from 'src/Guards/role.guard';
 import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from '../Users/user.enum';
+import { IsActiveGuard } from 'src/Guards/isActive.guard';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Users } from '../Users/entities/user.entity';
+import { Repository } from 'typeorm';
 
 @Controller('cloudinary')
 export class CloudinaryController {
   constructor(
     private readonly cloudinaryService: CloudinaryService,
     private readonly userService: UsersService,
+    @InjectRepository(Users) private readonly usersRepo: Repository<Users>,
   ) {}
 
   @Post('/carrucel')
@@ -94,7 +101,7 @@ export class CloudinaryController {
   @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadimageperfil(
-    @Param('userId') userId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -130,9 +137,13 @@ export class CloudinaryController {
       );
     }
   }
-  @Get('/perfil')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
-  async getimageperfil() {
+  @Get('/perfil/:id')
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard, IsActiveGuard)
+  async getimageperfil(@Param('id', ParseUUIDPipe) id: string) {
+    const user = await this.usersRepo.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
     const folder = 'users';
     try {
       const result = await this.cloudinaryService.getImagesFromFolder(folder);

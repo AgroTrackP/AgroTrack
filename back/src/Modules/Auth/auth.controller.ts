@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Req,
   Res,
@@ -19,6 +20,11 @@ import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { hashPassword } from 'src/Helpers/hashPassword';
 import { ExcludePasswordInterceptor } from 'src/interceptor/exclude-pass.interceptor';
+import { PassportJwtAuthGuard } from 'src/Guards/passportJwt.guard';
+import { IsActiveGuard } from 'src/Guards/isActive.guard';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { AuthRequest } from 'src/types/express';
+import { ChangePasswordDto } from './dtos/ChangePassword.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -164,5 +170,17 @@ export class AuthController {
     const yourApiToken = this.authService.generateAppToken(user);
 
     return { user, token: yourApiToken };
+  }
+
+  @Patch('change-password')
+  @UseGuards(PassportJwtAuthGuard, IsActiveGuard)
+  @ApiOperation({ summary: 'Change the current user password' })
+  @ApiBearerAuth('jwt')
+  async changePassword(
+    @Req() req: AuthRequest,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    const userId = req.user.id;
+    return await this.authService.changePassword(userId, changePasswordDto);
   }
 }
