@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Recommendation } from './entities/recomendations.entity';
 import { RecommendationsService } from './recomendations.service';
@@ -17,7 +17,7 @@ import { UsersModule } from 'src/Modules/Users/users.module';
     ProductsModule,
     PhenologiesModule,
     ApplicationTypesModule,
-    ApplicationPlansModule,
+    forwardRef(() => ApplicationPlansModule),
     UsersModule,
   ],
   controllers: [RecommendationsController],
