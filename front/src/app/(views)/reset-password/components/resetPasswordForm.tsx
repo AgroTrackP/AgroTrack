@@ -99,9 +99,10 @@ export default function ResetPasswordForm() {
       } else {
         toast.error(result.message);
       }
-    } catch (error: any) {
-      console.error("Error al restablecer la contraseña:", error);
-      toast.error("Error inesperado al restablecer la contraseña."); 
+    }    catch (err) {
+        console.error("Error al restablecer la contraseña:", err);
+        toast.error("Error inesperado al restablecer la contraseña.");
+
     } finally {
       setLoading(false);
     }

@@ -112,9 +112,10 @@ export default function LoginForm() {
                 toast.error(result.message);
                 return false; 
             }
-        } catch (error: any) {
-            toast.error("Error inesperado al solicitar la recuperación.");
-            return false; 
+        } catch (err) {
+        console.error("Error de inicio de sesión:", err);
+        toast.error("Error al iniciar sesión"); 
+        return false;
         }
     };
 
