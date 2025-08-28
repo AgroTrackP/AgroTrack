@@ -1,3 +1,4 @@
+
 enum eRole {
 	ADMIN = "Admin",
 	USER = "user",
@@ -11,6 +12,22 @@ export interface IUser {
 	credential?: Credential;
 	picture?: string;
 	imgUrl?: string; // para el profileUploader
+}
+
+export class ForgotPasswordDto {
+    email?: string;
+}
+export interface ResetPasswordDto {
+  token: string;
+  password: string; 
+}
+export interface ChangePasswordDto {
+    newPassword: string;
+    confirmPassword: string;
+}
+export interface ResetPasswordFormFields {
+  newPassword: string;
+  confirmPassword: string;
 }
 
 export interface RegisterUserDto {

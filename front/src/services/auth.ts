@@ -1,8 +1,9 @@
 "use server";
-import { IUser, LandDataDTO, LoginUserDto, RegisterUserDto } from "@/types";
+import { ForgotPasswordDto, IUser, LandDataDTO, LoginUserDto, RegisterUserDto, ResetPasswordDto } from "@/types";
 import { axiosApiBack } from "./utils";
 import { LoginServiceResponse } from "./utils/types";
 import { LoginResponse } from "./utils/types";
+
 
 export const postTerrainInformation = async (data: LandDataDTO) => {
 	try {
@@ -23,19 +24,15 @@ export const getTerrains = async () => {
 		throw error;
 	}
 };
-// En tu archivo src/services/auth.ts
-
-// ... (tus otras importaciones y funciones como axiosApiBack, getTerrainsByUser, etc.)
 
 export const getTerrainsByUser = async (
 	userId: string,
 	token: string,
 	page: number = 1,
 	limit: number = 5,
-	search: string = "" // <-- Parámetro de búsqueda añadido
+	search: string = "" 
 ) => {
 	try {
-		// Construye los parámetros de la URL dinámicamente
 		const params = new URLSearchParams({
 			page: String(page),
 			limit: String(limit),
@@ -151,3 +148,40 @@ export const updateUserCredentials = async (
 		throw error;
 	}
 };
+
+export async function sendForgotPasswordEmail(email: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const response = await axiosApiBack.post("/auth/forgot-password", { email } as ForgotPasswordDto);
+    
+    if (response.status === 200) { // Tu backend devuelve 200 OK
+      return { success: true, message: "Si el correo electrónico está registrado, se ha enviado un enlace para restablecer la contraseña." };
+    } else {
+      return { success: false, message: response.data?.message || "Error desconocido al enviar el correo." };
+    }
+  } catch (error) {
+    console.error("Error en Server Action al solicitar recuperación de contraseña:", error);
+    throw error;
+  }
+}
+
+export async function submitNewPasswordWithToken(token: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+  try {
+    // El backend ahora espera { token, password } en el BODY
+    const dataToSend: ResetPasswordDto = { 
+      token: token,
+      password: newPassword, // ✅ Mapeamos newPassword del frontend a 'password' que espera el backend
+    }; 
+    // ✅ Apunta al nuevo endpoint de restablecimiento de contraseña
+    // ✅ Utiliza el método POST
+    const response = await axiosApiBack.post("/auth/reset-password", dataToSend); 
+
+    if (response.status === 200) { 
+      return { success: true, message: "Contraseña restablecida exitosamente." };
+    } else {
+      return { success: false, message: response.data?.message || "Error al restablecer la contraseña." };
+    }
+  } catch (error) {
+    console.error("Error en Server Action al restablecer contraseña con token:", error);
+    throw error;
+  }
+}
