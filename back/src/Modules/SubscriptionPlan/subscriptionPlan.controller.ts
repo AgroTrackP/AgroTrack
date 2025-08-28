@@ -14,6 +14,7 @@ import {
 } from '@nestjs/swagger';
 import { ActivityService } from '../ActivityLogs/activity-logs.service';
 import { IsActiveGuard } from 'src/Guards/isActive.guard';
+import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
 
 @ApiTags('Subscription Plans')
 @ApiBearerAuth('jwt')
@@ -68,8 +69,7 @@ export class SuscriptionPlanController {
   }
 
   @Post()
-  @UseGuards(PassportJwtAuthGuard, RoleGuard, IsActiveGuard)
-  @Roles(Role.Admin)
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
   async createSuscriptionPlan(@Body() suscriptionData: CreateSuscriptionDto) {
     return this.suscriptionPlanService.createSuscriptionPlan(suscriptionData);
   }

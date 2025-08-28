@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/context/authContext";
-import { postLogin } from "@/services/auth";
+// 1. Importa la nueva función de servicio
+import { postLogin, sendForgotPasswordEmail } from "@/services/auth"; 
 import { routes } from "@/routes";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -12,6 +13,8 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { Loader2 } from "lucide-react"; 
 import Link from "next/link";
 import { setCookie } from "nookies";
+// 2. Importa el nuevo modal
+import ForgotPasswordModal from "./utils/forgotPassawordModal"; 
 
 const loginSchema = yup.object({
     email: yup
@@ -38,6 +41,9 @@ export default function LoginForm() {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [showPassword, setShowPassword] = useState(false);
+    
+    // --- 3. AÑADE EL ESTADO PARA EL MODAL ---
+    const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -61,50 +67,60 @@ export default function LoginForm() {
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const isValid = await handleValidation();
-    if (!isValid) return;
+        e.preventDefault();
+        const isValid = await handleValidation();
+        if (!isValid) return;
 
-    setLoading(true);
-    setErrors({});
+        setLoading(true);
+        setErrors({});
 
-    try {
-        const res = await postLogin(form);
-        const data = res.data;
+        try {
+            const res = await postLogin(form);
+            const data = res.data;
 
-        if (!data?.token || !data?.user) {
-            toast.error(data?.message || "Datos incorrectos");
-            setLoading(false);
-            return;
+            if (!data?.token || !data?.user) {
+                toast.error(data?.message || "Datos incorrectos");
+                setLoading(false);
+                return;
+            }
+
+            saveUserData(data);
+            setCookie(null, "auth_token", data.token, { maxAge: 30 * 60, path: "/" });
+            toast.success("¡Bienvenido! Redirigiendo...");
+
+            setTimeout(() => {
+                router.push("/profile");
+            }, 1000);
+
+        } catch (err) {
+            console.error("Error de inicio de sesión:", err);
+            toast.error("Error al iniciar sesión. Verifica tus credenciales.");
+            setLoading(false); // Detiene la carga solo si hay error
         }
+        // Se elimina el 'finally' para que el loading persista hasta la redirección
+    };
 
-        // Guardar en authContext
-        saveUserData(data);
-
-        // Guardar token en cookie para SSR
-       setCookie(null, "auth_token", data.token, {
-  maxAge: 30 * 60, // 30 minutos en segundos
-  path: "/",
-  sameSite: "lax",
-});
-
-        toast.success("¡Bienvenido! Redirigiendo...");
-
-        setTimeout(() => {
-            router.push("/profile"); // Siempre a perfil
-        }, 1000);
-
-    } catch (err) {
+    // --- 4. AÑADE LA FUNCIÓN PARA MANEJAR EL RESETEO ---
+    const handleResetPassword = async (email: string) => {
+        try {
+            const result = await sendForgotPasswordEmail(email); 
+            if (result.success) {
+                toast.success(result.message);
+                setShowForgotPasswordModal(false); // Cierra el modal si es exitoso
+                return true; 
+            } else {
+                toast.error(result.message);
+                return false; 
+            }
+        } catch (err) {
         console.error("Error de inicio de sesión:", err);
-        toast.error("Error al iniciar sesión");
-    } finally {
-        setLoading(false);
-    }
-};
-
+        toast.error("Error al iniciar sesión"); 
+        return false;
+        }
+    };
 
     return (
-        <form onSubmit={handleSubmit} className="max-w-md mx-auto bg-white p-11 rounded-xl shadow-lg space-y-8 relative">
+        <form onSubmit={handleSubmit} className="max-w-md mx-auto bg-white p-11 rounded-xl shadow-lg space-y-6 relative">
             {loading && (
                 <div className="absolute inset-0 bg-white bg-opacity-80 flex flex-col items-center justify-center rounded-xl z-10">
                     <Loader2 className="animate-spin h-10 w-10 text-green-600" />
@@ -129,6 +145,17 @@ export default function LoginForm() {
                     </button>
                 </div>
                 {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
+            </div>
+            
+            {/* --- 5. AÑADE EL BOTÓN PARA ABRIR EL MODAL --- */}
+            <div className="text-right -mt-2">
+                <button
+                    type="button"
+                    onClick={() => setShowForgotPasswordModal(true)}
+                    className="text-sm text-green-600 hover:underline font-medium"
+                >
+                    ¿Olvidaste tu contraseña?
+                </button>
             </div>
 
             <button disabled={loading} type="submit" className="w-full bg-green-600 text-white py-2 px-4 rounded-lg transition-colors hover:bg-green-700 disabled:opacity-50 disabled:cursor-wait">
@@ -158,6 +185,13 @@ export default function LoginForm() {
                     ‹ Volver al inicio
                 </Link>
             </p>
+            
+            {/* --- 6. RENDERIZA EL MODAL --- */}
+            <ForgotPasswordModal
+                isOpen={showForgotPasswordModal}
+                onClose={() => setShowForgotPasswordModal(false)}
+                onResetPassword={handleResetPassword}
+            />
         </form>
     );
 }

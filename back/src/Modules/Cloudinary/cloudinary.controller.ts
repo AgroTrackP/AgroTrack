@@ -22,7 +22,6 @@ import { SelfOnlyGuard } from 'src/Guards/selfOnly.guard';
 import { RoleGuard } from 'src/Guards/role.guard';
 import { Roles } from '../Auth/decorators/roles.decorator';
 import { Role } from '../Users/user.enum';
-import { IsActiveGuard } from 'src/Guards/isActive.guard';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from '../Users/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -98,7 +97,7 @@ export class CloudinaryController {
     }
   }
   @Put('perfil/:userId')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard, IsActiveGuard)
+  @UseGuards(PassportJwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadimageperfil(
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -138,7 +137,7 @@ export class CloudinaryController {
     }
   }
   @Get('/perfil/:id')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard, IsActiveGuard)
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
   async getimageperfil(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersRepo.findOne({ where: { id } });
     if (!user) {

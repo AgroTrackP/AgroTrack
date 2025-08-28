@@ -151,7 +151,7 @@ export class PlantationsController {
   }
 
   @Patch(':id/deactivate')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+  @UseGuards(PassportJwtAuthGuard)
   @ApiOperation({ summary: 'Deactivates a plantation (Admin only)' })
   async deactivatePlantation(@Param('id', ParseUUIDPipe) id: string) {
     return this.plantationsService.setActivationStatus(id, false);
