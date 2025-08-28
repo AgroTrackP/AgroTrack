@@ -137,7 +137,7 @@ export class CloudinaryController {
     }
   }
   @Get('/perfil/:id')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+  @UseGuards(PassportJwtAuthGuard)
   async getimageperfil(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersRepo.findOne({ where: { id } });
     if (!user) {
