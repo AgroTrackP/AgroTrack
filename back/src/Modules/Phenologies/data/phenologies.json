@@ -1,0 +1,6 @@
+[
+  { "name": "Germinación", "description": "Inicio del crecimiento de la planta" },
+  { "name": "Crecimiento vegetativo", "description": "Desarrollo de hojas y tallos" },
+  { "name": "Floración", "description": "Aparición de flores" },
+  { "name": "Fructificación", "description": "Formación y maduración de frutos" }
+]

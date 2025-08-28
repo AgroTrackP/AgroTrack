@@ -1,0 +1,13 @@
+[
+  { "name": "Oídio", "description": "Hongo que afecta hojas y tallos" },
+  { "name": "Mildiu", "description": "Enfermedad fúngica que da manchas" },
+  { "name": "Tizón de la hoja", "description": "Enfermedad que provoca necrosis en hojas de cereales" },
+  { "name": "Monilia", "description": "Hongo que afecta a frutos, causando pudrición" },
+  { "name": "Roya", "description": "Hongo que deja manchas anaranjadas o rojizas en las hojas" },
+  { "name": "Botrytis", "description": "Hongo de moho gris que pudre hojas, flores y frutos" },
+  { "name": "Pudrición de la raíz", "description": "Enfermedad que afecta el sistema radicular y causa marchitez" },
+  { "name": "Alternaria", "description": "Hongo que causa manchas oscuras en las hojas" },
+  { "name": "Mancha foliar", "description": "Enfermedad que causa manchas de color variable en las hojas" },
+  { "name": "Mancha parda", "description": "Hongo que produce manchas marrones en pastos" },
+  { "name": "Fusarium", "description": "Hongo que provoca la marchitez vascular de la planta" }
+]

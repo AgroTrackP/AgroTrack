@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Fungicida Alpha",
+    "concentration": 5,
+    "water_per_liter": 1,
+    "stock": 30,
+    "alert_threshold": 5,
+    "category_name": "Fungicida",
+    "isActive": true
+  },
+  {
+    "name": "Fungicida Beta",
+    "concentration": 7.5,
+    "water_per_liter": 0.9,
+    "stock": 40,
+    "alert_threshold": 10,
+    "category_name": "Fungicida",
+    "isActive": true
+  },
+  {
+    "name": "Fertilizante Plus",
+    "concentration": 12,
+    "water_per_liter": 2,
+    "stock": 100,
+    "alert_threshold": 20,
+    "category_name": "Fertilizante",
+    "isActive": true
+  },
+  {
+    "name": "Herbicida Y",
+    "concentration": 8,
+    "water_per_liter": 0.5,
+    "stock": 120,
+    "alert_threshold": 20,
+    "category_name": "Herbicida",
+    "isActive": true
+  },
+  {
+    "name": "Alguicida Max",
+    "concentration": 15,
+    "water_per_liter": 0.7,
+    "stock": 80,
+    "alert_threshold": 15,
+    "category_name": "Alguicida",
+    "isActive": true
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "planned_date": "2025-09-01",
+    "total_water": 500,
+    "total_product": 20,
+    "status": "pending"
+  },
+  {
+    "planned_date": "2025-09-05",
+    "total_water": 600,
+    "total_product": 25,
+    "status": "pending"
+  },
+  {
+    "planned_date": "2025-09-10",
+    "total_water": 450,
+    "total_product": 15,
+    "status": "pending"
+  },
+  {
+    "planned_date": "2025-09-15",
+    "total_water": 700,
+    "total_product": 30,
+    "status": "pending"
+  }
+]

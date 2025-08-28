@@ -1,0 +1,62 @@
+[
+  {
+    "crop_type": "Cereales",
+    "planting_notes": "Siembra ideal: marzo-abril. Temperatura óptima: 10-15°C.",
+    "recommended_water_per_m2": 7,
+    "recommended_fertilizer": "Fertilizante para cereales (alto en nitrógeno)",
+    "additional_notes": "Rotación de cultivos recomendada cada 2 años.",
+    "recommended_diseases": ["Tizón de la hoja"],
+    "recommended_products": ["Fungicida Alpha", "Fungicida Beta"],
+    "recommended_application_type": "Curativa"
+  },
+  {
+    "crop_type": "Frutas",
+    "planting_notes": "Siembra ideal: septiembre-octubre. Temperatura óptima: 18-25°C.",
+    "recommended_water_per_m2": 6,
+    "recommended_fertilizer": "Abono orgánico para frutales",
+    "additional_notes": "Podar anualmente para mejorar la aireación.",
+    "recommended_diseases": ["Oídio", "Monilia", "Roya"],
+    "recommended_products": ["Fungicida Alpha", "Fertilizante Plus"],
+    "recommended_application_type": "Preventiva"
+  },
+  {
+    "crop_type": "Vegetales",
+    "planting_notes": "Siembra ideal: todo el año. Temperatura óptima: 15-22°C.",
+    "recommended_water_per_m2": 5,
+    "recommended_fertilizer": "Compost o fertilizante N-P-K equilibrado",
+    "additional_notes": "Usar acolchado para retener humedad.",
+    "recommended_diseases": ["Mildiu", "Botrytis"],
+    "recommended_products": ["Fungicida Beta", "Herbicida Y"],
+    "recommended_application_type": "Preventiva"
+  },
+  {
+    "crop_type": "Hortalizas",
+    "planting_notes": "Siembra ideal: agosto-octubre. Temperatura óptima: 20-30°C.",
+    "recommended_water_per_m2": 4,
+    "recommended_fertilizer": "Fertilizante con potasio",
+    "additional_notes": "Revisar el envés de las hojas semanalmente.",
+    "recommended_diseases": ["Pudrición de la raíz", "Alternaria"],
+    "recommended_products": ["Fertilizante Plus"],
+    "recommended_application_type": "Curativa"
+  },
+  {
+    "crop_type": "Ornamentales",
+    "planting_notes": "Siembra ideal: primavera. Temperatura óptima: 15-25°C.",
+    "recommended_water_per_m2": 3,
+    "recommended_fertilizer": "Fertilizante para flores",
+    "additional_notes": "Proteger de vientos fuertes y heladas.",
+    "recommended_diseases": ["Mancha foliar"],
+    "recommended_products": ["Alguicida Max"],
+    "recommended_application_type": "Preventiva"
+  },
+  {
+    "crop_type": "Pastos",
+    "planting_notes": "Siembra ideal: otoño. Temperatura óptima: 10-20°C.",
+    "recommended_water_per_m2": 8,
+    "recommended_fertilizer": "Fertilizante rico en nitrógeno",
+    "additional_notes": "Cortar el pasto regularmente para estimular el crecimiento.",
+    "recommended_diseases": ["Mancha parda", "Fusarium"],
+    "recommended_products": ["Herbicida Y"],
+    "recommended_application_type": "Curativa"
+  }
+]

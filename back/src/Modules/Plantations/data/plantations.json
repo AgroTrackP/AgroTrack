@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Fundo Los Álamos",
+    "area_m2": 2500,
+    "crop_type": "Cereales",
+    "location": "-34.9048,-71.2066",
+    "start_date": "2024-03-10T00:00:00.000Z"
+  },
+  {
+    "name": "Huerto La Esperanza",
+    "area_m2": 1800,
+    "crop_type": "Frutas",
+    "location": "-33.5684,-71.5971",
+    "start_date": "2024-04-20T00:00:00.000Z"
+  },
+  {
+    "name": "Parcela El Edén",
+    "area_m2": 1200,
+    "crop_type": "Vegetales",
+    "location": "-33.4005,-70.6186",
+    "start_date": "2024-05-15T00:00:00.000Z"
+  },
+  {
+    "name": "Campo Verde",
+    "area_m2": 950,
+    "crop_type": "Hortalizas",
+    "location": "-33.4474,-70.6725",
+    "start_date": "2024-06-01T00:00:00.000Z"
+  },
+  {
+    "name": "Jardín del Sol",
+    "area_m2": 700,
+    "crop_type": "Ornamentales",
+    "location": "-33.5937,-71.4922",
+    "start_date": "2024-07-07T00:00:00.000Z"
+  },
+  {
+    "name": "Pradera Alta",
+    "area_m2": 3100,
+    "crop_type": "Pastos",
+    "location": "-45.5786,-72.1154",
+    "start_date": "2024-08-22T00:00:00.000Z"
+  }
+]
