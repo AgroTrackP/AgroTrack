@@ -97,7 +97,7 @@ export class CloudinaryController {
     }
   }
   @Put('perfil/:userId')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+  @UseGuards(PassportJwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadimageperfil(
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -137,7 +137,7 @@ export class CloudinaryController {
     }
   }
   @Get('/perfil/:id')
-  @UseGuards(PassportJwtAuthGuard)
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
   async getimageperfil(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersRepo.findOne({ where: { id } });
     if (!user) {
