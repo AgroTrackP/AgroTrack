@@ -263,26 +263,18 @@ export class UsersService {
   async deleteUser(id: string) {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
+      throw new NotFoundException(`User not found`);
     }
 
     try {
-      await this.usersRepository.delete(user.id);
+      await this.usersRepository.update({ id }, { isActive: false });
       await this.activityService.logActivity(
         user,
-        ActivityType.USER_DELETED,
-        `El usuario '${user.name}' (${user.id}) ha sido removido de la base de datos.`,
+        ActivityType.USER_INNACTIVE,
+        `El usuario '${user.name}' (${user.id}) ha sido deshabilitado.`,
       );
-      return { message: 'User deleted successfully' };
     } catch (error) {
-      const errorMessage =
-        typeof error === 'object' && error !== null && 'message' in error
-          ? (error as { message: string }).message
-          : String(error);
-      throw new InternalServerErrorException(
-        'Error deleting user',
-        errorMessage,
-      );
+      throw new Error(`Error deleting user: ${error}`);
     }
   }
 
