@@ -3,7 +3,11 @@
 @tailwind utilities;
 @import "leaflet/dist/leaflet.css";
 
-
+.pending-day {
+  background-color: rgb(106, 227, 106) !important; 
+  border-radius: 50%;
+  font-weight: bold;
+}
 
 .leaflet-container {
   position: relative; 
