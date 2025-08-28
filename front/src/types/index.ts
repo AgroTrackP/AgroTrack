@@ -85,12 +85,35 @@ export interface IDetalleTerreno {
 	memberSince: string;
 }
 
+// Interfaz para la Enfermedad
+export interface IDisease {
+	id: string;
+	name: string;
+	description: string;
+}
+
+// Interfaz para el Producto dentro de 'items'
+export interface IProduct {
+	id: string;
+	name: string;
+	// ...otras propiedades del producto si las necesitas
+}
+
+// Interfaz para cada Ítem en el array 'items'
+export interface IItem {
+	id: number;
+	calculated_quantity: string;
+	product: IProduct;
+}
+
 export interface IApplicationPlan {
 	id: string;
 	planned_date: string;
 	total_water: string;
 	total_product: string;
 	status: "pending" | "completed" | "skipped";
+	disease: IDisease;
+	items: IItem[];
 }
 
 export interface IRecommendedDisease {

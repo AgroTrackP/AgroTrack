@@ -87,7 +87,7 @@ setTotalItems(responseData.total ?? 0);
   userId: user.id!, // <- le decimos a TS que no es undefined
 };
 
-        await postTerrainInformation(landDataToApi);
+        await postTerrainInformation(landDataToApi,token);
         await fetchLands(currentPageFromApi, 5);
       } catch (error) {
         setError("Error al crear el cultivo.");

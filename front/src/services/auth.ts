@@ -4,14 +4,25 @@ import { axiosApiBack } from "./utils";
 import { LoginServiceResponse } from "./utils/types";
 import { LoginResponse } from "./utils/types";
 
-
-export const postTerrainInformation = async (data: LandDataDTO) => {
+export const postTerrainInformation = async (
+	data: LandDataDTO,
+	token: string
+) => {
 	try {
 		console.log("Payload a enviar:", data);
-		const response = await axiosApiBack.post("/plantations", data);
+		const response = await axiosApiBack.post("/plantations", data, {
+			headers: {
+				Authorization: `Bearer ${token}`, // <-- enviamos token al backend
+				"Content-Type": "application/json",
+			},
+		});
 		return response.data;
-	} catch (error) {
-		console.error("Error al enviar información del terreno:", error);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	} catch (error: any) {
+		console.error(
+			"Error al enviar información del terreno:",
+			error.response?.data || error
+		);
 		throw error;
 	}
 };

@@ -52,4 +52,9 @@ export class Contact {
   })
   @CreateDateColumn()
   createdAt: Date;
+  @Column({
+    type: 'boolean',
+    default: true,
+  })
+  isActive: boolean;
 }

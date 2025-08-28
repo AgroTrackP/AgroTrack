@@ -98,7 +98,7 @@ export class CloudinaryController {
     }
   }
   @Put('perfil/:userId')
-  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard)
+  @UseGuards(PassportJwtAuthGuard, SelfOnlyGuard, IsActiveGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadimageperfil(
     @Param('userId', ParseUUIDPipe) userId: string,

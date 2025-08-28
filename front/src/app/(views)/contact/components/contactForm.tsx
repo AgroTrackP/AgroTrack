@@ -18,26 +18,31 @@ type FormValues = yup.InferType<typeof contactSchema>;
 
 
 export default function ContactForm() {
-  const handleSubmit = async (values: FormValues, { resetForm }: FormikHelpers<FormValues>) => {
-    try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/contact`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(values),
-        });
+const handleSubmit = async (values: FormValues, { resetForm }: FormikHelpers<FormValues>) => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/contact`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: values.name,        // <-- mapear a lo que espera el backend
+        email: values.email,
+        description: values.message,
+      }),
+    });
 
-        if (!res.ok) throw new Error("Error en el envío");
-
-        toast.success("Mensaje enviado con éxito ✅");
-        resetForm();
-    } catch (error) {
-      console.error("detalle del eeror", error)
-      toast.error("Hubo un error al enviar el mensaje ❌");
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Error del backend:", res.status, text);
+      throw new Error("Error en el envío");
     }
-};
 
+    toast.success("Mensaje enviado con éxito ✅");
+    resetForm();
+  } catch (error) {
+    console.error("detalle del error", error);
+    toast.error("Hubo un error al enviar el mensaje ❌");
+  }
+};
 return (
     <div className="max-w-lg mx-auto bg-white shadow-md rounded-lg p-6">
         <h2 className="text-2xl font-semibold mb-4 text-center">Contáctanos</h2>

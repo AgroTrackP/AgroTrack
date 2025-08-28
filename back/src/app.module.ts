@@ -18,9 +18,13 @@ import { SubscriptionPlanModule } from './Modules/SubscriptionPlan/subscriptionP
 import { ChatModule } from './Modules/chatbot/chatbox.module';
 import { RecommendationsModule } from './Modules/Recomendations/recomendations.module';
 import { ActivityLogsModule } from './Modules/ActivityLogs/activity-logs.module';
+import { CalendarModule } from './Modules/Calendar/calendar.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ApplicationPlansModule } from './Modules/ApplicationPlans/applicationPlans.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       load: [TypeORMConfig],
@@ -50,6 +54,8 @@ import { ActivityLogsModule } from './Modules/ActivityLogs/activity-logs.module'
     SubscriptionPlanModule,
     RecommendationsModule,
     ActivityLogsModule,
+    CalendarModule,
+    ApplicationPlansModule,
   ],
   controllers: [],
   providers: [],

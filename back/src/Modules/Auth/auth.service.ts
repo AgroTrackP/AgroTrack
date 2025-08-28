@@ -123,6 +123,7 @@ export class AuthService {
         'applicationTypes',
         'phenologies',
         'suscription_level',
+        'calendarEntries',
       ],
     });
 
@@ -206,5 +207,50 @@ export class AuthService {
     await this.usersDbRepo.update(userId, { password: newHashedPassword });
 
     return { message: 'Password changed successfully.' };
+  }
+
+  async sendPasswordResetEmail(email: string): Promise<{ message: string }> {
+    const user = await this.usersDbRepo.findOneBy({ email });
+    if (user) {
+      const payload = { sub: user.id, email: user.email };
+      const token = this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '15m',
+      });
+
+      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+
+      await this.mailService.sendPasswordResetEmail(
+        user.name,
+        user.email,
+        resetUrl,
+      );
+    }
+
+    return {
+      message:
+        'If an account with that email exists, a password reset link has been sent.',
+    };
+  }
+
+  async resetPassword(
+    token: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    try {
+      const payload = this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+
+      const newHashedPassword = await hashPassword(newPassword);
+
+      await this.usersDbRepo.update(payload.sub, {
+        password: newHashedPassword,
+      });
+
+      return { message: 'Password has been reset successfully.' };
+    } catch (error) {
+      throw new BadRequestException('Invalid or expired password reset token.');
+    }
   }
 }

@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -25,6 +26,8 @@ import { IsActiveGuard } from 'src/Guards/isActive.guard';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthRequest } from 'src/types/express';
 import { ChangePasswordDto } from './dtos/ChangePassword.dto';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto';
+import { ResetPasswordDto } from './dtos/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -182,5 +185,24 @@ export class AuthController {
   ) {
     const userId = req.user.id;
     return await this.authService.changePassword(userId, changePasswordDto);
+  }
+
+  @Post('forgot-password')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Send password reset email if user exists' })
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return await this.authService.sendPasswordResetEmail(
+      forgotPasswordDto.email,
+    );
+  }
+
+  @Post('reset-password')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Reset user password with a valid token' })
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return await this.authService.resetPassword(
+      resetPasswordDto.token,
+      resetPasswordDto.password,
+    );
   }
 }
