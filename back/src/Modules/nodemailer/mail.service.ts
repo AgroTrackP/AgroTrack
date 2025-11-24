@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 import { SubscriptionPlan } from '../SubscriptionPlan/entities/subscriptionplan.entity';
 import { Users } from '../Users/entities/user.entity';
@@ -8,35 +8,28 @@ import ConfirmationEmail from 'src/emails/confirmation';
 import RenewalSuccessEmail from 'src/emails/renewal-success';
 import SubscriptionCanceledEmail from 'src/emails/subscription-canceled';
 import PasswordResetEmail from 'src/emails/password-reset';
+import { Resend } from 'resend';
 
 @Injectable()
 export class MailService {
   private transporter: ReturnType<typeof nodemailer.createTransport>;
+  private resend: Resend;
 
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: true, // true para puerto 465
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
+    this.resend = new Resend(process.env.RESEND_API_KEY);
   }
 
   async sendMail(to: string, subject: string, html: string) {
     try {
-      await this.transporter.sendMail({
-        from: `"Agrotrack" <${process.env.SMTP_USER}>`,
-        to,
-        subject,
-        html, // El contenido ahora es el HTML renderizado
+      await this.resend.emails.send({
+        from: 'AgroTrack <onboarding@resend.dev>',
+        to: [to],
+        subject: subject,
+        html: html,
       });
-      console.log(`📨 Email enviado a ${to} con asunto: ${subject}`);
+      console.log(`📨 Email enviado a ${to}`);
     } catch (error) {
-      console.error('❌ Error enviando correo:', error);
-      throw new InternalServerErrorException('No se pudo enviar el correo');
+      console.error('❌ Error enviando correo con Resend:', error);
     }
   }
 
