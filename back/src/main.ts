@@ -34,7 +34,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('AgroTrack API')
-    .setDescription('AgroTrack')
+    .setDescription('Backend para el sistema de gestión AgroTrack. Ofrece endpoints para la administración de usuarios (Auth0/JWT), gestión de inventario de productos agrícolas, planificación de tareas mediante calendario y procesamiento de pagos y suscripciones. Arquitectura modular construida con NestJS, TypeORM y PostgreSQL.')
     .setVersion('1.0')
     .addBearerAuth(
       {
